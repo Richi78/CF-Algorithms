@@ -18,34 +18,30 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-void ask(string &s, int x, int y){
-    x--;
-    s[x]=y;
-    // cout<<s<<endl;
-    for(int i=0 ; i<s.size()-3 ; i++){
-        if(i<0)continue;
-        if(i+3 >= s.size())continue;
-        if(s[i]=='1' && s[i+1]=='1' && s[i+2]=='0' && s[i+3]=='0'){
-            cout<<"YES"<<endl;
-            return;
-        }
-    }
-    cout<<"NO"<<endl;
+bool check(string &s, int i, int n){
+    if(i+3 >= n) return false;
+    if(i < 0) return false;
+    if(s[i]=='1' && s[i+1]=='1' && s[i+2]=='0' && s[i+3]=='0') return true;
+    else return false;
 }
 
 void solve(){
     string s; cin >> s;
-    int q; cin >> q;
-
-    vector< pair<int, char> > a(q);
-    for(int i=0 ; i<q ; i++){
-        int x; char y; cin >> x >> y;
-        pair<int,char> tmp={x,y};
-        a[i]=tmp;
+    int cnt=0 , n=s.size();
+    for(int i=0 ; i<s.size() ; i++){
+        if(check(s,i,n)) cnt++;
     }
 
-    for(auto [x,y] : a){
-        ask(s,x,y);
+    int q; cin >> q;
+    while(q--){
+        int x; char y; cin >> x >> y;
+        x--;
+        int before=0,after=0;
+        if(check(s,x-3,n) || check(s,x-2,n) || check(s,x-1,n) || check(s,x,n)) before=1;
+        s[x]=y;
+        if(check(s,x-3,n) || check(s,x-2,n) || check(s,x-1,n) || check(s,x,n)) after=1;
+        cnt = cnt + after - before;
+        cout<<(cnt ? "YES" : "NO")<<endl;
     }
 }
 
