@@ -25,21 +25,17 @@ void solve(){
     bool turn=1; // alice -> 1 
     int ans=0;
     for(int i=n-1 ; i>=0 ; i--){
-        if(a[i] == mx){
-            cnt++;
+        if(cnt % 2 == 0){
+            mx=a[i]; cnt=1;
         }else{
-            if(cnt % 2 == 0){
-                mx=a[i]; cnt=1;
+            int tmp=mx-a[i];
+            if(k > tmp){
+                a[i]=mx;
+                k-=tmp;
+                cnt++;
             }else{
-                int tmp=mx-a[i];
-                if(k > tmp){
-                    a[i]=mx;
-                    k-=tmp;
-                    cnt++;
-                }else{
-                    a[i]+=k;
-                    k=0;
-                }
+                a[i]+=k;
+                k=0;
             }
         }
 
