@@ -20,28 +20,18 @@ void solve(){
     int n,k; cin >> n >> k;
     vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
-    sort(all(a));
-    int mx=a.back() , cnt=0;
-    bool turn=1; // alice -> 1 
-    int ans=0;
-    for(int i=n-1 ; i>=0 ; i--){
-        if(cnt % 2 == 0){
-            mx=a[i]; cnt=1;
-        }else{
-            int tmp=mx-a[i];
-            if(k > tmp){
-                a[i]=mx;
-                k-=tmp;
-                cnt++;
-            }else{
-                a[i]+=k;
-                k=0;
-            }
-        }
+    sort(all(a),greater<int>());
 
-        if(turn) ans+=a[i];
-        else ans-=a[i];
-        turn=!turn;
+    int ans=0;
+    for(int i=0 ; i<n ; i++){
+        if(i&1){
+            ans-=a[i];
+            int tmp=min(k, a[i-1]-a[i]);
+            ans-=tmp;
+            k-=tmp;
+        }else {
+            ans+=a[i];
+        }
     }
     cout<<ans<<endl;
 }
@@ -51,3 +41,34 @@ signed main(){
     int tc;cin>>tc;
     while(tc--)solve();
 }
+
+
+// void solve(){
+//     int n,k; cin >> n >> k;
+//     vector<int> a(n);
+//     for(int i=0 ; i<n ; i++) cin >> a[i];
+//     sort(all(a));
+//     int mx=a.back() , cnt=0;
+//     bool turn=1; // alice -> 1 
+//     int ans=0;
+//     for(int i=n-1 ; i>=0 ; i--){
+//         if(cnt % 2 == 0){
+//             mx=a[i]; cnt=1;
+//         }else{
+//             int tmp=mx-a[i];
+//             if(k > tmp){
+//                 a[i]=mx;
+//                 k-=tmp;
+//                 cnt++;
+//             }else{
+//                 a[i]+=k;
+//                 k=0;
+//             }
+//         }
+
+//         if(turn) ans+=a[i];
+//         else ans-=a[i];
+//         turn=!turn;
+//     }
+//     cout<<ans<<endl;
+// }
