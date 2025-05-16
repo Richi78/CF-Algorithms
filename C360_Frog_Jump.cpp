@@ -18,6 +18,7 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 // in this version we can have k jumps, not only 1 or 2
 
+// top down aproach
 int f(int n, int k, vector<int> &a, vector<int> &dp){
     if(n == 0) return 0;
     if(dp[n] != -1) return dp[n];
@@ -35,14 +36,40 @@ int f(int n, int k, vector<int> &a, vector<int> &dp){
     return dp[n]=mnst;   
 }
 
+// with top down approach
+// void solve(){
+//     int n,k; cin >> n >> k;
+//     vector<int> a(n);
+//     for(int i=0 ; i<n ; i++) cin >> a[i];
+
+//     vector<int> dp(n, -1);
+//     int ans = f(n-1 , k , a , dp);
+//     cout<<ans<<endl;
+// }
+
+
+// with bottom up approach
+
 void solve(){
     int n,k; cin >> n >> k;
     vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
 
-    vector<int> dp(n, -1);
-    int ans = f(n-1 , k , a , dp);
-    cout<<ans<<endl;
+    vector<int> dp(n,-1);
+    dp[0]=0;
+    for(int i=1 ; i<n ; i++){
+        int mn=INT_MAX;
+        for(int j=1 ; j<=k ; j++){
+            if(i-j >= 0){
+                int jump=dp[i-j]+abs(a[i]-a[i-j]);
+                mn=min(mn,jump);
+            }
+        }
+        dp[i]=mn;
+    }
+    cout<<dp[n-1]<<endl;
+    // in order to optimize SC we need an array of length k
+    // insted of dp array
 }
 
 signed main(){
