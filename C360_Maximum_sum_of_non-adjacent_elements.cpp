@@ -17,23 +17,40 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 // top down approach
-int f(int n, vector<int> &a, vector<int> &dp){
-    if(n == 0) return a[n];
-    if(n < 0) return 0;
-    if(dp[n] != -1) return dp[n];
-    int pick=a[n] + f(n-2, a , dp);
-    int nopick=0 + f(n-1, a , dp);
-    return dp[n]=max(pick,nopick);
-}
+// int f(int n, vector<int> &a, vector<int> &dp){
+//     if(n == 0) return a[n];
+//     if(n < 0) return 0;
+//     if(dp[n] != -1) return dp[n];
+//     int pick=a[n] + f(n-2, a , dp);
+//     int nopick=0 + f(n-1, a , dp);
+//     return dp[n]=max(pick,nopick);
+// }
 
+// void solve(){
+//     int n; cin >> n;
+//     vector<int> a(n); 
+//     for(int i=0 ; i<n ; i++) cin >> a[i];
+
+//     vector<int> dp(n,-1);
+//     int ans = f(n-1 , a , dp);
+//     cout<<ans<<endl;
+// }
+
+// bottom up approach
 void solve(){
     int n; cin >> n;
-    vector<int> a(n); 
+    vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
 
     vector<int> dp(n,-1);
-    int ans = f(n-1 , a , dp);
-    cout<<ans<<endl;
+    dp[0]=a[0];
+    for(int i=1 ; i<n ; i++){
+        int pick = a[i];
+        if(i>1) pick += dp[i-2];
+        int nopick = 0 + dp[i-1];
+        dp[i] = max(pick,nopick);
+    }
+    cout<<dp[n-1]<<endl;
 }
 
 signed main(){
