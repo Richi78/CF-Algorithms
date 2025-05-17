@@ -26,6 +26,9 @@ signed main(){
     while(tc--)solve();
 }
 
+
+
+
 //------------PRIME-------------------------
 // bool isPrime(int x){
 //     for(int i=2;i*i<=x;i++){
