@@ -73,3 +73,15 @@ signed main(){
 //                 ans[j]=0;
 //     return ans;
 // }
+
+
+//------------ORDERED SET---------------
+// #include <ext/pb_ds/assoc_container.hpp>
+// #include <ext/pb_ds/trie_policy.hpp>
+
+// using namespace __gnu_pbds;
+
+// typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds; //find_by_order, order_of_key ; greater<int>, less_equal<int>
+// // insert -> logn | delete -> | find kth element -> logn | find # of elements smaller than x -> logn 
+
+
