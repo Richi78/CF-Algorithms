@@ -20,25 +20,35 @@ void solve(){
     int n,q; cin >> n >> q;
     string s1,s2; cin >> s1 >> s2;
 
+    vector< vector<int> > pref1(n+1, vector<int>(26));
+    vector< vector<int> > pref2(n+1, vector<int>(26));
+
+    for(int i=1 ; i<=n ; i++){
+        char c=s1[i-1];
+        pref1[i][c-'a']++;
+        for(int j=0 ; j<26 ; j++){
+            pref1[i][j] += pref1[i-1][j];
+        }
+    }
+
+    for(int i=1 ; i<=n ; i++){
+        char c=s2[i-1];
+        pref2[i][c-'a']++;
+        for(int j=0 ; j<26 ; j++){
+            pref2[i][j] += pref2[i-1][j];
+        }
+    }
 
     for(int j=0 ; j<q ; j++){
         int l,r; cin >> l >> r;
-        --l; --r;
 
-        map<char,int> mp1 , mp2;
-        vector<int> alf(26,0);
-        for(int i=l ; i<=r ; i++){
-            mp1[s1[i]]++; mp2[s2[i]]++;
-            alf[s1[i]-'a']++; 
-        }
         int cnt=0;
-        for(int i=0 ; i<alf.size() ; i++){
-            if(alf[i]){
-                int a=mp1[i+'a'] , b=mp2[i+'a'];
-                if(a > b) cnt+=a-b;
-            }
+        for(int i=0 ; i<26 ; i++){
+            int v1=pref1[r][i] - pref1[l-1][i];
+            int v2=pref2[r][i] - pref2[l-1][i]; 
+            cnt+=abs(v1-v2);
         }
-        cout<<cnt<<endl;
+        cout<<cnt/2<<endl;
     }
 }
 
