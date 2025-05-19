@@ -83,5 +83,6 @@ signed main(){
 
 // typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds; //find_by_order, order_of_key ; greater<int>, less_equal<int>
 // // insert -> logn | delete -> | find kth element -> logn | find # of elements smaller than x -> logn 
-
+// // up and lb work opposite
+// // to erase in a multiset s.erase(s.upperbound(x))
 
