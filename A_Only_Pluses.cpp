@@ -17,35 +17,30 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-
-    int m; cin >> m;
-    for(int j=0 ; j<m ; j++){
-        string s; cin >> s;
-        int lens=s.size();
-        if(n != lens){
-            cout<<"NO"<<endl;
-        }else{
-            map<int,char> mp1;
-            map<char,int> mp2;
-            bool bad=false;
-            for(int i=0 ; i<lens ; i++){
-                int x=a[i]; char c=s[i];
-
-                if(!mp1.count(x)) mp1[x]=c;
-                if(!mp2.count(c)) mp2[c]=x;
-
-                if(mp1[x] != c || mp2[c] != x) {
-                    bad=true; 
-                    break;
-                }
+    int a,b,c; cin >> a >> b >> c;
+    int sum=a+b+c;
+    int k=5;
+    int mn=min(a,min(b,c)) , mx=max(a,max(b,c)) , md=sum-mn-mx;
+    if(md - mn >= 5){
+        mn+=k;
+    }else{
+        k-=md-mn;
+        mn+=md-mn;
+        bool turn=1;
+        while(k){
+            if(mx >= md){
+                if(turn) mn+=1;
+                else md+=1;
+                turn=!turn;
+                k--;
+            }else{
+                mx+=1;
+                k--;
             }
-            if(bad)cout<<"NO"<<endl;
-            else cout<<"YES"<<endl;
         }
     }
+
+    cout<< mn * md * mx << endl;
 }
 
 signed main(){
@@ -53,5 +48,6 @@ signed main(){
     int tc;cin>>tc;
     while(tc--)solve();
 }
+
 
 

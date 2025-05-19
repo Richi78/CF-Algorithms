@@ -17,34 +17,28 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
+    int n,q; cin >> n >> q;
+    string s1,s2; cin >> s1 >> s2;
 
-    int m; cin >> m;
-    for(int j=0 ; j<m ; j++){
-        string s; cin >> s;
-        int lens=s.size();
-        if(n != lens){
-            cout<<"NO"<<endl;
-        }else{
-            map<int,char> mp1;
-            map<char,int> mp2;
-            bool bad=false;
-            for(int i=0 ; i<lens ; i++){
-                int x=a[i]; char c=s[i];
 
-                if(!mp1.count(x)) mp1[x]=c;
-                if(!mp2.count(c)) mp2[c]=x;
+    for(int j=0 ; j<q ; j++){
+        int l,r; cin >> l >> r;
+        --l; --r;
 
-                if(mp1[x] != c || mp2[c] != x) {
-                    bad=true; 
-                    break;
-                }
-            }
-            if(bad)cout<<"NO"<<endl;
-            else cout<<"YES"<<endl;
+        map<char,int> mp1 , mp2;
+        vector<int> alf(26,0);
+        for(int i=l ; i<=r ; i++){
+            mp1[s1[i]]++; mp2[s2[i]]++;
+            alf[s1[i]-'a']++; 
         }
+        int cnt=0;
+        for(int i=0 ; i<alf.size() ; i++){
+            if(alf[i]){
+                int a=mp1[i+'a'] , b=mp2[i+'a'];
+                if(a > b) cnt+=a-b;
+            }
+        }
+        cout<<cnt<<endl;
     }
 }
 
@@ -53,5 +47,4 @@ signed main(){
     int tc;cin>>tc;
     while(tc--)solve();
 }
-
 
