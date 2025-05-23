@@ -110,6 +110,52 @@ signed main(){
 //     }
 // };
 
+//------------KRUSKAL---------------
+// w,u,v
+// sort(all(edges), [](auto &x, auto &y){return x[0] < y[0];});
+// DisjointSet dsu(n);
+// vector< vector<int> > mst;
+// int mn=0;
+// for(auto edge : edges){
+    // int w=edge[0] , u=edge[1] , v=edge[2];
+    // if(dsu.findUPar(u) != dsu.findUPar(v)){
+        // dsu.unionBySize(u,v);
+        // mn+=w;
+        // mst.push_back(edge);
+    // }
+// }
+
+//------------PRIMS---------------
+// int prims(int n, map<int, vector<pair<int,int>> > &adj){
+//     vector< array<int,3> > mst;
+//     int mn=0;
+//     vector<int> vis(n+1);
+
+//     priority_queue<
+//         array<int,3>, 
+//         vector< array<int,3> >,
+//         greater< array<int,3> >
+//     > pq; // {w,u,v}
+
+//     pq.push({0, adj.begin()->F ,adj.begin()->F}); // el primer nodo no cuesta nada
+//             //w,n,p
+//     while( !pq.empty() ){
+//         auto a=pq.top();
+//         pq.pop();
+//         int node=a[1] , parent=a[2] , w=a[0];
+
+//         if(vis[node]) continue;
+//         vis[node]=1;
+//         mst.push_back(a);
+//         mn+=w;
+//         for(auto it : adj[node]){
+//             int adjN=it.F , adjW=it.S;
+//             if(!vis[adjN]) pq.push({adjW, adjN, node});
+//         }
+//     }
+//     return mn;
+// }
+
 //------------SIEVE---------------
 // vector<int> sieve(int x){
 //     vector<int> ans(x+1,1);
