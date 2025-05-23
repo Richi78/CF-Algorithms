@@ -16,6 +16,7 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+// si no te dan la lista de adj hacer prims es costoso
 int prims(int n, map<int, vector<pair<int,int>> > &adj){
     vector< array<int,3> > mst;
     int mn=0;
