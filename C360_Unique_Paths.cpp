@@ -16,6 +16,8 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+const int MOD=1e9+7;
+
 //top down approach
 // int f(int n, int m, vector<vector<int>> &dp){
 //     if(n < 0 ) return 0;
@@ -27,7 +29,7 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 //     int l=f(n-1,m,dp);
 //     int r=f(n,m-1,dp);
 
-//     return dp[n][m]=l+r;
+//     return dp[n][m]=(l+r)%MOD;
 // }
 
 // void solve(){
@@ -50,7 +52,7 @@ void solve(){
             }else if(j==0){
                 dp[i][j]=1;
             }else{
-                dp[i][j]=dp[i-1][j]+dp[i][j-1];
+                dp[i][j]=(dp[i-1][j]+dp[i][j-1])%MOD;
             }
         }
     }
