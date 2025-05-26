@@ -180,3 +180,21 @@ signed main(){
 // // up and lb work opposite
 // // to erase in a multiset s.erase(s.upperbound(x))
 
+
+//------------BINEXP---------------
+// int binexp(int a, int b){
+//     int ans=1;
+//     while(b){
+//         if(b&1) ans*=a;
+//         a = (a*a); //% MOD; // si hay un MOD
+//         b >>= 1;
+//     }
+//     return ans;
+// }
+
+
+//------------MULTINV---------------
+// int inv(int a, int m){ // m primo
+//     int x=binexp(a, m-2);
+//     return (x+m)%m;
+// }
