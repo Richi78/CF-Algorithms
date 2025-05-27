@@ -8,10 +8,8 @@ using namespace std;
 #define int long long
 #define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 #define all(v) v.begin(),v.end()
-#define vii vector<pair<int,int>>
 #define F first 
 #define S second
-#define pii pair<int,int>
 
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
