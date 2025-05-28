@@ -37,14 +37,30 @@ void solve(){
         a.push_back(tmp);
     }
     
-    vector< vector<int> > dp;
-    for(int i=1 ; i<=n ; i++){
-        dp.push_back(vector<int>(i,-1));
+    // vector< vector<int> > dp;
+    // for(int i=1 ; i<=n ; i++){
+        // dp.push_back(vector<int>(i,-1));
+    // }
+
+    // int ans=f(n-1,0,0,a,dp);
+
+    // cout<< ans <<endl;
+
+    // bottom up approach
+    vector< vector<int> > dp(n,vector<int>(n));
+
+    for(int i=0 ; i<n ; i++){
+        dp[n-1][i]=a[n-1][i];
     }
 
-    int ans=f(n-1,0,0,a,dp);
-
-    cout<< ans <<endl;
+    for(int i=n-2; i>=0 ; i--){
+        for(int j=0 ; j<=i ; j++){
+            int l=a[i][j]+dp[i+1][j];
+            int r=a[i][j]+dp[i+1][j+1];
+            dp[i][j]=min(l,r);
+        }
+    }
+    cout<< dp[0][0] <<endl;
 }
 
 signed main(){
