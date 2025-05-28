@@ -14,6 +14,7 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+// top down approach
 int f(int n, int row, int col, vector<vector<int>> &a, vector<vector<int>> &dp){
     if(row == n) return a[row][col];
 
@@ -35,9 +36,6 @@ void solve(){
         }
         a.push_back(tmp);
     }
-    // for(auto x:a){
-        // vdebug(x)
-    // }
     
     vector< vector<int> > dp;
     for(int i=1 ; i<=n ; i++){
