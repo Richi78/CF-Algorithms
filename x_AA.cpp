@@ -16,7 +16,6 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(int n){
     int e; cin >> e;
-    // if(n==0) return;
     vector<int> adj[n];
     for(int i=0 ; i<e ; i++){
         int x,y; cin >> x >> y;
@@ -28,25 +27,14 @@ void solve(int n){
     vis[0]=0;
     queue<array<int,2>> q;
     q.push({0,0}); // node, parent
-    // vdebug(adj[1])
     while(!q.empty()){
         auto it= q.front();
         int node=it[0] , p=it[1];
-
         q.pop();
-
-        // if(vis[node] != -1 ){
-        //     cout<< "NOT BICOLORABLE." <<endl; return;
-        // }
-        // vis[node]=color;
-        // color=!color;
-
         for(auto x : adj[node]){
-            // if(x == p)continue;
             if(vis[x] == vis[node]){ 
                 cout<< "NOT BICOLORABLE." <<endl;return;
             }
-            // debug2(x,node)
             if(vis[x] == -1){
                 vis[x]=1-vis[node];
                 q.push({x,node});

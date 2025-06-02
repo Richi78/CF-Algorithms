@@ -40,7 +40,7 @@ signed main(){
     // int tc;cin>>tc;
     string s1,s2;
     while(getline(cin,s1)){
-        getline(cin,s2);
+        getline(cin,s2); // investigar porque no funciona con cin
         solve(s1,s2);
     }
 }
