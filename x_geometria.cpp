@@ -12,6 +12,7 @@ struct Point{
     Point operator-(Point b) {return {x-b.x, y-b.y};}
     Point operator*(double d) {return {x*d, y*d};}
     Point operator/(double d) {return {x/d, y/d};}
+    bool operator==(Point b) {return x==b.x && y==b.y;}
 };
 
 double dist(Point a, Point b){

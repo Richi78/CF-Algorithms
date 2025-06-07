@@ -14,28 +14,6 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-int f(vector<int> &a, vector<int> &b, int c,int pos, int n, int last, vector<int> &dp){
-    if(pos >= n-2){
-        // vdebug(a)
-        // vdebug(b)
-        // debug2(pos,n-1)
-        // debug2(a[pos],b[pos])
-
-        if(last == 1) return dp[pos]=min(a[pos],b[pos]);
-        else return dp[pos]=min(a[pos],b[pos]+c);   
-    }
-
-    if(dp[pos] != -1) return dp[pos];
-
-    int l= a[pos] + f(a,b,c,pos+1,n,0,dp); // esc
-    int r= last == 1 ? 0 : c;
-    r += b[pos] + f(a,b,c,pos+1,n,1,dp); // ele
-    
-    // debug2(a[pos],b[pos])
-
-    return dp[pos] = min(l,r);
-}
-
 void solve(){
     int n,c; cin >> n >> c;
     vector<int> a(n-1) , b(n-1);
@@ -43,34 +21,18 @@ void solve(){
     for(int i=0 ; i<n-1 ; i++) cin >> a[i];
     for(int i=0 ; i<n-1 ; i++) cin >> b[i];
 
-    // vdebug(a)
-    // vdebug(b)
-
-    vector<int> dp(n);
-    // f(a,b,c,0,n,2,dp);
-    bool used=0 , last=2; // 0 pata 1 elev
-
-    // int l= a[pos] + f(a,b,c,pos+1,n,0,dp); // esc
-    // int r= last == 1 ? 0 : c;
-    // r += b[pos] + f(a,b,c,pos+1,n,1,dp); // ele
-
-    for(int i=0 ; i<n-1 ; i++){
-        int tmp;
-        int l=a[i]+
-        if(a[i] <= b[i]+c){
-            tmp=a[i]; last=0;
-        }else{
-            tmp=b[i];
-            if(!last)tmp+=c;
-            last=1;
-        }
-
-        dp[i+1]=dp[i] + tmp;
+    vector< vector<int> > dp(n, vector<int>(2));
+    dp[0][0] = 0; dp[0][1]=c;
+    cout<< min(dp[0][0],dp[0][1])<< " ";
+    for(int i=1 ; i<n ; i++){
+        dp[i][0] = min(dp[i-1][0]+a[i-1] , dp[i-1][1]+a[i-1]);
+        dp[i][1] = min(dp[i-1][0]+b[i-1]+c , dp[i-1][1]+b[i-1]);
+        cout<< min(dp[i][0] , dp[i][1])<< " ";
     }
-    
-    for(auto x : dp){
-        cout<< x << " ";
-    }
+
+    // for(auto x : dp){
+        // cout<< min(x[0],x[1]) <<" ";
+    // }
     cout<<endl;
 }
 

@@ -14,25 +14,36 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+struct Point{
+    double x , y;
+    Point (double x, double y): x(x) , y(y){}
+    Point operator+(Point b) {return {x+b.x, y+b.y};}
+    Point operator-(Point b) {return {x-b.x, y-b.y};}
+    Point operator*(double d) {return {x*d, y*d};}
+    Point operator/(double d) {return {x/d, y/d};}
+    bool operator==(Point b) {return x==b.x && y==b.y;}
+};
+
 void solve(){
-    cout<< setprecision(3) << fixed;
     double x1,y1,x2,y2,x3,y3,x4,y4;
+    cout<< setprecision(3) <<fixed;
     while(cin>>x1>>y1>>x2>>y2>>x3>>y3>>x4>>y4){
-        double a,b;
-        if(x1==x3 && y1==y3){
-            a=x2+x4-x1;
-            b=y2+y4-y1;
-        }else if(x1==x4 && y1==y4){
-            a=x2+x3-x1;
-            b=y2+y3-y1;
-        }else if(x2==x3 && y2==y3){
-            a=x1+x4-x2;
-            b=y1+y4-y2;
-        }else {
-            a=x1+x3-x2;
-            b=y1+y3-y2;
-        }
-        cout<<a<<" "<<b<<endl;
+        Point a(x1,y1) , b(x2,y2) , c(x3,y3) , d(x4,y4);
+        double x,y;
+        if(a == c){
+            x = b.x + d.x - a.x;
+            y = b.y + d.y - a.y;
+        }else if(a == d){
+            x = b.x + c.x - a.x;
+            y = b.y + c.y - a.y;
+        }else if(b == c){
+            x = a.x + d.x - b.x;
+            y = a.y + d.y - b.y;
+        }else if(b == d){
+            x = a.x + c.x - b.x;
+            y = a.y + c.y - b.y;
+        } 
+        cout<< x << " " << y <<endl;
     }
 }
 
