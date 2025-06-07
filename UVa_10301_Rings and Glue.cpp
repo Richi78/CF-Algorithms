@@ -62,7 +62,7 @@ struct Circle{
 };
 
 double dist(Point &a, Point &b){
-    int x=a.x-b.x , y=a.y-b.y;
+    double x=a.x-b.x , y=a.y-b.y;
     return sqrt(x*x + y*y);
 }
 
@@ -73,52 +73,63 @@ bool intersec(Circle &a, Circle &b){
     if(a.r+b.r >= d) return true; //intersectan
 }
 
-void solve(int n, vector< Circle > &v){
-    // double a,b,c;
-    // vector< Circle > v;
-    // for(int i=0 ; i<n ; i++){
-    //     cin >> a >> b >> c;
-    //     v.push_back(Circle(Point(a,b),c));
-    // } 
-
-    DisjointSet dsu(n);
+void solve(int n){ //, vector< Circle > &v
+    double a,b,c;
+    vector< Circle > v;
     for(int i=0 ; i<n ; i++){
-        for(int j=0; j<n ; j++){
-            if(i==j)continue;
+        cin >> a >> b >> c;
+        v.push_back(Circle(Point(a,b),c));
+    } 
+
+    DisjointSet dsu(v.size());
+    for(int i=0 ; i<v.size() ; i++){
+        for(int j=i+1; j<v.size() ; j++){
             if(intersec(v[i],v[j])){
                dsu.unionBySize(i,j);
             }
         }
     }
+
     int mx=*max_element(all(dsu.size));
-    cout<<"The largest component contains "<<mx<<" ring";
-    cout<< (mx == 1 ? "" : "s") << "." <<endl;
+    cout<<"The largest component contains "<<(n==0 ? 0 : mx)<<" ring";
+    if(n==0) cout<<"s."<<endl;
+    else cout<< (mx == 1 ? "" : "s") << "." <<endl;
 }
 
 signed main(){
-    string line;
-    getline(cin, line);
-    istringstream ss(line);
     int n;
-    ss >> n;
-    while (n != -1) {
-        double a,b,c;
-        vector< Circle > v;
-        for (int i = 0; i < n; ++i) {
-            getline(cin, line);
-            ss.clear();
-            ss.str(line);
-            ss >> a >> b >> c;
-            v.push_back(Circle(Point(a,b),c));
-        }
-        solve(n , v);
-
-        getline(cin, line);
-        ss.clear();
-        ss.str(line);
-        ss >> n;
+    while(1){
+        cin >> n;
+        if(n == -1) break;
+        solve(n);
     }
-}
+} 
+    
+
+    // string line;
+    // getline(cin, line);
+    // istringstream ss(line);
+    // int n;
+    // ss >> n;
+    // while (n != -1) {
+    //     double a,b,c;
+    //     vector< Circle > v;
+    //     for (int i = 0; i < n; ++i) {
+    //         getline(cin, line);
+    //         ss.clear();
+    //         ss.str(line);
+    //         ss >> a >> b >> c;
+    //         v.push_back(Circle(Point(a,b),c));
+    //     }
+    //     solve(n , v);
+        
+    //     v.clear();
+    //     getline(cin, line);
+    //     ss.clear();
+    //     ss.str(line);
+    //     ss >> n;
+    // }
+// }
 
 // bool intersect( const vector< pair< float, pair<float, float> > > &v, int i, int j) {
 

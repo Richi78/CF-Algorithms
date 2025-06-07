@@ -16,9 +16,15 @@ struct Point{
 };
 
 double dist(Point a, Point b){
-    int x=a.x-b.x , y=a.y-b.y;
+    double x=a.x-b.x , y=a.y-b.y;
     return sqrt(x*x + y*y);
 }
+
+struct Circle{
+    Point center;
+    double r;
+    Circle (Point c, double r): center(c) , r(r){}
+};
 
 Point translate(Point v, Point p) {return p+v;} //mover un punto
 Point scale(Point c, double factor, Point p) {return c+(p-c)*factor;} //escalar un punto respecto un centro y un factor
