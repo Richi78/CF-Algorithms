@@ -17,19 +17,51 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 struct Point{
     int x,y;
     void read(){cin>>x>>y;}
-};
-struct Line{
-    Point x,y;
-    long double m;
-    Line (Point x, Point y): x(x),y(y){m=(long double)(y.y-x.y)/(long double)(y.x-x.x);}
+    Point operator -(const Point &b) const {
+        return Point{x-b.x , y-b.y};
+    }
+    int operator *(const Point &b) const {
+        return x * b.y - y * b.x;
+    }
+    // cross respecto a this
+    int cross(const Point &b, const Point &c) const {
+        return (b - *this) * (c - *this);
+    }
 };
 
 void solve(){
-    Point p1,p2,p3,p4;
-    p1.read(); p2.read(); p3.read(); p4.read();
-    Line l1(p1,p2) , l2(p3,p4);
-    if(l1.m != l2.m) cout<<"YES\n";
-    else cout<<"NO\n";
+    vector<Point> a;
+    for(int i=0 ; i<4 ; i++){
+        Point x; x.read();
+        a.push_back(x);
+    }
+    // paralelo o colinear
+    if( (a[1]-a[0]) * (a[3]-a[2]) == 0 ){
+        // parallel
+        if( a[0].cross(a[1],a[2]) != 0 ){
+            cout<<"NO\n"; return;
+        }
+        // colinear
+        for(int i=0 ; i<2 ; i++){
+            if(max(a[0].x,a[1].x) < min(a[2].x,a[3].x) || max(a[0].y,a[1].y) < min(a[2].y,a[3].y)){
+                cout<<"NO\n"; return;
+            }
+            swap(a[0],a[2]);
+            swap(a[1],a[3]);
+        }
+        cout<<"YES\n"; return;
+    }
+    // existe interseccion
+
+    for(int i=0 ; i<2 ; i++){
+        int x=a[0].cross(a[1],a[2]) , y=a[0].cross(a[1],a[3]);
+        if( (x<0 && y<0) || (x>0 && y>0) ){
+            cout<<"NO\n"; return;
+        }
+        swap(a[0],a[2]);
+        swap(a[1],a[3]);
+    }
+    cout<<"YES\n";
 }
 
 signed main(){
