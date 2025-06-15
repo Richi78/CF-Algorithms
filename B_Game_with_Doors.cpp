@@ -15,18 +15,16 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    int n; cin >> n;
-    string s; cin >> s;
-
-    if( s[0]=='1' || s[n-1]=='1' ){
-        cout<<"YES\n"; return;
+    int l,r,L,R; cin >> l >> r >> L >> R;
+    int ir=min(r,R) , il=max(l,L) , cnt=0;
+    if(il > ir){
+        cout<<"1\n";
+    }else{
+        if(ir>=il) cnt+=ir-il;
+        if( min(l,L) < il ) cnt++;
+        if( max(r,R) > ir ) cnt++;
+        cout<< cnt <<"\n";
     }
-    for(int i=1 ; i+1<n-1 ; i++){
-        if(s[i]=='1' && s[i+1]=='1'){
-            cout<<"YES\n"; return;
-        }
-    }
-    cout<<"NO\n";
 }
 
 signed main(){

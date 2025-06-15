@@ -16,17 +16,18 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
     int n; cin >> n;
-    string s; cin >> s;
-
-    if( s[0]=='1' || s[n-1]=='1' ){
-        cout<<"YES\n"; return;
+    vector< vector<int> > a(n+1, vector<int>(2));
+    for(int i=0 ; i<n ; i++){
+        int x,y; cin >> x >> y;
+        a[x][y]++;
+    } 
+    int cnt=0 , j=0;
+    for(int i=0 ; i<=n ; i++){
+        if(a[i][j] && a[i][!j]) cnt+=n-2;
+        if(i+1<=n && i-1>=0 && a[i][j] && a[i+1][!j] && a[i-1][!j]) cnt++;
+        if(i+1<=n && i-1>=0 && a[i][!j] && a[i+1][j] && a[i-1][j]) cnt++;
     }
-    for(int i=1 ; i+1<n-1 ; i++){
-        if(s[i]=='1' && s[i+1]=='1'){
-            cout<<"YES\n"; return;
-        }
-    }
-    cout<<"NO\n";
+    cout<< cnt << "\n";
 }
 
 signed main(){
