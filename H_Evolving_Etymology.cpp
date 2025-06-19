@@ -14,25 +14,32 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-void solve(){
-    int n; cin >> n;
+int binexp(int a, int b, int MOD){
+    int ans=1;
+    while(b){
+        if(b&1) ans=(ans*a)%MOD;
+        a=(a*a)%MOD;
+        b>>=1;
+    }
+    return ans;
+}
 
-    int cnt=0;
-    vector<int> ans(n+1,1);
-    for(int i=2;i<=n;i++){
-        if(ans[i]){
-            for(int j=i ; j<=n ; j+=i){
-                ans[j]=0;
-                cnt++;
-            }
-        }
+void solve(){
+    int n,k; cin >> n >> k;
+    string s; cin >> s;
+    
+    string ans="";
+    int tmp=binexp(2,k,n);
+    for(int i=0 ; i<n ; i++){
+        ans.push_back(s[(i*tmp)%n]);
     }
 
-    cout<< cnt <<"\n";
+    cout<< ans <<"\n";    
 }
 
 signed main(){
     FIO;
-    int tc;cin>>tc;
-    while(tc--)solve();
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }

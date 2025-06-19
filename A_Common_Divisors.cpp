@@ -14,25 +14,31 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+const int N=1e6+1;
+int a[N]={};
+
 void solve(){
     int n; cin >> n;
-
-    int cnt=0;
-    vector<int> ans(n+1,1);
-    for(int i=2;i<=n;i++){
-        if(ans[i]){
-            for(int j=i ; j<=n ; j+=i){
-                ans[j]=0;
-                cnt++;
-            }
-        }
+    
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x;
+        a[x]++;
     }
 
-    cout<< cnt <<"\n";
+    for(int i=N ; i>=1 ; i--){
+        int tmp=0;
+        for(int j=i ; j<=N ; j+=i){
+            tmp+=a[j];
+        }
+        if(tmp>1){
+            cout<< i <<"\n"; return;
+        }
+    }
 }
 
 signed main(){
     FIO;
-    int tc;cin>>tc;
-    while(tc--)solve();
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }

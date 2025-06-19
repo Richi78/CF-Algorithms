@@ -14,21 +14,36 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+bool isPrime(int a){
+    for(int i=2 ; i*i<=a ; i++){
+        if(a%i == 0) return false;
+    }
+    return a>=2;
+}
+
 void solve(){
     int n; cin >> n;
-
-    int cnt=0;
-    vector<int> ans(n+1,1);
-    for(int i=2;i<=n;i++){
-        if(ans[i]){
-            for(int j=i ; j<=n ; j+=i){
-                ans[j]=0;
-                cnt++;
-            }
-        }
+    if(n <= 4){
+        cout<<"-1\n"; return;
     }
+    stack<int> s;
+    for(int i=1; i<=n ; i+=2) s.push(i);
 
-    cout<< cnt <<"\n";
+    int idx=-1;
+    for(int i=2 ; i<=n ; i+=2){
+        int tmp=s.top();
+        if( !isPrime(tmp+i) ){
+            idx=i; break;
+        } 
+    }
+    for(int i=2 ; i<=n ; i+=2){
+        if(i != idx) cout<< i <<" ";
+    }
+    cout<< idx<<" ";
+    while(!s.empty()){
+        cout<<s.top()<<" ";
+        s.pop();
+    }
 }
 
 signed main(){

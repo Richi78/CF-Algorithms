@@ -14,21 +14,32 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+int gcd(int a, int b){
+    if(b==0) return a;
+    return gcd(b, a%b);
+}
+
 void solve(){
     int n; cin >> n;
-
-    int cnt=0;
-    vector<int> ans(n+1,1);
-    for(int i=2;i<=n;i++){
-        if(ans[i]){
-            for(int j=i ; j<=n ; j+=i){
-                ans[j]=0;
-                cnt++;
+    vector< pair<int,int> > odd , even;
+    for(int i=1 ; i<=n ; i++){
+        int x; cin >> x;
+        if(x&1) odd.emplace_back(x,i);
+        else even.emplace_back(x,i);
+    }
+   
+    int mx=-1;
+    for(int i=0 ; i<odd.size() ; i++){
+        if(odd[i].F == 1){
+            mx=max(mx,odd[i].S*2); 
+        }
+        for(int j=0 ; j<even.size() ; j++){
+            if( gcd(odd[i].F,even[j].F) == 1){
+                mx=max(mx,odd[i].S+even[j].S);
             }
         }
-    }
-
-    cout<< cnt <<"\n";
+    } 
+    cout<< mx <<"\n"; 
 }
 
 signed main(){
