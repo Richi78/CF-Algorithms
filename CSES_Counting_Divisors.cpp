@@ -14,33 +14,29 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-int gcd(int a, int b){
-    if(b==0) return a;
-    return gcd(b, a%b);
-}
+const int N=1e6+5;
+int mp[N]={};
 
 void solve(){
     int n; cin >> n;
-    vector<int> a(1001);
-    for(int i=1 ; i<=n ; i++){
-        int x; cin >> x;
-        a[x]=i;
+    int tmp=n;
+    if(mp[n] != 0){
+        cout<<mp[n]<<"\n"; return;
     }
-
-    // for(int i=0 ; i<8 ; i++){
-    //     cout<<a[i]<<" ";
-    // }
-    // cout<<endl;
-
-    int mx=-1;
-    for(int i=1 ; i<=1000 ; i++){
-        for(int j=1 ; j<=1000 ; j++){
-            if( a[i] && a[j] && gcd(i,j) == 1 ){
-                mx=max(mx,a[i]+a[j]);
+    int ans=1;
+    for(int i=2 ; i*i<=n ; i++){
+        if(n%i == 0){
+            int cnt=0;
+            while(n%i == 0){
+                cnt++; n/=i;
             }
+            ans*=(cnt+1);
         }
     }
-    cout<< mx <<"\n";
+
+    if(n != 1) ans*=2;
+    mp[tmp]=ans;
+    cout<< ans <<"\n";
 }
 
 signed main(){
