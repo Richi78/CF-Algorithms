@@ -1,64 +1,105 @@
-#include <iostream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <set>
+#include <bits/stdc++.h>
 
 using namespace std;
 
-struct Punto {
-    int x, y;
-    bool operator<(const Punto &o) const {
-        return tie(x, y) < tie(o.x, o.y);
+#define debug1(x) cout << #x << " = " << x << "\n";
+#define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
+#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
+#define int long long
+#define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
+#define all(v) v.begin(),v.end()
+#define F first 
+#define S second
+
+template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
+template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
+
+struct Point{
+    int x,y;
+    void read(){cin >> x >> y;}
+    Point operator -(const Point &b) const {
+        return Point{x-b.x, y-b.y};
+    }
+    int operator *(const Point &b) const {
+        return x*b.y - y*b.x;
+    }
+    int cross(const Point &b, const Point &c) const {
+        return (b-*this) * (c-*this);
+    }
+    bool operator ==(const Point &b) const{
+        return x==b.x && y==b.y;
     }
 };
 
-struct Vec {
-    int dx, dy;
+struct Segment{
+    Point ini,fin;
+    void read(Point x, Point y){
+        ini=x; fin=y;
+    }
 };
 
-double cross(const Vec& a, const Vec& b) {
-    return a.dx * b.dy - a.dy * b.dx;
-}
-
-double dot(const Vec& a, const Vec& b) {
-    return a.dx * b.dx + a.dy * b.dy;
-}
-
-double angle_between(const Vec& a, const Vec& b) {
-    double dotp = dot(a, b);
-    double crossp = cross(a, b);
-    return atan2(abs(crossp), dotp); // always returns angle in [0, pi]
-}
-
-int main() {
-    int n;
-    cin >> n;
-    map<Punto, vector<Vec>> conexiones;
-
-    for (int i = 0; i < n; ++i) {
-        int x1, y1, x2, y2;
-        cin >> x1 >> y1 >> x2 >> y2;
-        Punto p1{x1, y1}, p2{x2, y2};
-        Vec v1{x2 - x1, y2 - y1};
-        Vec v2{x1 - x2, y1 - y2};
-        conexiones[p1].push_back(v1);
-        conexiones[p2].push_back(v2);
+// 0->no inter   1->contain a point    2->inter
+int inter(Point a, Point b, Point c, Point d){
+    // son paralelos o colineales
+    if( (b-a) * (d-c) == 0 ){
+        return 0;
+    }
+    // verificar si existe interseccion
+    for(int i=0 ; i<2 ; i++){
+        int x=a.cross(b,c) , y=a.cross(b,d);
+        if( (x<0 && y<0) || (x>0 && y>0) ){
+            return 0;
+        }
+        swap(a,c);
+        swap(b,d);
     }
 
-    int angulos_convexos = 0;
+    // existe interseccion, completa o contains?
+    for(int i=0 ; i<2 ; i++){
+        int x=a.cross(b,c) , y=a.cross(b,d);
+        if( (x==0 && y) || (x && y==0) ){
+            return 1;
+        }
+        swap(a,c);
+        swap(b,d);
+    }
+    return 2;
+}
 
-    for (auto& [p, vectores] : conexiones) {
-        int k = vectores.size();
-        for (int i = 0; i < k; ++i) {
-            for (int j = i + 1; j < k; ++j) {
-                double angulo = angle_between(vectores[i], vectores[j]);
-                if (angulo > 0 && angulo < M_PI) {
-                    angulos_convexos++;
-                }
+void solve(){
+    int n; cin >> n;
+    vector<Segment> a(n);
+    for(int i=0 ; i<n ; i++){
+        Point x,y; x.read(); y.read();
+        a[i].read(x,y);
+    }
+
+    int cnt=0;
+    for(int i=0 ; i<n ; i++){
+
+        for(int j=i+1 ; j<n ; j++){
+            bool x=a[i].ini==a[j].ini ||
+                a[i].ini==a[j].fin ||
+                a[i].fin==a[j].ini ||
+                a[i].fin==a[j].fin;
+            if( x ){
+                cnt++; continue;
+            }
+            int tmp=inter(a[i].ini,a[i].fin,a[j].ini,a[j].fin);
+            if(tmp == 1){
+                cnt+=2;
+            }
+            if(tmp == 2){
+                cnt+=4;
             }
         }
     }
+    cout << cnt <<"\n";
+}
 
-    cout << angulos_convexos << endl;
+signed main(){
+    FIO;
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }
