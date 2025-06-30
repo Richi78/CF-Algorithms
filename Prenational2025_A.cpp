@@ -43,7 +43,6 @@ void solve(){
             }
         }
     }
-    INT_MAX
     if(dist[n]>k || dist[n]==1e12) cout<<"NO\n";
     else cout<<"SI\n";
 }
