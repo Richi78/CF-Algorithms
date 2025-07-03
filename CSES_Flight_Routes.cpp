@@ -13,38 +13,7 @@ using namespace std;
 
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
-
-class DisjointSet{
-    vector<int> parent,size;
-public:
-    DisjointSet(int n){
-        parent.resize(n+1);
-        size.resize(n+1);
-        for(int i=0 ; i<=n ; i++){
-            parent[i]=i;
-            size[i]=1;
-        }
-    }
-
-    int findUPar(int node){
-        if(node == parent[node]) return node;
-        return parent[node] = findUPar(parent[node]);
-    }
-
-    void unionBySize(int u, int v){
-        int ulp_u = findUPar(u);
-        int ulp_v = findUPar(v);
-        if(ulp_u == ulp_v) return;
-        if(size[ulp_u] < size[ulp_v]){
-            parent[ulp_u] = ulp_v;
-            size[ulp_v] += size[ulp_u];
-        }else{
-            parent[ulp_v] = ulp_u;
-            size[ulp_u] += size[ulp_v];
-        }
-    }
-};
-
+  
 void solve(){
     int n,m,k; cin >> n >> m >> k;
 
@@ -54,33 +23,28 @@ void solve(){
         adj[u].push_back({w,v});
     }
 
-    // DisjointSet dsu(n);
-    // vector<int> dist(n+1,4e18);
-    // set<array<int,2>> st;
-    // st.insert({0,1});
-    // dist[1]=0;
-    queue<array<int,3>> q;
-    q.push({0,1,1});
-    vector<int> ans;
-    while(!q.empty()){
-        auto it=q.front();
-        q.pop();
-        int dis=it[0] , node=it[1] , parent=it[2];
-        if(node == n){
-            ans.push_back(dis); continue;
-        }
+    vector< vector<int> > dist(n+1, vector<int>(k,1e18));
+    dist[1][0]=0;
+    multiset<array<int,2>> st;
+    st.insert({0,1});
+
+    while(!st.empty()){
+        auto it=*st.begin();
+        int dis=it[0] , node=it[1];
+        st.erase(st.begin());
+        if(dist[node][k-1] < dis) continue;
         for(auto x : adj[node]){
             int adjW=x[0] , adjN=x[1];
-            if(adjN != parent){
-                q.push({dis+adjW,adjN,node});
+            if(dis+adjW < dist[adjN][k-1]){
+                dist[adjN][k-1]=dis+adjW;
+                st.insert({dist[adjN][k-1],adjN});
+                sort(all(dist[adjN]));
             }
         }
     }
 
-    sort(all(ans));
-
     for(int i=0 ; i<k ; i++){
-        cout<< ans[i] <<" ";
+        cout<< dist[n][i] <<" ";
     }
     cout<<"\n";
 }
