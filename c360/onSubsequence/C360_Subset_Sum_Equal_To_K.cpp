@@ -51,6 +51,11 @@ void solve(){
             dp[i][target]=take||notake; 
         }
     }
+
+    // for(auto x : dp){
+    //     vdebug(x)
+    // }
+
     cout<< dp[n-1][k] <<"\n";
 }
 
