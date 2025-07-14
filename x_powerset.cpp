@@ -14,33 +14,40 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+int binexp(int a, int b){
+    int ans=1;
+    while(b){
+        if(b&1) ans=ans*a;
+        a=a*a;
+        b>>=1;
+    }
+    return ans;
+}
+
 void solve(){
     int n; cin >> n;
     vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
+    for(int i=0 ; i<n ; i++) a[i]=i+1;
 
-    int acc=accumulate(all(a), 0LL);
-    vector<vector<bool>> dp(n, vector<bool>(acc/2+1, 0));
-    for(int i=0 ; i<n ; i++) dp[i][0]=true;
-    dp[0][a[0]]=true;
+    vdebug(a)
 
-    for(int i=1 ; i<n ; i++){
-        for(int j=1 ; j<=acc/2+1 ; j++){
-            bool notake=dp[i-1][j];
-            bool take=false;
-            if(j-a[i] >=0){
-                take=dp[i-1][j-a[i]];
+    int sz=binexp(2,n);
+    debug1(sz)
+    vector<vector<int>> ans;
+    for(int i=0 ; i<sz ; i++){
+        vector<int> x;
+        int tmp=i;
+        for(int j=0 ; tmp>0 ; j++){
+            tmp>>=1;
+            if(i & (1LL<<j)){
+                x.push_back(a[j]); 
             }
-            dp[i][j]=take||notake;
         }
+        ans.push_back(x);
     }
-
-    int mn=1e9;
-    for(int i=0 ; i<=acc/2 ; i++){
-        if(dp[n-1][i])
-            mn=min(mn, abs( i - ( acc - i ) ) );
+    for(auto x : ans){
+        vdebug(x)
     }
-    cout<< mn <<"\n";
 }
 
 signed main(){

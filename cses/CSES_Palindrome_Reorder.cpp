@@ -15,32 +15,36 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
+    string s; cin >> s;
+    vector<int> a(26);
+    for(int i=0 ; i<(int)s.size() ; i++){
+        a[s[i]-'A']++;
+    }
+    int cnt=0;
+    for(int i=0 ; i<26 ; i++){
+        if(a[i]&1) cnt++;
+    }
+    if(cnt > 1){
+        cout<< "NO SOLUTION\n"; return;
+    }
 
-    int acc=accumulate(all(a), 0LL);
-    vector<vector<bool>> dp(n, vector<bool>(acc/2+1, 0));
-    for(int i=0 ; i<n ; i++) dp[i][0]=true;
-    dp[0][a[0]]=true;
-
-    for(int i=1 ; i<n ; i++){
-        for(int j=1 ; j<=acc/2+1 ; j++){
-            bool notake=dp[i-1][j];
-            bool take=false;
-            if(j-a[i] >=0){
-                take=dp[i-1][j-a[i]];
-            }
-            dp[i][j]=take||notake;
+    char c='#';
+    int j=0 , sz=s.size();
+    for(int i=0 ; i<26 ; i++){
+        while(a[i] > 1){
+            s[j]=i+'A';
+            s[sz-1-j]=i+'A';
+            j++;
+            a[i]-=2;
         }
+        if(a[i]&1) c=i+'A';
     }
 
-    int mn=1e9;
-    for(int i=0 ; i<=acc/2 ; i++){
-        if(dp[n-1][i])
-            mn=min(mn, abs( i - ( acc - i ) ) );
+    if(c != '#'){
+        s[sz/2]=c;
     }
-    cout<< mn <<"\n";
+
+    cout<< s <<"\n";
 }
 
 signed main(){

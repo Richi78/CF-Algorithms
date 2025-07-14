@@ -16,31 +16,22 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
     int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-
-    int acc=accumulate(all(a), 0LL);
-    vector<vector<bool>> dp(n, vector<bool>(acc/2+1, 0));
-    for(int i=0 ; i<n ; i++) dp[i][0]=true;
-    dp[0][a[0]]=true;
-
-    for(int i=1 ; i<n ; i++){
-        for(int j=1 ; j<=acc/2+1 ; j++){
-            bool notake=dp[i-1][j];
-            bool take=false;
-            if(j-a[i] >=0){
-                take=dp[i-1][j-a[i]];
-            }
-            dp[i][j]=take||notake;
-        }
+    
+    stack<int> st;
+    for(int i=n&1?n:n-1 ; i>=1 ; i-=2) st.push(i);
+    int x=-1;
+    for(int i=n&1?n-1:n ; i>=1 ; i-=2){
+        if(abs(st.top()-i) == 1){
+            cout<<"NO SOLUTION\n"; return;
+        }else 
+            st.push(i);
     }
-
-    int mn=1e9;
-    for(int i=0 ; i<=acc/2 ; i++){
-        if(dp[n-1][i])
-            mn=min(mn, abs( i - ( acc - i ) ) );
+    while(!st.empty()){
+        cout<< st.top() <<" ";
+        st.pop();
     }
-    cout<< mn <<"\n";
+    cout<<"\n";
+    
 }
 
 signed main(){
