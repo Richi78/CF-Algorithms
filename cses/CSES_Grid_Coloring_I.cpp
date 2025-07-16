@@ -14,35 +14,25 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-void f(string s, vector<int> &freq, vector<string> &ans, int n){
-    if(s.size() == n){
-        ans.push_back(s);
-        return;
-    }
-    for(int i=0 ; i<26 ; i++){
-        if(freq[i]>0){
-            freq[i]--;
-            f(s+char(i+'a') , freq , ans , n);
-            freq[i]++;
-        }
-    }
-}
-
 void solve(){
-    string s; cin >> s;
-    int n=s.size();
+    int n,m; cin >> n >> m;
+    vector<string> a(n);
+    for(int i=0 ; i<n ; i++) cin >> a[i];
 
-    vector<int> freq(26);
-    for(auto c : s){
-        freq[c-'a']++;
-    }
-
-    vector<string> ans;
-    f("", freq, ans, n);
-    
-    cout<< ans.size() <<"\n";
-    for(auto x : ans){
-        cout<< x <<"\n";
+    for(int i=0 ; i<n ; i++){
+        for(int j=0 ; j<m ; j++){
+            set<char> st;
+            if(i-1>=0) st.insert(a[i-1][j]);
+            if(j-1>=0) st.insert(a[i][j-1]);
+            st.insert(a[i][j]);
+            for(char k='A' ; k<='D' ; k++){
+                if(st.count(k) ==0 ){
+                    a[i][j]=k;
+                    break;
+                }
+            }
+        }
+        cout<< a[i] <<"\n";
     }
 }
 

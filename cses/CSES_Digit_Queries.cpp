@@ -14,41 +14,28 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-void f(string s, vector<int> &freq, vector<string> &ans, int n){
-    if(s.size() == n){
-        ans.push_back(s);
-        return;
-    }
-    for(int i=0 ; i<26 ; i++){
-        if(freq[i]>0){
-            freq[i]--;
-            f(s+char(i+'a') , freq , ans , n);
-            freq[i]++;
-        }
-    }
-}
-
 void solve(){
-    string s; cin >> s;
-    int n=s.size();
-
-    vector<int> freq(26);
-    for(auto c : s){
-        freq[c-'a']++;
-    }
-
-    vector<string> ans;
-    f("", freq, ans, n);
-    
-    cout<< ans.size() <<"\n";
-    for(auto x : ans){
-        cout<< x <<"\n";
+    int k; cin >> k;
+    int mult=1 , cnt=1;
+    int acc=0;
+    while(true){
+        int skip=9*mult;
+        if(k-skip*cnt > 0){
+            k-=skip*cnt;
+            acc+=skip;
+        }else{
+            skip=(k-1)/cnt;
+            k-=skip*cnt;
+            acc+=skip;
+            cout<< to_string(acc+1)[k-1] <<"\n";
+            return;
+        }
+        mult*=10; cnt++;
     }
 }
 
 signed main(){
     FIO;
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }
