@@ -10,6 +10,7 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 #define F first 
 #define S second
+// const int MOD=998244353;
 
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
@@ -195,4 +196,24 @@ signed main(){
 // int inv(int a, int m){ // m primo
 //     int x=binexp(a, m-2);
 //     return (x+m)%m;
+// }
+
+
+//------------LPS---------------
+// vector<int> create_lps(string &needle){
+//     int n=(int)needle.size();
+//     vector<int> lps(n);
+
+//     int prevLPS=0 , i=1;
+//     while(i<n){
+//         if(needle[i] == needle[prevLPS]){
+//             lps[i]=prevLPS+1;
+//             prevLPS++; i++;
+//         }else if(prevLPS == 0){
+//             lps[i]=0; i++;
+//         }else{
+//             prevLPS=lps[prevLPS-1];
+//         }
+//     }
+//     return lps;
 // }
