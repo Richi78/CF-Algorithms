@@ -15,38 +15,44 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+void dfs(int s, vector<int> adj[], vector<int> &vis, int &nodes, int &edges){
+    vis[s]=1;
+    nodes++;
+    for(auto adjN : adj[s]){
+        edges++;
+        if(vis[adjN] == 0){
+            dfs(adjN, adj, vis, nodes, edges);
+        }
+    }
+}
+
 void solve(){
     int n,m; cin >> n >> m;
     vector<int> adj[n+1];
-    vector<int> indegree(n+1);
     for(int i=0 ; i<m ; i++){
         int u,v; cin >> u >> v;
         adj[u].push_back(v);
         adj[v].push_back(u);
-        indegree[u]++;
-        indegree[v]++;
     }
 
-    int node_x , node_y;
-    for(int i=1 ; i<n ; i++){
-        if(indegree[i] == 1){
-            node_y=adj[i].back(); 
-            break;
+    int cnt=0;
+    vector<int> vis(n+1);
+    for(int i=1 ; i<=n ; i++){
+        if(vis[i] == 0){
+            int edges=0;
+            int nodes=0;
+            dfs(i , adj , vis , nodes , edges);
+            int mx=nodes*(nodes-1)/2;
+            cnt+=mx-edges/2;
         }
     }
-    int y=indegree[node_y];
-    for(auto x : adj[node_y]){
-        if(indegree[x]!= 1){
-            node_x=x;
-            break;
-        }
-    }
-    int x=indegree[node_x];
-    cout<< x <<" "<< y-1 <<"\n";
+    cout<< cnt <<"\n";
 }
 
 signed main(){
     FIO;
-    int tc;cin>>tc;
-    while(tc--)solve();
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }
+
