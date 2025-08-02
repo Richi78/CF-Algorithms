@@ -21,6 +21,8 @@ void solve(){
 
 signed main(){
     FIO;
+    // freopen("censor.in", "r", stdin);
+    // freopen("censor.out", "w", stdout);
     int tc;cin>>tc;
     while(tc--)solve();
 }
@@ -28,29 +30,29 @@ signed main(){
 
 
 
-//------------PRIME-------------------------
-// bool isPrime(int x){
+//------------prime-------------------------
+// bool isprime(int x){
 //     for(int i=2;i*i<=x;i++){
 //             if(x%i==0)return false;
 //         }
 //         return x>=2;
 //     }
         
-//---------GCD----------------------------
+//---------gcd----------------------------
 
 // int gcd(int a, int b){
 //     if(b==0)return a;
 //     return gcd(b,a%b);
 // }
 
-//---------LCM----------------------------
+//---------lcm----------------------------
 // int lcm (int a, int b) {
 //     return a / gcd(a, b) * b;
 // }
 
-//--------UNION-FIND------------------
-// const int N = 1000;
-// vector<int> par(N,-1),sz(N,1);
+//--------union-find------------------
+// const int n = 1000;
+// vector<int> par(n,-1),sz(n,1);
 // vector <pair<int, pair<int, int>>> edges;
 
 // int find(int a) { return par[a] == -1 ? a : par[a] = find(par[a]); }
@@ -61,10 +63,10 @@ signed main(){
 //   par[b] = a; sz[a] += sz[b];
 // }
 
-// class DisjointSet{
+// class disjointset{
 //     vector<int> rank,parent,size;
 // public:
-//     DisjointSet(int n){
+//     disjointset(int n){
 //         rank.resize(n+1, 0);
 //         parent.resize(n+1);
 //         size.resize(n+1);
@@ -74,14 +76,14 @@ signed main(){
 //         }
 //     }
 
-//     int findUPar(int node){
+//     int findupar(int node){
 //         if(node == parent[node]) return node;
-//         return parent[node] = findUPar(parent[node]);
+//         return parent[node] = findupar(parent[node]);
 //     }
 
-//     void unionByRank(int u, int v){
-//         int ulp_u = findUPar(u);
-//         int ulp_v = findUPar(v);
+//     void unionbyrank(int u, int v){
+//         int ulp_u = findupar(u);
+//         int ulp_v = findupar(v);
 //         if(ulp_u == ulp_v) return;
 //         if(rank[ulp_u] < rank[ulp_v]){
 //             parent[ulp_u] = ulp_v;
@@ -95,9 +97,9 @@ signed main(){
 //         }
 //     }
 
-//     void unionBySize(int u, int v){
-//         int ulp_u = findUPar(u);
-//         int ulp_v = findUPar(v);
+//     void unionbysize(int u, int v){
+//         int ulp_u = findupar(u);
+//         int ulp_v = findupar(v);
 //         if(ulp_u == ulp_v) return;
 //         if(size[ulp_u] < size[ulp_v]){
 //             parent[ulp_u] = ulp_v;
@@ -109,22 +111,22 @@ signed main(){
 //     }
 // };
 
-//------------KRUSKAL---------------
+//------------kruskal---------------
 // w,u,v
 // sort(all(edges), [](auto &x, auto &y){return x[0] < y[0];});
-// DisjointSet dsu(n);
+// disjointset dsu(n);
 // vector< vector<int> > mst;
 // int mn=0;
 // for(auto edge : edges){
     // int w=edge[0] , u=edge[1] , v=edge[2];
-    // if(dsu.findUPar(u) != dsu.findUPar(v)){
-        // dsu.unionBySize(u,v);
+    // if(dsu.findupar(u) != dsu.findupar(v)){
+        // dsu.unionbysize(u,v);
         // mn+=w;
         // mst.push_back(edge);
     // }
 // }
 
-//------------PRIMS---------------
+//------------prims---------------
 // int prims(int n, map<int, vector<pair<int,int>> > &adj){
 //     vector< array<int,3> > mst;
 //     int mn=0;
@@ -136,7 +138,7 @@ signed main(){
 //         greater< array<int,3> >
 //     > pq; // {w,u,v}
 
-//     pq.push({0, adj.begin()->F ,adj.begin()->F}); // el primer nodo no cuesta nada
+//     pq.push({0, adj.begin()->f ,adj.begin()->f}); // el primer nodo no cuesta nada
 //             //w,n,p
 //     while( !pq.empty() ){
 //         auto a=pq.top();
@@ -148,14 +150,14 @@ signed main(){
 //         mst.push_back(a);
 //         mn+=w;
 //         for(auto it : adj[node]){
-//             int adjN=it.F , adjW=it.S;
-//             if(!vis[adjN]) pq.push({adjW, adjN, node});
+//             int adjn=it.f , adjw=it.s;
+//             if(!vis[adjn]) pq.push({adjw, adjn, node});
 //         }
 //     }
 //     return mn;
 // }
 
-//------------SIEVE---------------
+//------------sieve---------------
 // vector<int> sieve(int x){
 //     vector<int> ans(x+1,1);
 //     // for(int i=2;i<=x;i++)ans[i]=1;
@@ -168,7 +170,7 @@ signed main(){
 // }
 
 
-//------------ORDERED SET---------------
+//------------ordered set---------------
 // #include <ext/pb_ds/assoc_container.hpp>
 // #include <ext/pb_ds/trie_policy.hpp>
 
@@ -180,39 +182,39 @@ signed main(){
 // // to erase in a multiset s.erase(s.upperbound(x))
 
 
-//------------BINEXP---------------
+//------------binexp---------------
 // int binexp(int a, int b){
 //     int ans=1;
 //     while(b){
 //         if(b&1) ans*=a;
-//         a = (a*a); //% MOD; // si hay un MOD
+//         a = (a*a); //% mod; // si hay un mod
 //         b >>= 1;
 //     }
 //     return ans;
 // }
 
 
-//------------MULTINV---------------
+//------------multinv---------------
 // int inv(int a, int m){ // m primo
 //     int x=binexp(a, m-2);
 //     return (x+m)%m;
 // }
 
 
-//------------LPS---------------
+//------------lps---------------
 // vector<int> create_lps(string &needle){
 //     int n=(int)needle.size();
 //     vector<int> lps(n);
 
-//     int prevLPS=0 , i=1;
+//     int prevlps=0 , i=1;
 //     while(i<n){
-//         if(needle[i] == needle[prevLPS]){
-//             lps[i]=prevLPS+1;
-//             prevLPS++; i++;
-//         }else if(prevLPS == 0){
+//         if(needle[i] == needle[prevlps]){
+//             lps[i]=prevlps+1;
+//             prevlps++; i++;
+//         }else if(prevlps == 0){
 //             lps[i]=0; i++;
 //         }else{
-//             prevLPS=lps[prevLPS-1];
+//             prevlps=lps[prevlps-1];
 //         }
 //     }
 //     return lps;
