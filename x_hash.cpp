@@ -42,7 +42,7 @@ void solve(){
 
     vdebug(hash)
 
-    int x=getHash(hash, 3, 5);
+    int x=getHash(hash, 1, 2);
 
     debug1(x)
 
