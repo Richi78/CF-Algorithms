@@ -17,20 +17,29 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
     int n; cin >> n;
-    vector<int> a(n) , b(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    for(int i=0 ; i<n ; i++) cin >> b[i];
-
-    if(a.back() != b.back()){
-        cout<< "NO\n"; return;
-    }
+    vector<int> adj[n];
     
-    for(int i=0 ; i+1<n ; i++){
-        if(a[i]==b[i] || (a[i]^a[i+1])==b[i] || (a[i]^b[i+1])==b[i]) continue;
-        cout<<"NO\n"; return;
+    for(int i=0 ; i<n-1 ; i++){
+        int u,v; cin >> u >> v;
+        u--; v--;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
     }
-     
-    cout<<"YES\n";
+
+    int leaves=0;
+    for(int i=0 ; i<n ; i++){
+        if(adj[i].size() == 1) leaves++;
+    }
+    int ans=1e18;
+    for(int i=0 ; i<n ; i++){
+        int tmp=leaves;
+        if(adj[i].size() == 1) tmp--;
+        for(auto adjN : adj[i]){
+            if(adj[adjN].size() == 1) tmp--;
+        }
+        uin(ans,tmp);
+    }
+    cout<< ans <<"\n";
 }
 
 signed main(){
@@ -40,5 +49,4 @@ signed main(){
     int tc;cin>>tc;
     while(tc--)solve();
 }
-
 
