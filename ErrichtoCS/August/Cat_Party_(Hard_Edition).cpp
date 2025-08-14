@@ -15,42 +15,34 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-#define bint __int128
-// const int MOD=998244353;
-const bint MOD=1e18+7;
-const int A=31;
-vector<bint> h,p;
-
-bint getHash(int l, int r){
-    bint ans=(h[r]-(h[l-1]*p[r-l+1])%MOD)%MOD;
-    return (ans+MOD)%MOD;
-}
+const int N=1e5+10;
 
 void solve(){
-    string s,s2; cin >> s >> s2;
-    int k; cin >> k;
-    vector<bool> bad(26);
-    for(int i=0 ; i<26 ; i++){
-        if(s2[i] == '0') bad[i]=true;
-    } 
-
-    int n=s.size();
-    h.resize(n+1); p.resize(n+1,1);
-    for(int i=1 ; i<=n ; i++){
-        h[i]=((h[i-1]*A)%MOD + s[i-1])%MOD;
-        p[i]=(p[i-1]*A)%MOD;
-    }
-
-    unordered_set<int> st;
+    int n; cin >> n;
+    vector<int> a(n);
+    for(int i=0 ; i<n ; i++) cin >> a[i];
+    
+    vector<int> freq(N);
+    map<int,int> ffreq;
+    int ans=1;
     for(int i=0 ; i<n ; i++){
-        int tmp=0;
-        for(int j=i ; j<n ; j++){
-            tmp+=bad[s[j]-'a'];
-            if(tmp>k) break;
-            st.insert(getHash(i+1,j+1));
+        int x=a[i];
+        if(freq[x] != 0 && --ffreq[freq[x]] == 0){
+            ffreq.erase(freq[x]);
+        }
+        ffreq[++freq[x]]++;
+        int sz=(int)ffreq.size();
+        if(sz == 1){
+            if(ffreq.begin()->F == 1 || ffreq.begin()->S == 1) ans=i+1;
+        }else if(sz == 2){
+            auto f=ffreq.begin() , s=--ffreq.end();
+            if(f->S==1 && f->F==1 || s->F==1 && s->S==1 
+                || f->S==1 && f->F==s->F+1
+                || s->S==1 && s->F==f->F+1)
+                ans=i+1;
         }
     }
-    cout<< st.size() <<"\n";
+    cout<< ans <<"\n";
 }
 
 signed main(){

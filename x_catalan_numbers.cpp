@@ -22,17 +22,22 @@ void catalan(int n){
     }
 }
 
-void solve(int n){
-    cout<< dp[n] <<"\n";
+void solve(){
+    cout<< dp[5] <<"\n";
+    int n; cin >> n;
+    int C=1; // C0
+    for(int i=0 ; i<n ; i++){
+        C=C*2*(2*i+1)/(i+2);
+    }
+    cout<<C<<"\n";
 }
 
 signed main(){
     FIO;
-    int n;
+    int n; cin >> n;
     catalan(1005);
-    while(cin >> n){
-        if(n == 0) break;
-        solve(n);
+    while(n--){
+        solve();
     }
 }
 
