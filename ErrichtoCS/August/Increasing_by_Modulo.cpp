@@ -29,33 +29,27 @@ void solve(){
         int last=0;
         for(int i=0 ; i<n ; i++){
             if(a[i]+mid < m){
-                if( (a[i]<=last) && (last<=a[i]+mid) ){
-                    continue;
+                if( (a[i]<=last) && (last<=a[i]+mid) ) continue;
+                if(a[i]<last){
+                    ok=false; break;
                 }else{
-                    if(a[i]<last){
-                        ok=false; break;
-                    }else{
-                        last=a[i];
-                    }
+                    last=a[i];
                 }
             }else{
-                // cout<<"3 "<<i<<"\n";
                 if( (a[i]<=last) && (last<=(m-1))
                     || ( (0<=last) && (last<=(a[i]+mid)%m) ) ){
                         continue;
+                }
+                if(a[i] < last){
+                    ok=false; break;
                 }else{
-                    if(a[i] < last){
-                        ok=false; break;
-                    }else{
-                        last=a[i];
-                    }
+                    last=a[i];
                 }
             }
         }
         if(ok){
             r=mid-1;
             ans=mid;
-            // debug1(ans)
         }else{
             l=mid+1;
         }
