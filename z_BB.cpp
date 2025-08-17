@@ -1,67 +1,71 @@
 #include <bits/stdc++.h>
-
 using namespace std;
 
 #define int long long
-
-vector<int> prefix(const string& s) {
-    int n = s.size();
-    vector<int> pi(n);
-    for (int i=1 ; i<n ; i++) {
-        int j = pi[i-1];
-        while (j>0 && s[i]!=s[j])
-            j = pi[j-1];
-        if (s[i] == s[j]) j++;
-        pi[i] = j;
-    }
-    return pi;
-}
-
-vector<int> kmp(const string& text, const string& pat) {
-    vector<int> pos;
-    string s = pat + "#" + text;
-    vector<int> pi = prefix(s);
-    int n = pat.size();
-    for (int i=n+1 ; i<pi.size() ; i++) {
-        if (pi[i] == n) {
-            pos.push_back(i - 2*n);
-        }
-    }
-    return pos;
-}
-
-void solve(vector<string> &a, string r){
-    for (auto &x : a) {
-        vector<int> pos = kmp(r, x);
-        if (!pos.empty()) {
-            for (size_t j = 0; j < pos.size(); ++j) {
-                if (j > 0) cout << " ";
-                cout << pos[j];
-            }
-        }
-        cout << "\n";
-    }
-}
+const int INF = 1e17;
+#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
 
 signed main() {
-    // cin.tie(nullptr);
+    int n, m; cin >> n >> m;
+    vector<vector<int>> a(n, vector<int>(m));
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < m; j++)
+            cin >> a[i][j];
 
-    string line;
-    while (getline(cin, line)) {
-        if (line.empty()) continue;
+    // Padding a potencia de 2
+    int N = 1; while(N < n) N <<= 1;
+    int M = 1; while(M < m) M <<= 1;
 
-        int n;
-        stringstream ss(line);
-        ss >> n;
+    vector<vector<int>> st(2*N, vector<int>(2*M, -INF));
 
-        vector<string> a(n);
-        for (int i = 0; i<n; ++i) {
-            getline(cin, a[i]);
-        }
+    // Hojas
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < m; j++)
+            st[N+i][M+j] = a[i][j];
 
-        string r;
-        getline(cin, r);
+    // Construir columnas (Y)
+    for(int i = 0; i < 2*N; i++)
+        for(int j = M-1; j > 0; j--)
+            st[i][j] = max(st[i][2*j], st[i][2*j+1]);
 
-        solve(a,r);
+    // Construir filas (X)
+    for(int i = N-1; i > 0; i--)
+        for(int j = 1; j < 2*M; j++)
+            st[i][j] = max(st[2*i][j], st[2*i+1][j]);
+            
+    for(auto x : st){
+        vdebug(x)
     }
+
+    // Ejemplo: query en submatriz (x1,y1)-(x2,y2)
+    auto query = [&](int x1,int y1,int x2,int y2) {
+        int res = -INF;
+        for(x1 += N, x2 += N; x1 <= x2; x1 /= 2, x2 /= 2) {
+            int l = y1+M, r = y2+M;
+            if(x1 % 2 == 1) {
+                int L = l, R = r;
+                while(L <= R) {
+                    if(L % 2 == 1) res = max(res, st[x1][L++]);
+                    if(R % 2 == 0) res = max(res, st[x1][R--]);
+                    L /= 2; R /= 2;
+                }
+                x1++;
+            }
+            if(x2 % 2 == 0) {
+                int L = l, R = r;
+                while(L <= R) {
+                    if(L % 2 == 1) res = max(res, st[x2][L++]);
+                    if(R % 2 == 0) res = max(res, st[x2][R--]);
+                    L /= 2; R /= 2;
+                }
+                x2--;
+            }
+        }
+        return res;
+    };
+
+    // Ejemplo de uso
+    int x1, y1, x2, y2;
+    // cin >> x1 >> y1 >> x2 >> y2;
+    cout << query(1, 1, 3, 3) << "\n";
 }
