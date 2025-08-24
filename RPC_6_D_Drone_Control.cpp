@@ -16,7 +16,7 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    cout << setprecision(6) <<fixed;
+    cout << setprecision(8) <<fixed;
     double P,R,Y; cin >> P >> R >> Y;
     vector<vector<double>> a(3, vector<double>(4));
     double c=(P+R+Y)/2;
