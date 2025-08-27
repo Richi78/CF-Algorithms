@@ -16,21 +16,22 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 void solve(){
     int n,x; cin >> n >> x;
 
-    vector<vector<int>> a;
-    int y=1LL<<n;
-    vector<int> tmp;
-    for(int i=1 ; i<y ; i++){
-        tmp.push_back(i);
-    }
-    int sz=tmp.size();
-    for(int i=0 ; i<(1LL<<n) ; i++){
-        int val=0;
-        for(int j=0 ; j<n ; j++){
-            if(i & (1LL<<j)){
-                val^=i
-            }
+    int sz=1LL << n;
+    vector<bool> vis(sz);
+    vector<int> st;
+    for(int i=0 ; i<sz ; i++){
+        if(!vis[i]){
+            st.push_back(i);
+            vis[i]=true;
+            if( (i^x) < sz) vis[i^x]=true;
         }
     }
+
+    cout<< st.size()-1 <<"\n";
+    for(int i=1 ; i<(int)st.size() ; i++){
+        cout<< (st[i]^st[i-1]) <<" ";
+    }
+    cout<<"\n";
 }
 
 signed main(){
