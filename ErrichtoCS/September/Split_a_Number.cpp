@@ -30,29 +30,27 @@ string sum(string &a, string &b){
     return ans;
 }
 
-string mn(string &a, string &b){
-    if(a.size()<b.size()) return a;
-    if(b.size()<a.size()) return b;
-    return (a<b)?a:b;
-}
-
 void solve(){
     int n; cin >> n;
     string s; cin >> s;
-    string ans;
-    int mid=n/2;
-    while(s[mid] == '0') mid++;
-    string s1=s.substr(0,mid);
-    string s2=s.substr(mid);
-    ans=sum(s1,s2);
-    if(n&1){
-        string tmp=s.substr(0,mid+1);
-        string tmp2=s.substr(mid+1);
-        string x=sum(tmp,tmp2);
-        ans=mn(ans,x);
+    int left=n/2;
+    int right=n/2+1;
+    while(left>0 && s[left] == '0') left--;
+    while(right<n && s[right] == '0') right++;
+    
+    vector<string> x;
+    for(int rep=0 ; rep<2 ; rep++){
+        string a=s.substr(0,left);
+        string b=s.substr(left);
+        string tmp=sum(a,b);
+        x.push_back(tmp);
+        left=right;
     }
-
-    cout<< ans <<"\n";
+    sort(all(x), [&](auto a, auto b){
+        if(a.size() != b.size()) return a.size()<b.size();
+        return a<b;
+    });
+    cout<< x[0] <<"\n";
 }
 
 signed main(){
