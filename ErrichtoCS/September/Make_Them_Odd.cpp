@@ -14,27 +14,22 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-    int n,m,ta,tb,k; cin >> n >> m >> ta >> tb >> k;
-    vector<int> a(n) , b(m);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    for(int i=0 ; i<m ; i++) cin >> b[i];
-
-    if(k>=n || k>=m){
-        cout<<"-1\n"; return;
+    int n; cin >> n;
+    set<int> st;
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x;
+        if(!(x&1)) st.insert(x);
     }
-    
-    int ans=-1;
-    for(int i=0 ; i<=k ; i++){
-        auto it=lower_bound(all(b), a[i]+ta);
-        if(it == b.end()){
-            cout<<"-1\n"; return;
+    int ans=0;
+    while(!st.empty()){
+        auto it=--st.end();
+        int x=*it;
+        while(!(x&1)){
+            x>>=1;
+            ans++;
+            if(st.count(x) != 0) break;
         }
-        int idx=it-b.begin();
-        if( idx+k-i < m ){
-            ans=max(ans,b[idx+k-i]+tb); 
-        }else{
-            cout<<"-1\n"; return;
-        }
+        st.erase(it);
     }
     cout<< ans <<"\n";
 }
@@ -43,7 +38,6 @@ signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }
