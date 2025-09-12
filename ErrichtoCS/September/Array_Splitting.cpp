@@ -15,16 +15,44 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
     int n,k; cin >> n >> k;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
+    vector<pair<int,bool>> a;
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x;
+        a.emplace_back(x,false);
+    }
 
-    for(int i=n-2 ; i>=0 ; i--) a[i]+=a[i+1];
+    if(k == 1){
+        int ans=0;
+        for(int i=0 ; i<n ; i++){
+            ans+=a[i].first;
+        }
+        cout<< ans <<"\n"; return;
+    }
 
-    sort(all(a), greater<int>());
-    vdebug(a)
-    int ans=0;
-    for(int i=0 ; i<k ; i++){
-        ans+=a[i];
+    vector<pair<int,int>> suf(n);
+    suf[n-1].first=a[n-1].first;
+    suf[n-1].second=n-1;
+    for(int i=n-2 ; i>=0 ; i--){
+        suf[i].first=a[i].first+suf[i+1].first;
+        suf[i].second=i;
+    }
+    sort(all(suf));
+    reverse(all(suf));
+
+    int j=0;
+    int cnt_k=0;
+    while(cnt_k<k-1){
+        if(suf[j].second != 0){
+            a[suf[j].second].second=true;
+            cnt_k++;
+        }
+        j++;
+    }
+
+    int cnt=1 , ans=0;
+    for(int i=0 ; i<n ; i++){
+        ans+=cnt*a[i].first;
+        if(i+1<n && a[i+1].second==true) cnt++;
     }
     cout<< ans <<"\n";
 }
