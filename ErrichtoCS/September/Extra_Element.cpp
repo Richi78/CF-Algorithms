@@ -22,53 +22,41 @@ void solve(){
     } 
     sort(all(a));
 
-    map<int,int> mp;
-    for(int i=0 ; i+1<n ; i++){
-        int x=a[i+1].first-a[i].first;
-        mp[x]++;
+    if(n == 2){
+        cout<< "1\n"; return;
     }
 
-    // not done yet
-
-    // int r=a[1].first-a[0].first;
-    int r=mp.begin()->first;
-    for(auto [x,y] : mp){
-        debug2(x,y)
-        if(y > mp[r]) r=x;
-    }
-    debug1(r)
-
-    
-    int j=0 , ans=-1;
-    int cnt=0;
-    int banned=-1;
-    int from=1;
-    if(a[1].first - a[0].first != r){
-        from=2;
-        j=1;
-        cnt++;
-        ans=1;
-    }
-    for(int i=from ; i<n ; i++){
-        if(a[i].first - a[j].first != r){
-            cnt++;
-            if(cnt == 1){
-                banned=i;
-                ans=a[i].second;
-                debug1(ans)
-                continue;
+    int j=1;
+    for(int rep=0 ; rep<2 ; rep++){
+        int pos_r=a[2].first - a[j].first;
+        int factor=1;
+        bool ok=true;
+        for(int i=2 ; i<n ; i++){
+            int x=a[j].first+(pos_r*factor);
+            if(x == a[i].first) factor++;
+            else{
+                ok=false;
+                break;
             }
         }
-        if(cnt >= 2){
-            cout<< "-1\n"; return;
+        if(ok){
+            cout<< a[j^1].second <<"\n"; return;
         }
-        if(++j == banned) j++;
+        j--;
     }
-    if(ans == -1){
-        cout<< "1\n";
-    }else{
-        cout<< ans <<"\n";
+
+    int pos_r=a[1].first - a[0].first;
+    int factor=2;
+    int ans=-1;
+    for(int i=2 ; i<n ; i++){
+        int x=a[0].first + (pos_r*factor);
+        if(x == a[i].first) factor++;
+        else if(ans == -1) ans=a[i].second;
+        else {
+            cout<<"-1\n"; return;
+        }
     }
+    cout<< ans <<"\n";
 }
 
 signed main(){
