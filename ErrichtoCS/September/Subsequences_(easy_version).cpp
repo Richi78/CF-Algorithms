@@ -13,48 +13,42 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-auto cmp = [](const string &a, const string &b){
-    if(a.size() == b.size()) return a<b;
-    return a.size()<b.size();
-};
-set<string,decltype(cmp)> st(cmp);
-int k;
-
-void f(int idx, string &s, string cur){
-    // if(st.size() > k) return;
-    if(idx == -1){
-        st.insert(cur);
-        // mp[cur.size()]++;
-        return;
-    }
-
-    // take
-    f(idx-1, s, cur+s[idx]);
-    // no take
-    f(idx-1, s, cur);
-}
-
 void solve(){
-    int n; cin >> n >> k;
+    int n,k; cin >> n >> k;
     string s; cin >> s;
 
-    f(n-1, s, "");
+    map<int,int> mp;
+    set<string> st;
+    st.insert(s);
+    mp[s.size()]++;
+    queue<string> q;
+    q.push(s);
+    while(!q.empty()){
+        string node=q.front();
+        q.pop();
+        if(st.size() >= k) break;
+        for(int i=0 ; i<node.size() ; i++){
+            string tmp=node;
+            tmp.erase(i,1);
+            if(st.count(tmp) == 0){
+                q.push(tmp);
+                st.insert(tmp);
+                mp[tmp.size()]++;
+            }
+        }
+    }
     if(st.size() < k){
         cout<<"-1\n"; return;
     }
-
-    int sz=n;
-    int cost=0;
     int ans=0;
-    for (auto it = st.rbegin(); it != st.rend() && k; ++it) {
-        const string &cur = *it;
-
-        if ((int)cur.size() < sz) {
-            sz = cur.size();
-            cost++;
-        }
-        ans += cost;
-        k--;
+    for(auto it=mp.rbegin() ; it!=mp.rend() && k ; it++){
+        if(k>=it->second){
+            ans+=it->second*(n-it->first);
+            k-=it->second;
+        }else {
+            ans+=k*(n-it->first);
+            k=0;
+        } 
     }
     cout<< ans <<"\n";
 }
