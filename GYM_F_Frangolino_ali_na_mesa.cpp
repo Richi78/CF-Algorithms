@@ -13,10 +13,10 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-// brute force solution O(2^n) 
+// brute force solution O(2^q) 
 // I can optimize with dp[i][j]
-// that is O(n^2), not fast enough yet
-// we need to optimize to dp[i]
+// that is O(n*q), not fast enough yet
+// I need to optimize to dp[i]
 
 const int MOD=1e9+7;
 
@@ -30,6 +30,7 @@ int binexp(int a, int b){
     return ans;
 }
 
+// brute force
 void f(int idx, vector<int> &query, vector<int> &a, int cur, vector<int> &ans){
     int n=query.size();
     if(idx==n){
@@ -50,19 +51,28 @@ void f(int idx, vector<int> &query, vector<int> &a, int cur, vector<int> &ans){
 void solve(){
     int n,q; cin >> n >> q;
     
-    vector<int> que(q);
-    for(int i=0 ; i<q ; i++) cin >> que[i];
+    vector<int> query(q);
+    for(int i=0 ; i<q ; i++) cin >> query[i];
 
-    vector<int> a(n);
-    vector<int> ans(n);
+    int inv=binexp(2,MOD-2);
+    unordered_map<int,int> cur;
+    cur[0]=1;
+    vector<int> E(n);
+    for(int i = 0; i < q; i++){
+        unordered_map<int,int> nxt;
+        int x = query[i];
+        for(auto &[pos, prob] : cur){
+            int tmp = (prob * inv) % MOD;
+            // take
+            nxt[pos] = (nxt[pos] + tmp) % MOD;
+            E[pos] = (E[pos] + tmp * x % MOD) % MOD;
 
-    f(0,que,a,0,ans);
-    int inv=binexp(binexp(2,q),MOD-2);
-    // vdebug(a)
-    for(auto x : ans){
-        int tmp=(x*inv)%MOD;
-        cout<< tmp <<"\n";
+            // go to
+            nxt[x-1] = (nxt[x-1] + tmp)%MOD;
+        }
+        cur = nxt;
     }
+    for(auto x : E) cout<< x <<"\n";
 }
 
 signed main(){
