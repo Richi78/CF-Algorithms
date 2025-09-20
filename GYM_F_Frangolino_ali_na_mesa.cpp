@@ -51,28 +51,28 @@ void f(int idx, vector<int> &query, vector<int> &a, int cur, vector<int> &ans){
 void solve(){
     int n,q; cin >> n >> q;
     
-    vector<int> query(q);
-    for(int i=0 ; i<q ; i++) cin >> query[i];
+    vector<int> query(q+1);
+    for (int i = 1; i <= q; i++) cin >> query[i];
 
-    int inv=binexp(2,MOD-2);
-    unordered_map<int,int> cur;
-    cur[0]=1;
-    vector<int> E(n);
-    for(int i = 0; i < q; i++){
-        unordered_map<int,int> nxt;
-        int x = query[i];
-        for(auto &[pos, prob] : cur){
-            int tmp = (prob * inv) % MOD;
-            // take
-            nxt[pos] = (nxt[pos] + tmp) % MOD;
-            E[pos] = (E[pos] + tmp * x % MOD) % MOD;
-
-            // go to
-            nxt[x-1] = (nxt[x-1] + tmp)%MOD;
-        }
-        cur = nxt;
+    int inv2 = binexp(2, MOD-2);
+    vector<int> h(q+2);
+    for (int i = q; i >= 1; i--) {
+        h[i] = ( (query[i] + h[i+1]) % MOD ) * inv2 % MOD;
     }
-    for(auto x : E) cout<< x <<"\n";
+
+    vector<int> ans(n+1);
+
+    for (int i = 1; i <= q; i++) {
+        int fi = h[i+1] * inv2 % MOD;
+        ans[query[i]] = (ans[query[i]] + fi) % MOD;
+    }
+
+    // special case table 1 gets h[1]
+    ans[1] = (ans[1] + h[1]) % MOD;
+
+    for (int i = 1; i <= n; i++) {
+        cout << ans[i] << "\n";
+    }
 }
 
 signed main(){
