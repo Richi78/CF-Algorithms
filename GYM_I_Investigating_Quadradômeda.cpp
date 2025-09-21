@@ -13,14 +13,6 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-bool validate(vector<int> &a, int r){
-    int cur=r;
-    for(int i=0 ; i<a.size() ; i++){
-        if(cur >= a[i]) return false;
-        cur=a[i]+abs(a[i]-cur);
-    }
-    return true;
-}
 
 int getDist(int a, int b, int c, int d){
     return abs(a-c)+abs(b-d);
@@ -29,42 +21,39 @@ int getDist(int a, int b, int c, int d){
 void solve(){
     int n; cin >> n;
     vector<int> a(n-1);
-    int x,y;
-    cin >> x >> y;
-    int last_x=x , last_y=y;
+    int x,y; cin >> x >> y;
+    int last_x=x, last_y=y;
     for(int i=0 ; i<n-1 ; i++){
         cin >> x >> y;
         a[i]=getDist(last_x,last_y,x,y);
-        if(i)a[i]+=a[i-1];
         last_x=x; last_y=y;
     }
-    if(n == 2){
-        cout<< a[0]-1 <<"\n";
-        return;
-    }
-    int ub=max(0LL, a[0]-1);
-    int last=0;
-    for(int i=1 ; i<n-1 && ub ; i++){
-        ub=min(ub,abs(a[i]-a[i-1])-1);
-    }
-    if(ub==0){
-        cout<< "-1\n"; return;
+
+    vector<int> pref(n);
+    pref[0]=0;
+    for(int i=1 ; i<n-1 ; i++){
+        if(i&1) pref[i] = pref[i-1] + a[i-1];
+        else pref[i] = pref[i-1] - a[i-1];
     }
 
-    // debug1(ub)
-    int ans=-1e18;
-    int l=1 , r=ub;
-    while(l<=r){
-        int mid=l+(r-l)/2;
-        if(validate(a,mid)){
-            ans=max(ans,mid);
-            l=mid+1;
+    // vdebug(a)
+    // vdebug(pref)
+
+    int lb=1 , ub=1e18;
+    for(int i=0 ; i<n-1 ; i++){
+        if(i&1){
+            lb=max(lb,pref[i]-a[i]+1);
+            ub=min(ub,pref[i]-1);
         }else{
-            r=mid-1;
+            lb=max(lb, pref[i]+1);
+            ub=min(ub, pref[i]+a[i]-1);
         }
     }
-    if(ans == -1e18) cout<< "-1\n";
-    else cout<< ans <<"\n";
+    if(lb > ub){
+        cout<<"-1\n";
+    }else{
+        cout<< ub <<"\n";
+    }
 }
 
 signed main(){
