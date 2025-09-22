@@ -15,11 +15,9 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
     int n; cin >> n;
-    set<int> st;
     vector<int> freq(n+1);
     for(int i=0 ; i<n ; i++){
         int x; cin >> x;
-        st.insert(x);
         freq[x]++;
     }    
     int ans=0;
