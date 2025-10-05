@@ -26,11 +26,11 @@ void solve(){
     int mx_sz=r-l+1;
     for(int i=0 ; i<n ; i++){
         while(cur>l && right-1>left){
-            right--;
             freq[a[right]]--;
             if(freq[a[right]] == 0){
                 dif--;
             }
+            right--;
             cur--;
         }
         while(cur<l && right+1<n){
@@ -49,21 +49,22 @@ void solve(){
             }
             cur++;
         }
-        while(dif>k && right-1>left && cur>l){
-            right--;
+        while(dif>k && right-1>=left && cur>l){
             freq[a[right]]--;
             if(freq[a[right]] == 0){
                 dif--;
             }
+            right--;
             cur--;
         }
+        debug2(left,right);
         if(dif == k){
             // TODO formula to accumulate ans
-            int tmp=min(n,left+mx_sz-1);
+            int tmp=min(n-1,left+r-1);
+            debug1(tmp)
             ans+=(tmp-right+1);
-        }else{
-
         }
+        debug2(dif,ans)
         freq[a[left]]--;
         if(freq[a[left]] == 0){
             dif--;
