@@ -20,46 +20,56 @@ void solve(){
     
     int ans=0;
     int left=0,right=-1;
-    int cur=1;
+    int cur=0;
     map<int,int> freq;
     int dif=0;
-    bool searching=true;
-    while(true){
-        if(searching){
-            cur=right-left+1;
-            if( cur>=l && cur<=r ){
-                searching=false;
-                continue;
+    int mx_sz=r-l+1;
+    for(int i=0 ; i<n ; i++){
+        while(cur>l && right-1>left){
+            right--;
+            freq[a[right]]--;
+            if(freq[a[right]] == 0){
+                dif--;
             }
+            cur--;
+        }
+        while(cur<l && right+1<n){
             right++;
             freq[a[right]]++;
             if(freq[a[right]] == 1){
                 dif++;
             }
+            cur++;
+        }
+        while(dif<k && right+1<n && cur<r){
+            right++;
+            freq[a[right]]++;
+            if(freq[a[right]] == 1){
+                dif++;
+            }
+            cur++;
+        }
+        while(dif>k && right-1>left && cur>l){
+            right--;
+            freq[a[right]]--;
+            if(freq[a[right]] == 0){
+                dif--;
+            }
+            cur--;
+        }
+        if(dif == k){
+            // TODO formula to accumulate ans
+            int tmp=min(n,left+mx_sz-1);
+            ans+=(tmp-right+1);
         }else{
 
-            if(dif == k){
-                ans++;
-                int limit=min(n-1,left+r-l);
-                ans+=(limit-(left-1))-cur;
-                // move l
-                freq[a[left]]--;
-                if(freq[a[left]] == 0){
-                    dif--;
-                }
-                left++;
-                searching=true;
-            }else{
-                // another search operation
-                right++
-                freq[a[right]]++;
-                if(freq[a[right]] == 1){
-                    dif++;
-                }
-                
-            }
         }
-
+        freq[a[left]]--;
+        if(freq[a[left]] == 0){
+            dif--;
+        }
+        cur--;
+        left++;
     }
     // falta detalles de implementacion :v
     cout<< ans <<"\n";
