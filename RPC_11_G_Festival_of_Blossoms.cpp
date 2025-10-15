@@ -50,7 +50,7 @@ void solve(){
     int total=binexp(k,n);
     int m=s.size();
     
-    // KMP transition table 
+    // KMP transition table  
     vector<vector<int>> nxt(m + 1, vector<int>(k, 0));
     for (int st = 0; st < m; st++) {
         for (int c = 0; c < k; c++) {
