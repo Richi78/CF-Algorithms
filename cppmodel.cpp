@@ -14,7 +14,7 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-   
+
 }
 
 signed main(){
