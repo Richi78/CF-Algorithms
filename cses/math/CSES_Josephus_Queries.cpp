@@ -13,18 +13,19 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-int f(int n,k){
-    if(n/2 < k){
-        
-    }else{
-        return 2*f(n/2,k)-1;
-        // falta completar
-    }
+int f(int n, int k){
+    if(n == 1) return 1;
+    if(k<=(n+1)/2){
+        if(n&1) return (2*k)%n;
+        else return 2*k;
+    } 
+    if(n&1) return 2*f(n/2, k-(n+1)/2)+1;
+    else return 2*f(n/2, k-n/2)-1;
 }
 
 void solve(){
     int n,k; cin >> n >> k;
-    cout<< 2*f(n,k)-1 <<"\n";
+    cout<< f(n,k) <<"\n";
 }
 
 signed main(){
