@@ -13,33 +13,35 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-const int N=1e7;
+const int INF=1e18;
 
 void solve(){
-    int n; cin >> n;
-    string perm; cin >> perm;
+    int n,x; cin >> n >> x;
+    vector<int> a(n);
+    for(int i=0 ; i<n ; i++) cin >> a[i];
 
-    vector<char> L;
-    for (int i = 0; i < n; i++) L.push_back('A' + i);
+    vector<int> dp(x+1, INF);
+    dp[0]=0;
+    
+    // pull dp
+    // for(int i=1 ; i<=x ; i++){
+    //     for(int j=0 ; j<n ; j++){
+    //         if(i-a[j]>=0){
+    //             dp[i]=min(dp[i],dp[i-a[j]]+1);
+    //         }
+    //     }
+    // }
 
-    int m = 0;
-    int step = 1;
-
-    for (int i = 0; i < n; i++) {
-        char target = perm[i];
-        int idx = find(L.begin(), L.end(), target) - L.begin();
-        int mod = L.size();
-
-        // Ajustar m para cumplir la nueva congruencia
-        while (m % mod != idx) m += step;
-
-        // En lugar de multiplicar a ciegas, usamos el MCM
-        step = lcm(step, mod);
-        L.erase(L.begin() + idx);
+    // push dp
+    for(int s=0 ; s<x ; s++){
+        // we know value of dp[s] and we propagate further
+        for(int i=0 ; i<n ; i++){
+            if(s+a[i] <= x){
+                dp[s+a[i]]=min(dp[s+a[i]],dp[s]+1);
+            }
+        }
     }
-
-    cout << "YES\n" << m << "\n";
-
+    cout<< (dp[x]==INF?-1:dp[x]) <<"\n";
 }
 
 signed main(){

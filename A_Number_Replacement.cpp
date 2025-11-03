@@ -13,40 +13,29 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-const int N=1e7;
-
 void solve(){
     int n; cin >> n;
-    string perm; cin >> perm;
+    vector<int> a(n);
+    for(int i=0 ; i<n ; i++) cin >> a[i];
+    string s; cin >> s;
 
-    vector<char> L;
-    for (int i = 0; i < n; i++) L.push_back('A' + i);
-
-    int m = 0;
-    int step = 1;
-
-    for (int i = 0; i < n; i++) {
-        char target = perm[i];
-        int idx = find(L.begin(), L.end(), target) - L.begin();
-        int mod = L.size();
-
-        // Ajustar m para cumplir la nueva congruencia
-        while (m % mod != idx) m += step;
-
-        // En lugar de multiplicar a ciegas, usamos el MCM
-        step = lcm(step, mod);
-        L.erase(L.begin() + idx);
+    map<int,char> mp;
+    string ans="";
+    for(int i=0 ; i<n ; i++){
+        char c=s[i];
+        if(mp.find(a[i]) == mp.end()){
+            mp[a[i]]=c;
+        }
+        ans.push_back(mp[a[i]]);
     }
 
-    cout << "YES\n" << m << "\n";
-
+    cout<< (ans==s?"YES\n":"NO\n");
 }
 
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }

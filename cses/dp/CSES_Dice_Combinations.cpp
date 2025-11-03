@@ -13,33 +13,20 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-const int N=1e7;
+const int MOD=1e9+7;
 
 void solve(){
     int n; cin >> n;
-    string perm; cin >> perm;
-
-    vector<char> L;
-    for (int i = 0; i < n; i++) L.push_back('A' + i);
-
-    int m = 0;
-    int step = 1;
-
-    for (int i = 0; i < n; i++) {
-        char target = perm[i];
-        int idx = find(L.begin(), L.end(), target) - L.begin();
-        int mod = L.size();
-
-        // Ajustar m para cumplir la nueva congruencia
-        while (m % mod != idx) m += step;
-
-        // En lugar de multiplicar a ciegas, usamos el MCM
-        step = lcm(step, mod);
-        L.erase(L.begin() + idx);
+    vector<int> dp(n+1);
+    dp[0]=1;
+    for(int i=0 ; i<n ; i++){
+        for(int j=1 ; j<=6 ; j++){
+            if(i+j <= n){
+                dp[i+j]=(dp[i+j]+dp[i])%MOD;
+            } 
+        }
     }
-
-    cout << "YES\n" << m << "\n";
-
+    cout<< dp[n] <<"\n";
 }
 
 signed main(){
