@@ -13,36 +13,15 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-const int MOD=1e7+7;
-const int N=1e6+5;
-vector<int> PF[N];
-
-void sieve(int x){
-    vector<bool> ans(x+1,true);
-    ans[0]=0;ans[1]=0;
-    for(int i=2;i*i<=x;i++)
-        if(ans[i])
-            for(int j=i ; j<=x ; j+=i){
-                PF[j].push_back(i);
-                ans[j]=0;
-            }
-}
-
-void solve(int n){
-
+void solve(){
+    
 }
 
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    sieve(1000001);
-    // for(int i=0 ; i<10 ; i++){
-        vdebug(PF[120])
-    // }
-    while(true){
-        int x; cin >> x;
-        if(x==0) break;
-        solve(x);
-    }
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }
