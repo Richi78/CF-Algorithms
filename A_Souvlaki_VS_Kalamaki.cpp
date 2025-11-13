@@ -14,14 +14,23 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-
+    int n; cin >> n;
+    vector<int> a(n);
+    for(int i=0 ; i<n ; i++){
+        cin >> a[i];
+    }
+    sort(all(a));
+    bool ok=true;
+    for(int i=1 ; i+1<n && ok ; i+=2){
+        if(a[i] != a[i+1]) ok=false;
+    }
+    cout<< (ok?"YES\n":"NO\n");
 }
 
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }

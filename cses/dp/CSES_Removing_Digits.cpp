@@ -29,7 +29,7 @@ void solve(){
             }
         // }
     }
-    vdebug(dp)
+    // vdebug(dp)
     cout<< dp[0] <<"\n"; 
 }
 
