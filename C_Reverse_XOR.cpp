@@ -14,7 +14,31 @@ template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
 void solve(){
-
+    int n; cin >> n;
+    if(n==0){
+        cout<<"YES\n"; return;
+    }
+    vector<bool> a;
+    while(n){
+        a.push_back(n%2);
+        n>>=1;
+    }
+    for(int i=0 ; i<a.size() ; i++){
+        if(a[i]==0)a.push_back(0);
+        else break;
+    }
+    int i=0 , j=a.size()-1;
+    while(i<=j){
+        if(i==j && a[i]){
+            cout<<"NO\n"; return;
+        }else{
+            if(a[i] != a[j]){
+                cout<<"NO\n"; return;
+            }
+            i++; j--;
+        }
+    }
+    cout<< "YES\n";
 }
 
 signed main(){
