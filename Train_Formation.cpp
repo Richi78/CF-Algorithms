@@ -13,58 +13,57 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-int n,k; 
-map<tuple<char,int,int,int,int,int>, int> dp;
-
-int f(char cur, int aa,int ab, int ba, int bb, int kk, char fi){
-    if(kk == k) return (cur == fi ? 1 : 0);
-
-    auto state = make_tuple(cur,aa,ab,ba,bb,kk);
-    if(dp.count(state)) return dp[state];
-
-    int ans=0;
-    if(cur == 'A'){
-        if(aa-1>=0){
-            ans+=f('A', aa-1, ab, ba, bb, kk+1,fi);
-        }
-        if(ba-1>=0){
-            ans+=f('B', aa, ab, ba-1, bb,kk+1,fi);
-        }
-    }else{
-        if(ab-1>=0){
-            ans+=f('A', aa, ab-1, ba, bb,kk+1,fi);
-        }
-        if(bb-1>=0){
-            ans+=f('B', aa, ab, ba, bb-1,kk+1,fi);
-        }
-    }
-    return dp[state]=ans;
-}
+//    pos  aa  ab  ba  bb last
+int dp[41][41][41][41][41][2]={};
 
 void solve(){
-    cin >> n >> k;
+    int n,k; cin >> n >> k;
     string loc; cin >> loc;
-    int aa=0 , ab=0 , ba=0 , bb=0;
+    int AA=0 , AB=0 , BA=0 , BB=0;
     for(int i=0 ; i<n ; i++){
         string s; cin >> s;
-        if(s=="AA") aa++;
-        else if(s=="AB") ab++;
-        else if(s=="BA") ba++;
-        else bb++;
+        if(s=="AA") AA++;
+        else if(s=="AB") AB++;
+        else if(s=="BA") BA++;
+        else BB++;
     }
-    
-    int ans=0;
-    dp.clear();
-    ans+=f(loc[0],aa,ab,ba,bb,0,loc[0]);
-    // if(loc[0]!=loc[1]){
-        dp.clear();
-        ans+=f(loc[1],aa,ab,ba,bb,0,loc[1]);
-    // }
+    {
+        int last= (loc[1]=='A'?0:1);
+        dp[0][0][0][0][0][last]=1;
+    }
+        
+    for(int pos=0 ; pos<k ; pos++)
+    for(int aa=0 ; aa<=AA ; aa++)
+    for(int ab=0 ; ab<=AB ; ab++)
+    for(int ba=0 ; ba<=BA ; ba++)
+    for(int bb=0 ; bb<=BB ; bb++)
+    for(int last=0 ; last<=1 ; last++){
+        int me=dp[pos][aa][ab][ba][bb][last];
+        if(last == 0){ // A
+            if(aa<AA)
+                dp[pos+1][aa+1][ab][ba][bb][0]+=me;
+            if(ab<AB)
+                dp[pos+1][aa][ab+1][ba][bb][1]+=me;
+        }else{ // B
+            if(ba<BA)
+                dp[pos+1][aa][ab][ba+1][bb][0]+=me;
+            if(bb<BB)
+                dp[pos+1][aa][ab][ba][bb+1][1]+=me;
+        }
+    }
 
+    int target= (loc[0]=='A'?0:1);
+    int ans=0;
+    for(int aa=0 ; aa<=AA ; aa++)
+    for(int ab=0 ; ab<=AB ; ab++)
+    for(int ba=0 ; ba<=BA ; ba++)
+    for(int bb=0 ; bb<=BB ; bb++){
+        ans+=dp[k][aa][ab][ba][bb][target];
+    }
     if(ans == 0){
-        cout<<"NO\n";
+        cout<< "NO\n";
     }else{
-        cout<<"YES\n"<< ans <<"\n";
+        cout<< "YES\n" << ans <<"\n";
     }
 }
 
