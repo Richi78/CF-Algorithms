@@ -13,31 +13,22 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
-const int INF=1e18;
-
 void solve(){
     int n; cin >> n;
-    vector<int> e,t,other;
-    for(int i=1 ; i<=n ; i++){
-        if(i%2==0) e.push_back(i);
-        else if(i%3==0) t.push_back(i);
-        else other.push_back(i);
-    }
+    vector<int> a(n+1);
+    for(int i=0 ; i<n ; i++) cin >> a[i+1];
 
     vector<int> ans(n);
     for(int i=0 ; i<n ; i++){
-        if(i%3<2){
-            if(!e.empty()) ans[i]=e.back(),e.pop_back();
-            else if(!t.empty()) ans[i]=t.back(),t.pop_back();
+        int dif=a[i+1]-a[i];
+        if(i-dif >= 0){
+            ans[i]=ans[i-dif];
+        }else{
+            ans[i]=i+1;
         }
     }
-    for(int i=0 ; i<n ; i++){
-        if(ans[i] == 0){
-            ans[i]=other.back();
-            other.pop_back();
-        }
-    }
-    for(auto x : ans) cout<< x <<" ";
+
+    for(auto e : ans) cout<< e <<" ";
     cout<<"\n";
 }
 
