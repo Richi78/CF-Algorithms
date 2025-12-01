@@ -10,9 +10,6 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
-template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
-
 void solve(){
 
 }
