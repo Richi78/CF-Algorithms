@@ -10,34 +10,27 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-const int MOD=1e9+7;
-
-int binexp(int a, int b){
+int nCr(int n, int r){
     int ans=1;
-    while(b){
-        if(b&1) ans=(ans*a)%MOD;
-        a=(a*a)%MOD;
-        b>>=1;
+    for(int i=1 ; i<=r ; i++){
+        ans*=(n-i+1);
+        ans/=i;
     }
     return ans;
 }
 
 void solve(){
-    int n,r; cin >> n >> r;
-    int N=n+r-1;
-    int R=n-1;
-    
-    vector<int> fact(N+1,1);
-    vector<int> invFact(N+1,1);
-    for(int i=1 ; i<=N ; i++){
-        fact[i]=(fact[i-1]*i)%MOD;
+    int n,k; cin >> n >> k;
+    vector<int> D(k+1);
+    D[0]=1; D[1]=0;
+    for(int i=2 ; i<=k ; i++){
+        D[i]=(i-1)*(D[i-1]+D[i-2]);
     }
-    for(int i=0 ; i<=N ; i++){
-        invFact[i]=binexp(fact[i],MOD-2);
+    int ans=0;
+    for(int i=0 ; i<=k ; i++){
+        int tmp=nCr(n,i)*D[i];
+        ans+=tmp;
     }
-
-    int ans= ( (fact[N] * invFact[R])%MOD * invFact[N-R] ) %MOD;
-
     cout<< ans <<"\n";
 }
 

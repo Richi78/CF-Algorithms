@@ -12,33 +12,15 @@ using namespace std;
 
 const int MOD=1e9+7;
 
-int binexp(int a, int b){
-    int ans=1;
-    while(b){
-        if(b&1) ans=(ans*a)%MOD;
-        a=(a*a)%MOD;
-        b>>=1;
-    }
-    return ans;
-}
-
 void solve(){
-    int n,r; cin >> n >> r;
-    int N=n+r-1;
-    int R=n-1;
-    
-    vector<int> fact(N+1,1);
-    vector<int> invFact(N+1,1);
-    for(int i=1 ; i<=N ; i++){
-        fact[i]=(fact[i-1]*i)%MOD;
-    }
-    for(int i=0 ; i<=N ; i++){
-        invFact[i]=binexp(fact[i],MOD-2);
-    }
+    int n; cin >> n;
 
-    int ans= ( (fact[N] * invFact[R])%MOD * invFact[N-R] ) %MOD;
-
-    cout<< ans <<"\n";
+    vector<int> dp(n+1);
+    dp[0]=1; dp[1]=0;
+    for(int i=2 ; i<=n ; i++){
+        dp[i]= (i-1) * ((dp[i-1]+dp[i-2])%MOD) % MOD;
+    }
+    cout<< dp[n] <<"\n";
 }
 
 signed main(){
