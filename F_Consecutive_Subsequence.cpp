@@ -2,59 +2,46 @@
 
 using namespace std;
 
+#define debug1(x) cout << #x << " = " << x << "\n";
+#define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
+#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
 #define int long long
-#define FIO ios_base::sync_with_stdio(false); cin.tie(NULL);
-#define pb push_back
+#define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 #define all(v) v.begin(),v.end()
-#define forn(i,n) for(int i=0;i<n;i++)
-#define print(x) cout << x << " "
-#define printl(x) cout << x << endl
-#define input(x) cin >> x
-#define printv(v) for(int i=0;i<v.size();i++) print(v[i]); cout << "\n";
-#define vi vector<int>
-#define vii vector<pair<int,int>>
-#define F first 
-#define S second
-#define pii pair<int,int>
-#define yes cout<<"YES"<<endl
-#define no cout<<"NO"<<endl
-#define ilz(x) 64-__builtin__clzll(x)-1   //usar -1 para shifts, solo index quitar -1
-
-
-template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
-template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
+// const int MOD=998244353;
 
 void solve(){
+    int n; cin >> n;
+    vector<int> a(n);
+    map<int,int> dp;
 
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x;
+        a[i]=x;
+        dp[x]=dp[x-1]+1;
+    }
+
+    int k=0;
+    int mx=0;
+    for(auto [x,y] : dp){
+        if(y>k) k=y,mx=x;
+    }
+    vector<int> ans;
+    for(int i=n-1 ; i>=0 ; i--){
+        if(a[i] == mx) ans.push_back(i+1),mx--;
+    }
+    reverse(all(ans));
+    
+    cout<< k <<"\n";
+    for(auto x : ans) cout<< x <<" ";
+    cout<<"\n";
 }
 
 signed main(){
     FIO;
-    int n;cin>>n;
-    map<int,int> dp;
-    vector<int> a(n+1);
-    int key_idx=0 , cant=0;
-    for(int i=1;i<=n;i++){
-        cin>>a[i];
-        dp[a[i]]=dp[a[i]-1]+1;
-        if(cant<dp[a[i]]){
-            key_idx=i;
-            cant=dp[a[i]];
-        }
-    }
-    cout<<cant<<endl;
-    stack<int> s;
-    int tmp=a[key_idx];
-    for(int i=key_idx;i>=0 && cant>0;i--){
-        if( a[i]==tmp){ // dp[a[i]]==cant
-            s.push(i);
-            cant--;
-            tmp--;
-        }
-    }
-    while(!s.empty()){
-        cout<<s.top()<<" ";
-        s.pop();
-    }
-    cout<<endl;
+    // freopen("censor.in", "r", stdin);
+    // freopen("censor.out", "w", stdout);
+    // int tc;cin>>tc;
+    // while(tc--)solve();
+    solve();
 }

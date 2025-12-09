@@ -2,44 +2,37 @@
 
 using namespace std;
 
+#define debug1(x) cout << #x << " = " << x << "\n";
+#define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
+#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
 #define int long long
-#define FIO ios_base::sync_with_stdio(false); cin.tie(NULL);
-#define pb push_back
+#define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 #define all(v) v.begin(),v.end()
-#define forn(i,n) for(int i=0;i<n;i++)
-#define print(x) cout << x << " "
-#define printl(x) cout << x << endl
-#define input(x) cin >> x
-#define printv(v) for(int i=0;i<v.size();i++) print(v[i]); cout << "\n";
-#define vi vector<int>
-#define vii vector<pair<int,int>>
-#define F first 
-#define S second
-#define pii pair<int,int>
-#define yes cout<<"YES"<<endl
-#define no cout<<"NO"<<endl
-#define ilz(x) 64-__builtin__clzll(x)-1   //usar -1 para shifts, solo index quitar -1
+// const int MOD=998244353;
 
-
-template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
-template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
-const int N=1e5+7;
-int dp[N], a[N] , cnt[N];
+const int N=1e5+5;
 
 void solve(){
-    int n;cin>>n;
+    int n; cin >> n;
+    vector<int> freq(N);
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x; 
+        freq[x]++;
+    }
 
-    for(int i=0;i<n;i++){
-        cin>>a[i];cnt[a[i]]++;
+    vector<int> dp(N);
+    dp[1]=freq[1];
+    for(int i=2 ; i<N ; i++){
+        dp[i]=max(dp[i-1] , freq[i]*i+dp[i-2]);
     }
-    dp[1]=cnt[1];
-    for(int i=2;i<N;i++){
-        dp[i]=max( dp[i-1] , (cnt[i] * i) + dp[i-2] );
-    }
-    cout<<dp[100000]<<endl;
+    cout<< dp[N-1] <<"\n";
 }
 
 signed main(){
     FIO;
+    // freopen("censor.in", "r", stdin);
+    // freopen("censor.out", "w", stdout);
+    // int tc;cin>>tc;
+    // while(tc--)solve();
     solve();
 }
