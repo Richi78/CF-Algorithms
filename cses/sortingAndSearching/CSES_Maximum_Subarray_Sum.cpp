@@ -10,31 +10,22 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-struct Event{
-    int x;
-    bool isEnd;
-    Event(int a, bool b){x=a; isEnd=b;}    
-    bool operator <(const Event &b) const {
-        if(x != b.x) return x < b.x;
-        return isEnd > b.isEnd;
-    }
-};
-
 void solve(){
     int n; cin >> n;
-    vector<Event> a;
+    vector<int> a(n);
+    int p=0;
     for(int i=0 ; i<n ; i++){
-        int u,v; cin >> u >> v;
-        a.push_back(Event(u,false));
-        a.push_back(Event(v,true));
+        cin >> a[i];
+        if(a[i] >= 0) p++;
     }
-    sort(all(a));
-    int ans=0;
+    if(p == 0){
+        cout<< *max_element(all(a)) <<"\n"; return;
+    }
     int cur=0;
-    n<<=1;
+    int ans=0;
     for(int i=0 ; i<n ; i++){
-        if(a[i].isEnd) cur--;
-        else cur++;
+        cur+=a[i];
+        if(cur<0) cur=0;
         ans=max(ans,cur);
     }
     cout<< ans <<"\n";

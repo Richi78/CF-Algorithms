@@ -10,36 +10,25 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-struct Event{
-    int x;
-    bool isEnd;
-    Event(int a, bool b){x=a; isEnd=b;}    
-    bool operator <(const Event &b) const {
-        if(x != b.x) return x < b.x;
-        return isEnd > b.isEnd;
-    }
-};
-
 void solve(){
     int n; cin >> n;
-    vector<Event> a;
+    vector<pair<int,int>> a;
     for(int i=0 ; i<n ; i++){
         int u,v; cin >> u >> v;
-        a.push_back(Event(u,false));
-        a.push_back(Event(v,true));
+        a.emplace_back(u,v);
     }
-    sort(all(a));
+    sort(all(a), [&](auto x, auto y){
+        return x.second < y.second;
+    });
     int ans=0;
-    int cur=0;
-    n<<=1;
-    for(int i=0 ; i<n ; i++){
-        if(a[i].isEnd) cur--;
-        else cur++;
-        ans=max(ans,cur);
+    int last=-1;
+    for(auto [x,y] : a){
+        if(x >= last){
+            ans++; last=y;
+        }
     }
     cout<< ans <<"\n";
 }
-
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);

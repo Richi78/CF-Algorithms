@@ -10,34 +10,31 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-struct Event{
-    int x;
-    bool isEnd;
-    Event(int a, bool b){x=a; isEnd=b;}    
-    bool operator <(const Event &b) const {
-        if(x != b.x) return x < b.x;
-        return isEnd > b.isEnd;
+int check(vector<int> &a, int x){
+    int ans=0;
+    for(int i=0 ; i<a.size() ; i++){
+        ans+=abs(a[i]-x);
     }
-};
+    return ans;
+}
 
 void solve(){
     int n; cin >> n;
-    vector<Event> a;
-    for(int i=0 ; i<n ; i++){
-        int u,v; cin >> u >> v;
-        a.push_back(Event(u,false));
-        a.push_back(Event(v,true));
-    }
+    vector<int> a(n); 
+    for(int i=0 ; i<n ; i++) cin >> a[i];
     sort(all(a));
-    int ans=0;
-    int cur=0;
-    n<<=1;
-    for(int i=0 ; i<n ; i++){
-        if(a[i].isEnd) cur--;
-        else cur++;
-        ans=max(ans,cur);
+
+    int l=0 , r=1e10;
+    while(r-l>1){
+        int mid=l+(r-l)/2;
+        if(check(a,mid) < check(a,mid+1)){
+            r=mid;
+        }else{
+            l=mid;
+        }
     }
-    cout<< ans <<"\n";
+
+    cout<< check(a,r) <<"\n";
 }
 
 signed main(){
