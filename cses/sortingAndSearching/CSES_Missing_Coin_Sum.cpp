@@ -10,32 +10,22 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-bool check(vector<int> &a, int x){
-    int i=0 , j=a.size()-1;
-    while(i<j){
-        if(a[i]+a[j] == x)return true;
-        else if(a[i]+a[j] < x) i++;
-        else j++;
-    }
-    return false;
-}
-
 void solve(){
     int n; cin >> n;
     vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
     sort(all(a));
 
-    int l=a[0] , r=1e18+1;
-    while(r-l>1){
-        int mid=l+(r-l)/2;
-        if(check(a,mid)){
-            l=mid;
+    set<int> st;
+    int pref=0;
+    for(int i=0 ; i<n ; i++){
+        if(a[i] <= pref+1){
+            pref+=a[i];
         }else{
-            r=mid;
+            break;
         }
     }
-    cout<< l <<"\n";
+    cout<< pref+1 <<"\n"; return;
 }
 
 signed main(){
