@@ -10,26 +10,19 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
+const int N=2e5+10;
+vector<int> fact(N,1);
+vector<int> invFact(N,1);
+
+int binexp(int a, int b){
+    int ans=1;
+    while(b){
+        if(b&1) 
+    }
+}
 
 void solve(){
-    int n,k; cin >> n >> k;
-    multiset<int> st;
-    set<int> sem;
-    st.insert(n);
-    sem.insert(0);
-    sem.insert(n);
-    for(int i=0 ; i<k ; i++){
-        int x; cin >> x;
-        sem.insert(x);
-        auto it=sem.find(x);
-        auto before=prev(it) , after=next(it);
-        int range=*after - *before;
-        st.erase(st.find(range));
-        st.insert(x-*before);
-        st.insert(*after-x);
-        cout<< *--st.end() <<" ";
-    } 
-    cout<<"\n";
+
 }
 
 signed main(){

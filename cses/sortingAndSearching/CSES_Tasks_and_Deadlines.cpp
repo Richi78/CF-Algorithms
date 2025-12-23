@@ -10,26 +10,21 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-
 void solve(){
-    int n,k; cin >> n >> k;
-    multiset<int> st;
-    set<int> sem;
-    st.insert(n);
-    sem.insert(0);
-    sem.insert(n);
-    for(int i=0 ; i<k ; i++){
-        int x; cin >> x;
-        sem.insert(x);
-        auto it=sem.find(x);
-        auto before=prev(it) , after=next(it);
-        int range=*after - *before;
-        st.erase(st.find(range));
-        st.insert(x-*before);
-        st.insert(*after-x);
-        cout<< *--st.end() <<" ";
-    } 
-    cout<<"\n";
+    int n; cin >> n;
+    int sum=0;
+    vector<int> a(n);
+    for(int i=0 ; i<n ;  i++){
+        int u,v; cin >> u >> v;
+        a[i]=u;
+        sum+=v;
+    }
+    sort(all(a));
+    int x=0;
+    for(int i=0 ; i<n ; i++){
+        x+=(n-i)*a[i];
+    }
+    cout<< sum-x <<"\n";
 }
 
 signed main(){

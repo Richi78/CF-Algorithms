@@ -1,6 +1,15 @@
 #include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/trie_policy.hpp>
 
+using namespace __gnu_pbds;
 using namespace std;
+
+typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds; 
+//find_by_order, order_of_key ; greater<int>, less_equal<int>
+// // insert -> logn | delete -> | find kth element -> logn | find # of elements smaller than x -> logn 
+// // up and lb work opposite
+// // to erase in a multiset s.erase(s.upperbound(x))
 
 #define debug1(x) cout << #x << " = " << x << "\n";
 #define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
@@ -12,8 +21,18 @@ using namespace std;
 
 void solve(){
     int n,k; cin >> n >> k;
-    set<int> st;
-    
+    pbds st;
+    for(int i=1 ; i<=n ; i++) st.insert(i);
+
+    int cur=0;
+    while(st.size()){
+        int tmp= (cur + k)%st.size();
+        cur=tmp;
+        auto it=st.find_by_order(tmp);
+        cout<< *it <<" ";
+        st.erase(it);
+    }
+    cout<<"\n";
 }
 
 signed main(){
