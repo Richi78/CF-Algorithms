@@ -12,28 +12,26 @@ using namespace std;
 
 void solve(){
     int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    map<int,int> freq;
-    int l=n , r=n-1;
-    int ans=0;
-    while(l>0){
-        l--;
-        freq[a[l]]++;
-        while(freq[a[l]]>1){
-            freq[a[r]]--;
-            r--;
+    vector<int> a;
+    int tmp=(1LL<<n)-1;
+    vector<bool> vis(tmp+1);
+    while(tmp){
+        a.push_back(tmp);
+        vis[tmp]=true;
+        for(int i=1 ; i<1<<n ; i+=2){
+            if(!vis[i] && ((tmp&i)==tmp)) a.push_back(i),vis[i]=true;
         }
-        ans+=r-l+1;
+        tmp -= ( 1LL << ( __builtin_popcountll(tmp) - 1 ) );
     }
-    cout<< ans <<"\n";
+    for(int i=0 ; i<vis.size() ; i+=2) a.push_back(i);
+    for(auto e : a) cout<< e <<" ";
+    cout<<"\n";
 }
 
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }

@@ -10,23 +10,20 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
+const int MOD=1e9+7;
+
 void solve(){
     int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    map<int,int> freq;
-    int l=n , r=n-1;
-    int ans=0;
-    while(l>0){
-        l--;
-        freq[a[l]]++;
-        while(freq[a[l]]>1){
-            freq[a[r]]--;
-            r--;
-        }
-        ans+=r-l+1;
+    map<int,int> mp;
+    for(int i=0 ; i<n ; i++){
+        int x; cin >> x;
+        mp[x]++;
     }
-    cout<< ans <<"\n";
+    int ans=1;
+    for(auto [x,y] : mp){
+        ans=(ans*(y+1))%MOD;
+    }
+    cout<< ans-1 <<"\n";
 }
 
 signed main(){

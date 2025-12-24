@@ -11,29 +11,14 @@ using namespace std;
 // const int MOD=998244353;
 
 void solve(){
-    int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    map<int,int> freq;
-    int l=n , r=n-1;
-    int ans=0;
-    while(l>0){
-        l--;
-        freq[a[l]]++;
-        while(freq[a[l]]>1){
-            freq[a[r]]--;
-            r--;
-        }
-        ans+=r-l+1;
-    }
-    cout<< ans <<"\n";
+    int k,x; cin >> k >> x;
+    cout<< k*x+1 <<"\n";
 }
 
 signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    int tc;cin>>tc;
+    while(tc--)solve();
 }

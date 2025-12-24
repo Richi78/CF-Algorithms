@@ -10,23 +10,36 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-void solve(){
-    int n; cin >> n;
-    vector<int> a(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];
-    map<int,int> freq;
-    int l=n , r=n-1;
-    int ans=0;
-    while(l>0){
-        l--;
-        freq[a[l]]++;
-        while(freq[a[l]]>1){
-            freq[a[r]]--;
-            r--;
-        }
-        ans+=r-l+1;
+string encode(vector<int> &a){
+    string s="";
+    for(auto x : a){
+        s.push_back((x-1)+'a');
     }
-    cout<< ans <<"\n";
+    return s;
+}
+
+vector<int> decode(string &s){
+    vector<int> a;
+    for(auto c : s){
+        a.push_back((c-'a')+1);
+    }
+    return a;
+}
+
+void solve(){
+    string s; cin >> s;
+    if(s[0] == 'f'){
+        int n; cin >> n;
+        vector<int> a(n);
+        for(int i=0 ; i<n ; i++) cin >> a[i];
+        cout<< encode(a) <<"\n";
+    }else{
+        string f; cin >> f;
+        vector<int> a=decode(f);
+        cout<< a.size() <<"\n";
+        for(auto x : a) cout << x <<" ";
+        cout<<"\n";
+    }
 }
 
 signed main(){
