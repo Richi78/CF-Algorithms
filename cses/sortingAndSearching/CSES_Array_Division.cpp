@@ -10,16 +10,32 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-void solve(){
-    int n; cin >> n;
-    int sum=0 , mx=0;
-    for(int i=0 ; i<n ; i++){
-        int x; cin >> x;
-        sum+=x;
-        mx=max(mx,x);
+int check(vector<int> &a, int target){
+    int groups=1;
+    int sum=0;
+    for(int i=0 ; i<(int)a.size() ; i++){
+        if(a[i] > target) return 1e18;
+        if(sum+a[i] <= target) sum+=a[i];
+        else groups++,sum=a[i];
     }
-    if(sum-mx < mx) cout<< 2*mx <<"\n";
-    else cout<< sum <<"\n";
+    return groups;
+}
+
+void solve(){
+    int n,k; cin >> n >> k;
+    vector<int> a(n); 
+    for(int i=0 ; i<n ; i++) cin >> a[i];
+    
+    int l=0 , r=1e18;
+    while(r-l>1){
+        int mid=l+(r-l)/2;
+        if(check(a,mid) <= k){
+            r=mid;
+        }else{
+            l=mid;
+        }
+    }
+    cout<< r <<"\n";
 }
 
 signed main(){

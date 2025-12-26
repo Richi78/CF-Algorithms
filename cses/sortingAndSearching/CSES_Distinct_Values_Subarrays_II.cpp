@@ -11,15 +11,25 @@ using namespace std;
 // const int MOD=998244353;
 
 void solve(){
-    int n; cin >> n;
-    int sum=0 , mx=0;
-    for(int i=0 ; i<n ; i++){
-        int x; cin >> x;
-        sum+=x;
-        mx=max(mx,x);
+    int n,k; cin >> n >> k;
+    vector<int> a(n);
+    for(int i=0 ; i<n ; i++) cin >> a[i];
+    
+    map<int,int> mp;
+    int i=0 , j=-1;
+    int ans=0;
+    while(j<n){
+        j++;
+        if(j == n) break;
+        mp[a[j]]++;
+        while(mp.size() > k){
+            mp[a[i]]--;
+            if(mp[a[i]] == 0) mp.erase(a[i]);
+            i++;
+        }
+        ans+=j-i+1;
     }
-    if(sum-mx < mx) cout<< 2*mx <<"\n";
-    else cout<< sum <<"\n";
+    cout<< ans <<"\n";
 }
 
 signed main(){
