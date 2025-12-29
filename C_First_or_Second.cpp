@@ -11,14 +11,24 @@ using namespace std;
 // const int MOD=998244353;
 
 void solve(){
-    string s; cin >> s;
-    int Y=0 , N=0;
-    for(auto c : s){
-        if(c == 'Y') Y++;
-        else N++;
+    int n; cin >> n;
+    vector<int> a(n);
+    int sum=0;
+    for(int i=0 ; i<n ; i++) cin >> a[i], sum+=a[i];
+    vector<int> suf(n);
+    suf[n-1]=-a[n-1];
+    for(int i=n-2 ; i>=0 ; i--){
+        suf[i]=suf[i+1]-a[i];
     }
-    if(Y > 1) cout<< "NO\n";
-    else cout<< "YES\n";
+    int ans=max(suf[1],sum);
+    const int INF=1e18;
+    int mx=max(a[0],-a[0]) , mn=min(a[0],-a[0]);
+    for(int i=1 ; i<n-1 ; i++){
+        mx+=a[i];
+        mn-=a[i];
+        ans=max(ans,mx+suf[i+1]);
+    }
+    cout<< ans <<"\n";
 }
 
 signed main(){

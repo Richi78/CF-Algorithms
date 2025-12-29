@@ -12,13 +12,15 @@ using namespace std;
 
 void solve(){
     string s; cin >> s;
-    int Y=0 , N=0;
-    for(auto c : s){
-        if(c == 'Y') Y++;
-        else N++;
+    int ans=0;
+    if(s[0] == 'u') ans++,s[0]='s';
+    int sz=s.size();
+    for(int i=1 ; i<sz ; i++){
+        if(s[i] == 's') continue;
+        if(i+1<sz && s[i+1]=='u') ans++, s[i+1]='s';
     }
-    if(Y > 1) cout<< "NO\n";
-    else cout<< "YES\n";
+    if(s[sz-1] == 'u') ans++;
+    cout<< ans <<"\n";
 }
 
 signed main(){
