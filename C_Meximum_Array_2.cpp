@@ -10,21 +10,23 @@ using namespace std;
 #define all(v) v.begin(),v.end()
 // const int MOD=998244353;
 
-void solve(){
-    int n,k; cin >> n >> k;
-    vector<int> a(n) , b(n);
-    for(int i=0 ; i<n ; i++) cin >> a[i];  
-    for(int i=0 ; i<n ; i++) cin >> b[i], b[i]*=k&1;  
 
-    vector<int> pref(n) , suf(n);
-    pref[0]=a[0];
-    for(int i=1 ; i<n ; i++) pref[i]=max(a[i],pref[i-1]+a[i]);
-    suf[n-1]=a[n-1];
-    for(int i=n-2 ; i>=0 ; i--) suf[i]=max(a[i],suf[i+1]+a[i]);
-    int mx=-1e18;
-    for(int i=0 ; i<n ; i++) mx=max(mx, pref[i]+suf[i]-a[i]+b[i]);
-    
-    cout<< mx <<"\n";
+void solve(){
+    int n,k,q; cin >> n >> k >> q;
+    vector<bool> mn(n+1) , mx(n+1);
+    for(int i=0 ; i<q ; i++){
+        int c,l,r; cin >> c >> l >> r;
+        for(int j=l ; j<=r ; j++){
+            if(c==1) mn[j]=true;
+            else mx[j]=true;
+        }
+    }    
+    for(int i=1 ; i<=n ; i++){
+        if(mn[i] && mx[i]) cout<< k+1 <<" ";
+        else if(mn[i]) cout<< k <<" ";
+        else cout<< i%k <<" ";
+    }
+    cout<<"\n";
 }
 
 signed main(){
