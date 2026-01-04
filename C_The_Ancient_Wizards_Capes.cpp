@@ -13,59 +13,43 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+bool check(int ini, vector<int> &a){
+    int n=a.size();
+    vector<int> tmp(n+1);
+    tmp[1]=ini; // 0->L     1->R
+    for(int i=1 ; i<n ; i++){
+        if(abs(a[i]-a[i-1]) > 2) return false;
+        else if(a[i]-a[i-1] == 1) tmp[i+1]=0;
+        else if(a[i]-a[i-1] == -1) tmp[i+1]=1;
+        else tmp[i+1]=tmp[i]^1;
+    }
+    vector<int> pref(n+1) , suf(n+1);
+    for(int i=1 ; i<=n ; i++){
+        if(tmp[i]==0) pref[i]=pref[i-1]+1;
+        else pref[i]=pref[i-1];
+    }
+    suf[n]= tmp[n]==1?1:0;
+    for(int i=n-1 ; i>=1 ; i--){
+        if(tmp[i]==1) suf[i]=suf[i+1]+1;
+        else suf[i]=suf[i+1];
+    }
+    for(int i=1 ; i<=n ; i++){
+        int cur=1+pref[i-1]+ (i+1<=n? suf[i+1] : 0);
+        if(a[i-1] == cur)continue;
+        else return false;
+    }
+    return true;
+}
+
 void solve(){
     int n; cin >> n;
     vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
 
-    // falta corregir, ta mal
-    if(n==2){
-        if(a[0]==a[1]) cout<<"2\n";
-        else cout<<"1\n";
-        return;
-    }
-    for(int i=1 ; i+1<n ; i++){
-        if(a[i-1]<a[i] && a[i]>a[i+1]){
-            cout<<"0\n"; return;
-        }
-        if(a[i-1]>a[i] && a[i]<a[i+1]){
-            cout<<"0\n"; return;
-        }
-    }
-
-    bool ac=true;
-    bool dec=true;
-    bool eq=true;
-    for(int i=1 ; i<n ; i++){
-        ac&=(a[i-1]<a[i]);
-        dec&=(a[i-1]>a[i]);
-        eq&=(a[i-1]==a[i]);
-    }
-    if(eq){
-        cout<<"2\n"; return;
-    }
-    if(dec || ac){
-        cout<<"1\n"; return;
-    }
-
-    int from=0;
-    for(int i=1 ; i<n ; i++){
-        if(a[i] == a[i-1]) from=i;
-        else break;
-    }
-
-    bool ac2=true;
-    bool dec2=true;
-    for(int i=from+1 ; i<n ; i++){
-        // ac2&=(a[i-1]<a[i]);
-        dec2&=(a[i-1]>a[i]);
-    }
-    // debug2(ac2,dec2)
-    if(dec2){
-        cout<<"1\n";
-    }else{
-        cout<<"0\n";
-    }
+    int ans=0;
+    if(check(0, a)) ans++;
+    if(check(1, a)) ans++;
+    cout<< ans <<"\n";
 }
 
 signed main(){
