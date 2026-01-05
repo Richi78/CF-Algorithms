@@ -11,13 +11,29 @@ using namespace std;
 // const int MOD=998244353;
 
 void solve(){
-    int n,ra,ca,rb,cb; cin >> n >> ra >> ca >> rb >> cb;
-    int ans=0;
-    if(rb > ra) ans=max(ans,rb);
-    else if(rb < ra) ans=max(ans,n-rb);
-    if(cb > ca) ans=max(ans,cb);
-    else if(cb < ca) ans=max(ans, n-cb);
-    cout<< ans <<"\n";
+    int n; cin >> n;
+    vector<int> a(2*n);
+    for(int i=0 ; i<2*n ; i++) cin >> a[i];
+    
+    vector<int> ans(n);
+    int tmp=0;
+    for(int i=0 ; i<2*n ; i++){
+        if(i<n) a[i]*=-1;
+        tmp+=a[i];
+    }
+    ans[n-1]=tmp;
+    int l=n-1 , r=n , aux=0;
+    n--;
+    while(n>0){
+        ans[n-1]=tmp-2*aux-2*(a[l]+a[r]);
+        tmp=ans[n-1];
+        aux*=-1;
+        aux+=-(a[l]+a[r]);
+        l--; r++;
+        n--;
+    }
+    for(auto x : ans) cout<< x <<" ";
+    cout<<"\n";
 }
 
 signed main(){
