@@ -13,7 +13,10 @@ using namespace std;
 template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
 template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 
+vector<int> p(25);
+
 int binexp(int a, int b){
+    if(b<0) return 0;
     int ans=1;
     while(b){
         if(b&1) ans*=a;
@@ -23,64 +26,28 @@ int binexp(int a, int b){
     return ans;
 }
 
-string toBase3(int n) {
-    if (n == 0) return "0";
-    string res;
-    while(n) {
-        res.push_back('0' + (n % 3));
-        n /= 3;
-    }
-    reverse(all(res));
-    return res;
-}
-
-int f(int n){
-    int ans=binexp(3,n+1)+n*binexp(3,n-1);
-    return ans;
-}
-
 void solve(){
     int n,k; cin >> n >> k;
-    string s=toBase3(n);
-    int sz=s.size()-1;
-    int ans=0;
-    int rest=0;
-    int n_rest=0;
-    for(int i=0 ; i<s.size() ; i++){
-        rest+=c-'0';
-        n_rest+=(s[i]-'0')*binexp(3,sz-i);
+    vector<int> a;
+    int sum=0;
+    while(n){
+        a.push_back(n%3);
+        n/=3;
+        sum+=a.back();
     }
-    debug1(s)
-    debug1(rest)
-    for(int i=0 ; i<s.size() ; i++){
-        if(k>=rest){
-            int tmp=binexp(3,sz-i);
-            ans+=(s[i]-'0')*3*tmp;
-            rest-=(s[i]-'0');
-            k-=(s[i]-'0');
-            // break;
-            continue;
-        }
-        if(s[i] == '0') continue;
-        else{
-            int one_deal=binexp(3,sz-i);
-            
-            if(k <= rest){
-                cout<<"-1\n"; return;
-            }
-            if(i == s.size()-1){
-                ans+=(s[i]-'0')*3;
-                k-=(s[i]-'0');
-
-            }else{
-                if( (s[i]-'0') <= k ){
-                    int tmp=(s[i]-'0')*f(sz-i);
-                    ans+=tmp;
-                    k-=(s[i]-'0');
-                    rest-=(s[i]-'0');
-                }
-            }
-        }
+    if(sum > k){
+        cout<<"-1\n"; return;
+    }
+    reverse(all(a));
+    int left=k-sum;
+    left/=2;
+    for(int i=0 ; i<a.size()-1 && left>0 ; i++){
+        if(a[i] <= left) a[i+1]+=3*a[i] , left-=a[i], a[i]=0;
+        else a[i+1]+=3*left , a[i]-=left , left=0;
+    }
+    int ans=0 , sz=a.size();
+    for(int i=0 ; i<a.size() ; i++){
+        ans += a[i] * p[sz-1-i];
     }
     cout<< ans <<"\n";
 }
@@ -89,6 +56,9 @@ signed main(){
     FIO;
     // freopen("censor.in", "r", stdin);
     // freopen("censor.out", "w", stdout);
+    for(int i=0 ; i<p.size() ; i++){
+        p[i]=binexp(3,i+1)+i*binexp(3,i-1);
+    }
     int tc;cin>>tc;
     while(tc--)solve();
 }

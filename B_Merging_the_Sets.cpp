@@ -17,26 +17,33 @@ template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
 void solve(){
     int n,m; cin >> n >> m;
     
-    vector<vector<int>> a(n);
+    vector<map<int,int>> a(n);
     vector<int> freq(m+1);
+    
     for(int i=0 ; i<n ; i++){
-        int l; cin >> l;
-        vector<int> tmp(l);
-        for(int j=0 ; j<l ; j++){
-            cin >> tmp[j];
-            freq[tmp[j]]++;
+        int sz; cin >> sz;
+        for(int j=0 ; j<sz ; j++){
+            int x; cin >> x;
+            a[i][x]++;
+            freq[x]++;
         }
-        a[i]=tmp;
+    }
+    for(int i=1 ; i<=m ; i++){
+        if(freq[i]==0){
+            cout<<"NO\n"; return;
+        }
     }
     int cnt=0;
-    for(int i=1 ; i<=m ; i++){
-        if(freq[i] == 0){
-            cout<<"NO\n"; return;
-        }   
-        cnt=max(cnt,freq[i]);
+    for(int i=0 ; i<n ; i++){
+        bool ok=true;
+        for(auto [x,y] : a[i]){
+            if(freq[x] - y <= 0){
+                ok=false; break;
+            }
+        }
+        cnt+=ok;
     }
-    if(cnt>=3) cout<<"YES\n";
-    else cout<<"NO\n";
+    cout<< (cnt>1?"YES":"NO") <<"\n";
 }
 
 signed main(){

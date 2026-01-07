@@ -8,24 +8,26 @@ using namespace std;
 #define int long long
 #define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
 #define all(v) v.begin(),v.end()
-
-const int MOD=998244353;
+// const int MOD=998244353;
 
 void solve(){
     int n; cin >> n;
-    vector<int> a(n+1) , b(n+1);
-    for(int i=1 ; i<=n ; i++) cin >> a[i];    
-    for(int i=1 ; i<=n ; i++) cin >> b[i];    
-
-    for(int i=1 ; i<=n ; i++){
-        int mx=max(a[i],b[i]) , mn=min(a[i],b[i]);
-        a[i]=mn; b[i]=mx;
+    string s; cin >> s;
+    bool cur= (s[0]=='1');
+    bool ok=true;
+    int cnt=0;
+    for(int i=0 ; i<n ; i++){
+        if(s[i] == '0') cnt++;
+        if(i == 0) continue;
+        if(s[i] == s[i-1] && s[i] == '0') cur=false;
+        if(s[i] == s[i-1] && s[i] == '1'){
+            if(cur && cnt&1) ok=false;
+            cur=true;
+            cnt=0;
+        }
     }
-    int ans=1;
-    for(int i=n ; i>=1 ; i--){
-        if(b[i-1]<=a[i] && a[i-1]<=b[i]) ans=ans*2%MOD;
-    }
-    cout<< ans <<"\n";
+    if(cur && cnt&1 && s[n-1]=='1') ok=false;
+    cout<< (ok?"YES":"NO") <<"\n";    
 }
 
 signed main(){

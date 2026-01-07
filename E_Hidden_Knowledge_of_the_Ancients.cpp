@@ -17,62 +17,26 @@ void solve(){
     int n,k,l,r; cin >> n >> k >> l >> r;
     vector<int> a(n);
     for(int i=0 ; i<n ; i++) cin >> a[i];
-    
+    map<int,int> mp;
+    set<pair<int,int>> st;
     int ans=0;
-    int left=0,right=-1;
-    int cur=0;
-    map<int,int> freq;
-    int dif=0;
-    int mx_sz=r-l+1;
     for(int i=0 ; i<n ; i++){
-        while(cur>l && right-1>left){
-            freq[a[right]]--;
-            if(freq[a[right]] == 0){
-                dif--;
-            }
-            right--;
-            cur--;
+        if(mp.find(a[i]) != mp.end()) st.erase({mp[a[i]],a[i]}); 
+        mp[a[i]]=i;
+        st.insert(make_pair(i,a[i]));
+        if(st.size() < k) continue;
+        if(st.size() > k+1) st.erase(st.begin());
+        int lo,hi;
+        if(st.size() == k){
+            lo=i-st.begin()->first+1;
+            hi=i+1;
+        }else{
+            lo=i-next(st.begin())->first+1;
+            hi=i-st.begin()->first;
         }
-        while(cur<l && right+1<n){
-            right++;
-            freq[a[right]]++;
-            if(freq[a[right]] == 1){
-                dif++;
-            }
-            cur++;
-        }
-        while(dif<k && right+1<n && cur<r){
-            right++;
-            freq[a[right]]++;
-            if(freq[a[right]] == 1){
-                dif++;
-            }
-            cur++;
-        }
-        while(dif>k && right-1>=left && cur>l){
-            freq[a[right]]--;
-            if(freq[a[right]] == 0){
-                dif--;
-            }
-            right--;
-            cur--;
-        }
-        debug2(left,right);
-        if(dif == k){
-            // TODO formula to accumulate ans
-            int tmp=min(n-1,left+r-1);
-            debug1(tmp)
-            ans+=(tmp-right+1);
-        }
-        debug2(dif,ans)
-        freq[a[left]]--;
-        if(freq[a[left]] == 0){
-            dif--;
-        }
-        cur--;
-        left++;
+        lo=max(lo,l); hi=min(hi,r);
+        if(lo<=hi) ans+=hi-lo+1;
     }
-    // falta detalles de implementacion :v
     cout<< ans <<"\n";
 }
 
