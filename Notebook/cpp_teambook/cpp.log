@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.8.18)  18 SEP 2026 13:52
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.8.18)  18 SEP 2026 14:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -428,53 +428,54 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
 (chapters/strings/rolling_hash.tex [29]) (chapters/strings/kmp.tex)
-(chapters/strings/z_algo.tex) (chapters/strings/rabin_karp.tex [30])
-(chapters/strings/aho_corasick.tex
+(chapters/strings/z_algo.tex [30]) (chapters/strings/rabin_karp.tex)
+(chapters/strings/aho_corasick.tex [31]) (chapters/strings/aho_corasick_dp.tex)
+(chapters/strings/suffix_array.tex [32]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [31])
-(chapters/strings/aho_corasick_dp.tex) (chapters/strings/suffix_array.tex
-[32]) (chapters/strings/lcp.tex) (chapters/strings/sam.tex [33])
+)
+(chapters/strings/lcp.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [33])
+(chapters/strings/sam.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [34])
 (chapters/strings/manacher.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [34]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-)
-(chapters/strings/lyndon.tex) (chapters/grafos/dijkstra.tex [35])
+ [35])
+(chapters/strings/lyndon.tex) (chapters/grafos/dijkstra.tex [36])
 (chapters/grafos/bellman_ford.tex) (chapters/grafos/floyd.tex)
-(chapters/grafos/zero_one_bfs.tex [36]) (chapters/grafos/kosaraju.tex
+(chapters/grafos/zero_one_bfs.tex [37]) (chapters/grafos/kosaraju.tex)
+(chapters/grafos/tarjan_bridges.tex [38]) (chapters/grafos/tarjan_artic.tex)
+(chapters/grafos/tarjan_scc.tex [39]) (chapters/grafos/kuhn.tex)
+(chapters/grafos/hopcroft_karp.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [37])
-(chapters/grafos/tarjan_bridges.tex) (chapters/grafos/tarjan_artic.tex)
-(chapters/grafos/tarjan_scc.tex [38]) (chapters/grafos/kuhn.tex)
-(chapters/grafos/hopcroft_karp.tex [39])
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-(chapters/grafos/kruskal.tex) (chapters/grafos/prim.tex [40])
-(chapters/grafos/bfs_dfs.tex) (chapters/grafos/topo.tex [41])
-(chapters/grafos/bipartite.tex) (chapters/grafos/edmonds_karp.tex [42])
-(chapters/grafos/dinic.tex) (chapters/grafos/mcmf.tex [43]
+ [40])
+(chapters/grafos/kruskal.tex) (chapters/grafos/prim.tex [41])
+(chapters/grafos/bfs_dfs.tex) (chapters/grafos/topo.tex [42])
+(chapters/grafos/bipartite.tex) (chapters/grafos/edmonds_karp.tex)
+(chapters/grafos/dinic.tex [43]) (chapters/grafos/mcmf.tex [44]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
-(chapters/grafos/two_sat.tex [44]) (chapters/grafos/euler.tex
+(chapters/grafos/two_sat.tex [45]) (chapters/grafos/euler.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [45]
+ [46]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [46])
+)
 (chapters/grafos/hamilton.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [47]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [48]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
@@ -483,64 +484,78 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 1.
 
-[48]) (chapters/dp/knapsack_unbounded.tex) (chapters/dp/knapsack_mitm.tex)
-(chapters/dp/lis.tex [49]
+) (chapters/dp/knapsack_unbounded.tex [49]) (chapters/dp/knapsack_mitm.tex)
+(chapters/dp/lis.tex [50]) (chapters/dp/lcs_edit.tex) (chapters/dp/bitmask.tex)
+(chapters/dp/sos.tex [51]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
-(chapters/dp/lcs_edit.tex [50]) (chapters/dp/bitmask.tex) (chapters/dp/sos.tex
-Underfull \vbox (badness 3229) has occurred while \output is active []
-
- [51])
-(chapters/dp/digit_dp.tex [52]) (chapters/dp/tree_dp.tex)
-(chapters/geometria/point.tex [53]) (chapters/geometria/intersect.tex)
-(chapters/geometria/contains.tex) (chapters/geometria/distance.tex)
-(chapters/geometria/projection.tex [54]) (chapters/geometria/convex_hull.tex)
-(chapters/geometria/polygon_area.tex) (chapters/geometria/point_in_poly.tex)
-(chapters/geometria/minkowski.tex [55]) (chapters/geometria/lichao.tex)
-(chapters/geometria/sweep.tex [56]) (chapters/geometria/closest_pair.tex)
-(chapters/geometria/rotating_calipers.tex) (chapters/misc/hour.tex
+(chapters/dp/digit_dp.tex [52]) (chapters/dp/tree_dp.tex [53]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [57])
-[58
-
-] (cpp.aux)
+)
+(chapters/geometria/point.tex) (chapters/geometria/intersect.tex [54])
+(chapters/geometria/contains.tex) (chapters/geometria/distance.tex)
+(chapters/geometria/projection.tex) (chapters/geometria/convex_hull.tex
+[55]) (chapters/geometria/polygon_area.tex)
+(chapters/geometria/point_in_poly.tex) (chapters/geometria/minkowski.tex)
+(chapters/geometria/lichao.tex [56]) (chapters/geometria/sweep.tex)
+(chapters/geometria/closest_pair.tex [57])
+(chapters/geometria/rotating_calipers.tex) [58] (cpp.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-07-20>
  ***********
-Package rerunfilecheck Info: File `cpp.out' has not changed.
-(rerunfilecheck)             Checksum: 7F40D1CE6E60AE3D21371F458F71A835;24721.
+
+
+Package rerunfilecheck Warning: File `cpp.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `cpp.out':
+(rerunfilecheck)             Before: 7F40D1CE6E60AE3D21371F458F71A835;24721
+(rerunfilecheck)             After:  EA6F186A4422C74B41C1497830295B01;24362.
  ) 
 Here is how much of TeX's memory you used:
- 19619 strings out of 467501
- 321292 string characters out of 5408550
- 2014359 words of memory out of 5000000
- 42914 multiletter control sequences out of 15000+600000
+ 19671 strings out of 467501
+ 321894 string characters out of 5408550
+ 2047359 words of memory out of 5000000
+ 42923 multiletter control sequences out of 15000+600000
  630555 words of font info for 50 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  74i,6n,79p,406b,2070s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\Simon\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
-1000.pk><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfon
-ts/cm/cmbx10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/publ
-ic/amsfonts/cm/cmbx12.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/t
-ype1/public/amsfonts/cm/cmex10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTe
-X/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Simon/AppData/Local/Progr
-ams/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/Simon/AppData/Loc
-al/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/Simon/App
-Data/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/S
-imon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/
-Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.p
-fb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm
-/cmsy10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/am
-sfonts/cm/cmsy7.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/p
-ublic/amsfonts/cm/cmti10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/font
-s/type1/public/amsfonts/cm/cmtt10.pfb><C:/Users/Simon/AppData/Local/Programs/Mi
-KTeX/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on cpp.pdf (58 pages, 1354783 bytes).
+
+pdfTeX warning (dest): name{subsubsection.8.1.1} has been referenced but does n
+ot exist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{subsection.8.1} has been referenced but does not ex
+ist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{section.8} has been referenced but does not exist, 
+replaced by a fixed one
+
+ <C:\Users\Simon\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm10
+00.pk><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts
+/cm/cmbx10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/amsfonts/cm/cmbx12.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmex10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/
+fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Simon/AppData/Local/Program
+s/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/Simon/AppData/Local
+/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/Simon/AppDa
+ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Sim
+on/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Us
+ers/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb
+><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/c
+msy10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsf
+onts/cm/cmsy7.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/pub
+lic/amsfonts/cm/cmti10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmtt10.pfb><C:/Users/Simon/AppData/Local/Programs/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
+Output written on cpp.pdf (58 pages, 1367020 bytes).
 PDF statistics:
- 7454 PDF objects out of 8907 (max. 8388607)
- 5501 named destinations out of 6186 (max. 500000)
+ 7512 PDF objects out of 8907 (max. 8388607)
+ 5549 named destinations out of 6186 (max. 500000)
  1169 words of extra memory for PDF output out of 10000 (max. 10000000)
 
