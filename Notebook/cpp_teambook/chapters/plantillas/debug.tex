@@ -1,0 +1,55 @@
+\subsubsection{Debug pretty-printer}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) per print, where N is the container size
+// usa: debugging local; remove or comment out before submission
+#include <bits/stdc++.h>
+using namespace std;
+
+template<class T>
+string vecToStr(const vector<T>& v){
+	stringstream ss;
+	ss << "[";
+	for(size_t i=0;i<v.size();i++){
+		if(i) ss << ", ";
+		ss << v[i];
+	}
+	ss << "]";
+	return ss.str();
+}
+
+template<class A, class B>
+string pairToStr(const pair<A,B>& p){
+	stringstream ss;
+	ss << "(" << p.first << ", " << p.second << ")";
+	return ss.str();
+}
+
+// debug-only macros; remember to undef before pasting into a submission
+#define DBG(x) do{ cerr << #x << " = " << (x) << "\n"; }while(0)
+#define DBGV(x) do{ cerr << #x << " = " << vecToStr(x) << "\n"; }while(0)
+
+// usage example
+// DBG(ans);
+// DBGV(arr);
+
+#undef DBG
+#undef DBGV
+
+int main(){
+	vector<int> arr = {1, 2, 3, 4, 5};
+	int ans = 42;
+
+	// print a single value with its name
+	DBG(ans);                    // "ans = 42"
+
+	// print a container
+	DBGV(arr);                   // "arr = [1, 2, 3, 4, 5]"
+
+	// nested expressions
+	int x = 7, y = 9;
+	DBG(x + y);                  // "x + y = 16"
+
+	// remember: undef DBG/DBGV before pasting into a submission
+	return 0;
+}
+\end{lstlisting}

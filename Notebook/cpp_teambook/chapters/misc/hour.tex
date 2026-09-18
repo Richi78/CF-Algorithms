@@ -1,0 +1,35 @@
+\subsubsection{Hora}
+\begin{lstlisting}[style=mystyle, language=C++]
+struct Hour{
+	int s;
+	Hour(int x=0,int y=0, int z=0){
+		s=x*3600+y*60+z;
+	}
+
+	void show(){
+		cout<< "S: "<< s <<"\n";
+	}
+
+	void cut(){
+		if(s<30'600){ // 8h 30m
+			s=30'600;
+		}
+	}
+
+	bool operator <(const Hour &b) const {
+		return s<b.s;
+	}
+
+	bool operator >(const Hour &b) const {
+		return s>b.s;
+	}
+
+	Hour operator-(const Hour &b) const {
+		int diff=s-b.s;
+
+		if (diff < 0) diff = -diff; // abs
+
+		return Hour(0,0,diff);
+	}
+};
+\end{lstlisting}

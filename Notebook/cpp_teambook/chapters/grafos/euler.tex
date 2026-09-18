@@ -1,0 +1,183 @@
+\subsubsection{Euler tour / Hierholzer (camino y circuito)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: existencia y construccion de camino / circuito euleriano
+//     (no dirigido y dirigido, multigrafos permitidos)
+#include <bits/stdc++.h>
+using namespace std;
+
+// ---------- Condiciones necesarias y suficientes ----------
+//   NO DIRIGIDO, conexo:
+//     - circuito euleriano: todos los vertices tienen grado par
+//     - camino  euleriano: exactamente 0 o 2 vertices con grado impar
+//                            (si son 2, el camino va de uno al otro)
+//   DIRIGIDO, debilmente conexo sobre el subgrafo con aristas:
+//     - circuito euleriano: indeg(v) == outdeg(v) para todo v
+//     - camino  euleriano: existe s con outdeg(s) = indeg(s)+1,
+//                          existe t con indeg(t) = outdeg(t)+1,
+//                          y el resto cumple indeg == outdeg
+
+// ---------- Existencia (no dirigido) ----------
+// returns: 0 = circuito, 1 = camino (start!=end), -1 = no existe
+int eulerianStatusUndirected(int n, const vector<vector<int>>& adj){
+	int odd = 0, any = -1;
+	for(int v=0;v<n;v++){
+		int d = (int)adj[v].size();
+		if(d & 1) odd++;
+		if(d > 0 && any == -1) any = v;
+	}
+	if(any == -1) return 0; // grafo vacio -> circuito trivial
+	// chequeo rapido de conexion entre vertices con aristas
+	vector<int> vis(n, 0);
+	queue<int> q; q.push(any); vis[any] = 1;
+	while(!q.empty()){
+		int v = q.front(); q.pop();
+		for(int u : adj[v]) if(!vis[u]){ vis[u] = 1; q.push(u); }
+	}
+	for(int v=0;v<n;v++) if(adj[v].size() && !vis[v]) return -1;
+	if(odd == 0) return 0;
+	if(odd == 2) return 1;
+	return -1;
+}
+
+// ---------- Existencia (dirigido) ----------
+// devuelve: 0 = circuito, 1 = camino, -1 = no existe; *start = nodo inicial
+int eulerianStatusDirected(int n, const vector<vector<int>>& adj,
+int& start){
+	int moreOut = -1, moreIn = -1, bad = 0;
+	start = 0;
+	for(int v=0;v<n;v++){
+		if(!adj[v].empty()) start = v;
+		int indeg = 0;
+		for(int u=0;u<n;u++) for(int x : adj[u]) if(x == v) indeg++;
+		int outdeg = (int)adj[v].size();
+		int diff = outdeg - indeg;
+		if(diff == 1){ if(moreOut != -1) bad = 1; moreOut = v; }
+		else if(diff == -1){ if(moreIn != -1) bad = 1; moreIn = v; }
+		else if(diff != 0) bad = 1;
+	}
+	if(bad) return -1;
+	if(moreOut == -1) return 0;      // circuito
+	if(moreIn == -1) return -1;
+	start = moreOut;
+	return 1;                        // camino
+}
+
+// ---------- Hierholzer (no dirigido, multigrafo) ----------
+// adj guarda (vecino, id) para cada arista; cada arista no dirigida aparece
+//     en adj[u] y adj[v]. Tras llamar, adj queda mutado con ids 0..M-1.
+// Retorna la secuencia de vertices; si es circuito, path.front() == path.back().
+vector<int> eulerianPathUndirected(int n, vector<vector<pair<int,int>>>& adj){
+	// reconstruye el grafo asignando ids consistentes
+	vector<vector<pair<int,int>>> g(n);
+	int idx = 0;
+	for(int u=0;u<n;u++){
+		for(auto& [v, idOld] : adj[u]){
+			if(u < v){ // procesa cada arista no dirigida una sola vez
+				g[u].push_back({v, idx});
+				g[v].push_back({u, idx});
+				idx++;
+			}
+		}
+	}
+	vector<int> vis(idx, 0); // vis de aristas (eid), no de vertices
+	adj = move(g);
+
+	// elegir inicio segun existencia (trabajamos con la lista de vecinos)
+	vector<vector<int>> nbrs(n);
+	for(int u=0;u<n;u++) for(auto& [v, eid] : adj[u]) nbrs[u].push_back(v);
+	int start = 0, status = eulerianStatusUndirected(n, nbrs);
+	if(status == 1){
+		for(int v=0;v<n;v++) if(((int)adj[v].size()) & 1){ start = v; break; }
+	}else if(status == 0){
+		for(int v=0;v<n;v++) if(!adj[v].empty()){ start = v; break; }
+	}else return {};
+
+	stack<int> st;
+	vector<int> path, it(n, 0);
+	st.push(start);
+	while(!st.empty()){
+		int v = st.top();
+		while(it[v] < (int)adj[v].size() && vis[adj[v][it[v]].second]) it[v]++;
+		if(it[v] < (int)adj[v].size()){
+			auto [u, eid] = adj[v][it[v]];
+			vis[eid] = 1;
+			st.push(u);
+		}else{
+			path.push_back(v);
+			st.pop();
+		}
+	}
+	reverse(path.begin(), path.end());
+	// si el camino no usa todas las aristas, no existe euleriano
+	int total = 0; for(int x : vis) total += x;
+	if(total != (int)vis.size()) return {};
+	return path;
+}
+
+// ---------- Hierholzer (dirigido) ----------
+vector<int> eulerianPathDirected(int n, vector<vector<pair<int,int>>>& adj){
+	// reescribir ids consistentes
+	vector<vector<pair<int,int>>> g(n);
+	int idx = 0;
+	for(int u=0;u<n;u++){
+		for(auto& [v, idOld] : adj[u]){
+			g[u].push_back({v, idx++});
+		}
+	}
+	vector<int> vis(idx, 0); // vis de aristas (eid), no de vertices
+	adj = move(g);
+
+	// existencia (sobre la lista de vecinos)
+	vector<vector<int>> nbrs(n);
+	for(int u=0;u<n;u++) for(auto& [v, eid] : adj[u]) nbrs[u].push_back(v);
+	int start = 0;
+	int status = eulerianStatusDirected(n, nbrs, start);
+	if(status == -1) return {};
+
+	stack<int> st;
+	vector<int> path, it(n, 0);
+	st.push(start);
+	while(!st.empty()){
+		int v = st.top();
+		while(it[v] < (int)adj[v].size() && vis[adj[v][it[v]].second]) it[v]++;
+		if(it[v] < (int)adj[v].size()){
+			auto [u, eid] = adj[v][it[v]];
+			vis[eid] = 1;
+			st.push(u);
+		}else{
+			path.push_back(v);
+			st.pop();
+		}
+	}
+	reverse(path.begin(), path.end());
+	int total = 0; for(int x : vis) total += x;
+	if(total != (int)vis.size()) return {};
+	return path;
+}
+
+int main(){
+	// ----- no dirigido: triangulo 0-1-2-0 tiene circuito euleriano (todos grado par) -----
+	vector<vector<int>> adjU(3);
+	adjU[0] = {1,2}; adjU[1] = {0,2}; adjU[2] = {0,1};
+	int stU = eulerianStatusUndirected(3, adjU);
+	cout << "no dirigido status: " << stU << " (0=circuito, 1=camino)\n";
+
+	// ----- dirigido: 0->1->2->0 es circuito; agregamos 0->3->2 para tener camino 0->2 -----
+	vector<vector<int>> adjD(4);
+	adjD[0] = {1,3}; adjD[1] = {2}; adjD[2] = {0}; adjD[3] = {2};
+	int startD = 0;
+	int stD = eulerianStatusDirected(4, adjD, startD);
+	cout << "dirigido status: " << stD << " start=" << startD << "\n";
+
+	// reconstruir un circuito euleriano en el triangulo
+	vector<vector<pair<int,int>>> agU(3);
+	agU[0].push_back({1, 0}); agU[1].push_back({0, 0});
+	agU[1].push_back({2, 1}); agU[2].push_back({1, 1});
+	agU[2].push_back({0, 2}); agU[0].push_back({2, 2});
+	auto pathU = eulerianPathUndirected(3, agU);
+	for(int v : pathU) cout << v << " ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

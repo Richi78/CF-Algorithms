@@ -1,0 +1,41 @@
+\subsubsection{KMP + LPS}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)  (N = |s|, M = |p|)
+vector<int> create_lps(string &needle){
+	int n=(int)needle.size();
+	vector<int> lps(n); // longest prefix suffix
+	int i=1 , prevLPS=0;
+	while(i < n){
+		if(needle[i] == needle[prevLPS]){
+			lps[i]=prevLPS+1;
+			i++; prevLPS++;
+		}else if(prevLPS == 0){
+			lps[i]=0; i++;
+		}else{
+			prevLPS=lps[prevLPS-1];
+		}
+	}
+	return lps;
+}
+
+void solve(){
+	string s,p; cin >> s >> p;
+
+	int sz_text=(int)s.size() , sz_pattern=(int)p.size();
+	vector<int> lps=create_lps(p);
+	int cnt=0;
+	int i=0; // ptr text
+	int j=0; // ptr pattern
+	while(i<sz_text){
+		if(s[i] == p[j]){
+			i++; j++;
+		}else if(j == 0) i++;
+		else j=lps[j-1];
+		if(j == sz_pattern){
+			cnt++;
+			j=lps[j-1];
+		}
+	}
+	cout<< cnt <<"\n";
+}
+\end{lstlisting}

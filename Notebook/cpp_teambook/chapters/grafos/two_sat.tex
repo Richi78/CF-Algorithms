@@ -1,0 +1,74 @@
+\subsubsection{2-SAT (implication graph + SCC)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: formulas booleanas en CNF con clausulas de 2 literales
+#include <bits/stdc++.h>
+using namespace std;
+
+struct TwoSAT{
+	int n;
+	vector<vector<int>> adj, radj;
+	TwoSAT(int n): n(n){
+		adj.assign(2*n, {});
+		radj.assign(2*n, {}); // transposed graph
+	}
+	// literal x is true if value[x] = 1; literal !x corresponds to x ^ 1
+	void implies(int x, int y){ 
+		adj[x].push_back(y); 
+		radj[y].push_back(x); 
+	}
+	void addOr(int x, bool fx, int y, bool fy){
+		implies(x ^ fx, y ^ fy);
+		implies(y ^ fy, x ^ fx);
+	}
+	void setTrue(int x){ 
+		implies(x ^ 1, x); 
+	}
+	void setFalse(int x){ 
+		implies(x, x ^ 1); 
+	}
+	void dfs1(int v, vector<int>& vis, vector<int>& order){
+		vis[v] = 1;
+		for(int u : adj[v]) 
+			if(!vis[u]) 
+				dfs1(u, vis, order);
+		order.push_back(v);
+	}
+	void dfs2(int v, int cl, vector<int>& comp){
+		comp[v] = cl;
+		for(int u : radj[v]) 
+			if(comp[u] == -1) 
+				dfs2(u, cl, comp);
+	}
+	vector<bool> solve(){
+		vector<int> comp(2*n, -1), order, vis(2*n, 0);
+		for(int i=0;i<2*n;i++) 
+			if(!vis[i]) 
+				dfs1(i, vis, order);
+		int j = 0;
+		for(int i=2*n-1 ; i>=0 ; i--) 
+			if(comp[order[i]] == -1) 
+				dfs2(order[i], j++, comp);
+		vector<bool> val(n, false);
+		for(int i=0 ; i<n ; i++){
+			if(comp[2*i] == comp[2*i+1]) 
+				return {}; // empty = unsat
+			val[i] = comp[2*i] < comp[2*i+1];
+		}
+		return val;
+	}
+};
+
+int main(){
+	TwoSAT ts(2);
+	// (x0 OR x1) AND (!x0 OR !x1) -> x0 XOR x1
+	ts.addOr(0, false, 1, false);   // !x0 -> x1
+	ts.addOr(0, true,  1, true);    // x0 -> !x1
+	// ts.setTrue(0);  // fuerza x0 = true
+	// ts.setFalse(1); // fuerza x1 = false
+	auto val = ts.solve();
+	if(val.empty()) cout << "UNSAT\n";
+	else cout << "x0=" << val[0] << " x1=" << val[1] << "\n";
+	return 0;
+}
+\end{lstlisting}

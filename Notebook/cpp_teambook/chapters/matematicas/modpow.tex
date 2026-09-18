@@ -1,0 +1,29 @@
+\subsubsection{Modular exponentiation}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log e)
+// usa: base^exp % mod
+#include <bits/stdc++.h>
+using namespace std;
+
+static const long long MOD = 998244353LL;
+
+long long modpow(long long a, long long e, long long mod = MOD){
+	long long r = 1;
+	a %= mod;
+	if(a < 0) a += mod;
+	while(e){
+		if(e & 1) r = r * a % mod;
+		a = a * a % mod;
+		e >>= 1;
+	}
+	return r;
+}
+
+int main(){
+	// 2^10 mod (1e9+7)
+	cout << modpow(2, 10) << "\n";
+	// custom mod
+	cout << modpow(2, 10, 1000000007LL) << "\n";
+	return 0;
+}
+\end{lstlisting}

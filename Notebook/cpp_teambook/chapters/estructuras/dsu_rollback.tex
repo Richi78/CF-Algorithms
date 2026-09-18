@@ -1,0 +1,63 @@
+\subsubsection{DSU con rollback}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) amortized per union/find; rollback is O(1) undo of last union
+// usa: divide & conquer offline, Mo con updates, undoable DSU
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DSUrb{
+	vector<int> parent, sz;
+	vector<pair<int,int>> history; // stack of (node, old_size)
+	int components;
+
+	DSUrb(int n){
+		parent.resize(n);
+		sz.assign(n, 1);
+		iota(parent.begin(), parent.end(), 0);
+		components = n;
+	}
+
+	int find(int v){
+		// no path compression to keep rollback easy
+		while(v != parent[v]) v = parent[v];
+		return v;
+	}
+
+	bool unite(int a, int b){
+		a = find(a); b = find(b);
+		if(a == b) return false;
+		if(sz[a] > sz[b]) swap(a, b);
+		history.push_back({a, sz[a]});
+		history.push_back({b, sz[b]});
+		parent[a] = b;
+		sz[b] += sz[a];
+		components--;
+		return true;
+	}
+
+	void snapshot(){
+		history.push_back({-1, -1}); // marker
+	}
+
+	void rollback(){
+		// undo until last marker (or to empty if no markers)
+		while(!history.empty() && history.back().first != -1){
+			auto [v, sOld] = history.back(); history.pop_back();
+			auto [w, sO]   = history.back(); history.pop_back();
+			parent[v] = v;
+			sz[w] = sO;
+			components++;
+		}
+		if(!history.empty()) history.pop_back(); // pop marker
+	}
+};
+
+int main(){
+	DSUrb d(5);
+	d.unite(0,1); d.unite(1,2);   // {0,1,2} merged
+	cout << d.components << "\n";  // 3
+	d.rollback();
+	cout << d.components << "\n";  // 5 (everything undone)
+	return 0;
+}
+\end{lstlisting}

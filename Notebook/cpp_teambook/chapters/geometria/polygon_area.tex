@@ -1,0 +1,11 @@
+\subsubsection{Polygon Area}
+\begin{lstlisting}[style=mystyle, language=C++]
+int polygonArea(const vector<Point> &poly) {
+	int area = 0;
+	int n = poly.size();
+	for(int i = 0; i < n; i++) {
+		area += poly[i] * poly[(i+1) % n];  // Producto cruz
+	}
+	return abs(area); // este es el doble del area
+}
+\end{lstlisting}

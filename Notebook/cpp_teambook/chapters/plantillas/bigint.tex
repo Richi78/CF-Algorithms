@@ -1,0 +1,87 @@
+\subsubsection{BigInt (add + multiply, base 1e9)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^2) multiply, O(N) add where N is the number of base-1e9 digits
+// usa: problemas donde el resultado cabe en algunos miles de digitos (factoriales grandes, etc.)
+#include <bits/stdc++.h>
+using namespace std;
+
+struct BigInt{
+	// store digits in base 1e9 for compactness
+	static const int BASE = 1000000000;
+	vector<int> d; // least significant first
+	bool neg;
+
+	BigInt(): neg(false){}
+	BigInt(long long x){ *this = x; }
+
+	BigInt& operator=(long long x){
+		neg = x < 0;
+		x = abs(x);
+		d.clear();
+		do{
+			d.push_back((int)(x % BASE));
+			x /= BASE;
+		}while(x > 0);
+		return *this;
+	}
+
+	BigInt& operator+=(const BigInt& other){
+		// assumes same sign for simplicity; extend if needed
+		int carry = 0;
+		size_t n = max(d.size(), other.d.size());
+		if(d.size() < n) d.resize(n, 0);
+		for(size_t i=0;i<n;i++){
+			long long cur = d[i] + (i < other.d.size() ? other.d[i] : 0) + carry;
+			d[i] = (int)(cur % BASE);
+			carry = (int)(cur / BASE);
+		}
+		if(carry) d.push_back(carry);
+		return *this;
+	}
+
+	BigInt& operator*=(int m){
+		// m fits in int (typical contest case)
+		long long carry = 0;
+		for(size_t i=0;i<d.size();i++){
+			long long cur = 1LL * d[i] * m + carry;
+			d[i] = (int)(cur % BASE);
+			carry = cur / BASE;
+		}
+		while(carry){
+			d.push_back((int)(carry % BASE));
+			carry /= BASE;
+		}
+		return *this;
+	}
+
+	string toString() const{
+		if(d.empty()) return "0";
+		stringstream ss;
+		if(neg) ss << "-";
+		ss << d.back();
+		char buf[16];
+		for(int i=(int)d.size()-2;i>=0;i--){
+			snprintf(buf, sizeof(buf), "%09d", d[i]);
+			ss << buf;
+		}
+		return ss.str();
+	}
+};
+
+int main(){
+	// compute 100! and print it
+	BigInt fact(1);
+	for(int i=2;i<=100;i++) fact *= i;
+	cout << fact.toString() << "\n";
+
+	// add two large numbers
+	BigInt a(123456789012345LL), b(987654321098765LL);
+	a += b;
+	cout << a.toString() << "\n";
+
+	// negative number
+	BigInt neg(-42);
+	cout << neg.toString() << "\n";
+	return 0;
+}
+\end{lstlisting}

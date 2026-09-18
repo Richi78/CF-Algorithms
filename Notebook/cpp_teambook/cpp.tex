@@ -1,0 +1,249 @@
+\documentclass[twocolumn]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[a4paper, landscape, top=1cm,bottom=1cm,right=1cm,left=1cm]{geometry}
+\usepackage{lipsum}
+\setlength{\columnsep}{1.5cm}
+\setlength{\columnseprule}{0.4pt} % linea negra vertical entre las dos columnas
+%--------------------------
+\usepackage{listings} %para dar formato segun lenguaje
+\usepackage{xcolor} % para poner color al codigo
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue!60!black}
+
+% Mostrar subsubsection (3er nivel) en el TOC
+\setcounter{tocdepth}{3}
+
+% Numerar subsubsection como section.subsubsection (sin .0. cuando no hay subsection)
+\renewcommand{\thesubsubsection}{\arabic{section}.\arabic{subsubsection}}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+
+\lstdefinestyle{mystyle}{
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,
+	breaklines=true,
+	captionpos=b,
+	keepspaces=true,
+	numbers=left,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	tabsize=2,
+	frame=single,
+	framerule=0.4pt,
+	rulecolor=\color{black}
+}
+
+%--------------------------
+
+\title{CP Algo}
+\author{Ricardo Rojas Carvajal}
+\date{August 2026}
+
+\begin{document}
+
+	% ===== Indice (Table of Contents automatico) =====
+	\onecolumn
+	\tableofcontents
+	\twocolumn
+
+	% ============================================================
+	\section{Plantillas y utilidades}
+	% ============================================================
+	\input{chapters/plantillas/main}
+	\input{chapters/plantillas/random}
+	\input{chapters/plantillas/bigint}
+%	\input{chapters/plantillas/debug}
+	\input{chapters/plantillas/compress}
+
+	% ============================================================
+	\section{Matematicas}
+	% ============================================================
+	\subsection{Teoria de numeros}
+	\input{chapters/matematicas/extgcd}
+	\input{chapters/matematicas/formulas_utiles}
+	\input{chapters/matematicas/sieve}
+	\input{chapters/matematicas/linear_sieve}
+	\input{chapters/matematicas/miller_rabin}
+	\input{chapters/matematicas/pollard_rho}
+	\input{chapters/matematicas/modpow}
+	\input{chapters/matematicas/modinv}
+	\input{chapters/matematicas/crt}
+	\input{chapters/matematicas/phi}
+	\input{chapters/matematicas/mobius}
+	\input{chapters/matematicas/stern_brocot}
+
+	\subsection{Combinatoria}
+	\input{chapters/matematicas/catalan}
+	\input{chapters/matematicas/factorial_ncr}
+	\input{chapters/matematicas/lucas}
+	\input{chapters/matematicas/stirling}
+	\input{chapters/matematicas/inclusion_exclusion}
+
+	\subsection{Polinomios y transformadas}
+	\input{chapters/matematicas/fft}
+	\input{chapters/matematicas/ntt}
+	\input{chapters/matematicas/poly_utils}
+
+	\subsection{Algebra lineal}
+	\input{chapters/matematicas/gauss}
+	\input{chapters/matematicas/matpow}
+
+	\subsection{Juegos y teoria de juegos}
+	\input{chapters/matematicas/sg_template}
+	\input{chapters/matematicas/game_tables}
+
+	% ============================================================
+	\section{Estructuras de datos}
+	% ============================================================
+	\subsection{Ordenado y contenedores}
+	\input{chapters/estructuras/pbds}
+	\input{chapters/estructuras/xor_basis}
+	\input{chapters/estructuras/trie}
+
+	\subsection{Union-Find}
+	\input{chapters/estructuras/dsu}
+	\input{chapters/estructuras/dsu_rollback}
+
+	\subsection{Arboles de segmentos}
+	\input{chapters/estructuras/segtree_add_sum}
+	\input{chapters/estructuras/segtree_assign_sum}
+	\input{chapters/estructuras/segtree_lower_bound}
+	\input{chapters/estructuras/segtree_add_set}
+	\input{chapters/estructuras/mo}
+	\input{chapters/estructuras/segtree_2d}
+	\input{chapters/estructuras/segtree_persistent}
+	\input{chapters/estructuras/segtree_iter}
+
+	\subsection{Fenwick / BIT}
+	\input{chapters/estructuras/bit_basic}
+	\input{chapters/estructuras/bit_range_add_point}
+	\input{chapters/estructuras/bit_range_add_range_sum}
+
+	\subsection{RMQ y sparse table}
+	\input{chapters/estructuras/sparse_table}
+	\input{chapters/estructuras/disjoint_sparse}
+
+	\subsection{Trees y DP en arbol}
+	\input{chapters/estructuras/lca}
+	\input{chapters/estructuras/hld}
+	\input{chapters/estructuras/centroid}
+	\input{chapters/estructuras/euler_tour}
+
+	\subsection{BST balanceado}
+	\input{chapters/estructuras/treap}
+
+	\subsection{Otras}
+	\input{chapters/estructuras/mo_updates}
+	\input{chapters/estructuras/sqrt_decomp}
+
+	% ============================================================
+	\section{Strings}
+	% ============================================================
+	\subsection{Hashing}
+	\input{chapters/strings/rolling_hash}
+
+	\subsection{Patrones}
+	\input{chapters/strings/kmp}
+	\input{chapters/strings/z_algo}
+	\input{chapters/strings/rabin_karp}
+	\input{chapters/strings/aho_corasick}
+	\input{chapters/strings/aho_corasick_dp}
+
+	\subsection{Estructuras avanzadas}
+	\input{chapters/strings/suffix_array}
+	\input{chapters/strings/lcp}
+	\input{chapters/strings/sam}
+
+	\subsection{Palindromos}
+	\input{chapters/strings/manacher}
+
+	\subsection{Otros}
+	\input{chapters/strings/lyndon}
+
+	% ============================================================
+	\section{Grafos}
+	% ============================================================
+	\subsection{Caminos minimos}
+	\input{chapters/grafos/dijkstra}
+	\input{chapters/grafos/bellman_ford}
+	\input{chapters/grafos/floyd}
+	\input{chapters/grafos/zero_one_bfs}
+
+	\subsection{Componentes y cortes}
+	\input{chapters/grafos/kosaraju}
+	\input{chapters/grafos/tarjan_bridges}
+	\input{chapters/grafos/tarjan_artic}
+	\input{chapters/grafos/tarjan_scc}
+
+	\subsection{Matching}
+	\input{chapters/grafos/kuhn}
+	\input{chapters/grafos/hopcroft_karp}
+
+	\subsection{MST}
+	\input{chapters/grafos/kruskal}
+	\input{chapters/grafos/prim}
+
+	\subsection{Basicos}
+	\input{chapters/grafos/bfs_dfs}
+	\input{chapters/grafos/topo}
+	\input{chapters/grafos/bipartite}
+
+	\subsection{Flujos}
+	\input{chapters/grafos/edmonds_karp}
+	\input{chapters/grafos/dinic}
+	\input{chapters/grafos/mcmf}
+
+	\subsection{Especales}
+	\input{chapters/grafos/two_sat}
+	\input{chapters/grafos/euler}
+	\input{chapters/grafos/hamilton}
+
+	% ============================================================
+	\section{DP}
+	% ============================================================
+	\input{chapters/dp/knapsack_01}
+	\input{chapters/dp/knapsack_unbounded}
+	\input{chapters/dp/knapsack_mitm}
+	\input{chapters/dp/lis}
+	\input{chapters/dp/lcs_edit}
+	\input{chapters/dp/bitmask}
+	\input{chapters/dp/sos}
+	\input{chapters/dp/digit_dp}
+	\input{chapters/dp/tree_dp}
+
+	% ============================================================
+	\section{Geometria}
+	% ============================================================
+	\subsection{Puntos y segmentos}
+	\input{chapters/geometria/point}
+	\input{chapters/geometria/intersect}
+	\input{chapters/geometria/contains}
+	\input{chapters/geometria/distance}
+	\input{chapters/geometria/projection}
+
+	\subsection{Poligonos}
+	\input{chapters/geometria/convex_hull}
+	\input{chapters/geometria/polygon_area}
+	\input{chapters/geometria/point_in_poly}
+	\input{chapters/geometria/minkowski}
+
+	\subsection{Herramientas}
+	\input{chapters/geometria/lichao}
+	\input{chapters/geometria/sweep}
+	\input{chapters/geometria/closest_pair}
+	\input{chapters/geometria/rotating_calipers}
+
+	% ============================================================
+	% \section{Miscelanea}
+	% ============================================================
+	% \subsection{Utilidades del usuario}
+	% \input{chapters/misc/hour}
+
+\end{document}

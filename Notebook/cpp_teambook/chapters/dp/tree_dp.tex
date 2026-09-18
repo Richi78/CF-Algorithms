@@ -1,0 +1,59 @@
+\subsubsection{Tree DP (reroot)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N)
+// usa: para cada nodo, calcular alguna propiedad asumiendo que ese nodo es la raiz
+#include <bits/stdc++.h>
+using namespace std;
+
+struct TreeDP{
+	int n;
+	vector<vector<int>> adj;
+	vector<long long> dp, up, ans;
+	vector<int> sz;
+	TreeDP(int n): n(n){
+		adj.assign(n, {});
+		dp.assign(n, 0);
+		up.assign(n, 0);
+		ans.assign(n, 0);
+		sz.assign(n, 0);
+	}
+	void addEdge(int u, int v){
+		adj[u].push_back(v);
+		adj[v].push_back(u);
+	}
+	// 1st pass: compute dp[v] as the answer for subtree of v (rooted at 0)
+	void dfs1(int v, int p){
+		sz[v] = 1;
+		for(int u : adj[v]){
+			if(u == p) continue;
+			dfs1(u, v);
+			sz[v] += sz[u];
+			dp[v] += dp[u] + sz[u]; // example - sum of distances from u
+		}
+	}
+	// 2nd pass: reroot - propagate contributions
+	void dfs2(int v, int p){
+		ans[v] = dp[v] + up[v];
+		for(int u : adj[v]){
+			if(u == p) continue;
+			// when rerooting at u, u's contribution comes out, v's grows
+			up[u] = up[v] + dp[v] - (dp[u] + sz[u]) + (n - sz[u]);
+			dfs2(u, v);
+		}
+	}
+	vector<long long> solve(int root = 0){
+		dfs1(root, -1);
+		dfs2(root, -1);
+		return ans;
+	}
+};
+
+int main(){
+	TreeDP tdp(4);
+	tdp.addEdge(0,1); tdp.addEdge(1,2); tdp.addEdge(1,3);
+	auto ans = tdp.solve(0);
+	for(long long x : ans) cout << x << " ";  // sum of distances from each node
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

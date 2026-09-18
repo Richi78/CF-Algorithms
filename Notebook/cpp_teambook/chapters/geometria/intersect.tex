@@ -1,0 +1,34 @@
+\subsubsection{Interseccion de segmentos}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(1)
+// usa: checa si los segmentos [a,b] y [c,d] se intersectan (incluye colineales solapados)
+// nota: usa pruebas de orientacion (cross products) + bounding boxes; no retorna punto de cruce
+// linear segments intersection
+bool intersect(Point a, Point b, Point c, Point d){
+	// check parallel or collinear
+	if( (b-a) * (d-c) == 0 ){
+		// check if parallel
+		if(a.cross(b,c) != 0){
+			return false;
+		}
+		// check if collinear, bounding box
+		for(int i=0 ; i<2 ; i++){
+			if(max(a.x,b.x)<min(c.x,d.x) || max(a.y,b.y)<min(c.y,d.y)){
+				return false;
+			}
+			swap(a,c);
+			swap(b,d);
+		}
+		return true;
+	}
+	for(int i=0 ; i<2 ; i++){
+		int x=a.cross(b,c) , y=a.cross(b,d);
+		if( (x<0 && y<0) || (x>0 && y>0)){
+			return false;
+		}
+		swap(a,c);
+		swap(b,d);
+	}
+	return true;
+}
+\end{lstlisting}

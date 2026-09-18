@@ -1,0 +1,23 @@
+\subsubsection{Projection of point onto line}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(1)
+// usa: la proyeccion ortogonal de p sobre la recta que pasa por a y b (devuelve double)
+#include <bits/stdc++.h>
+using namespace std;
+
+pair<double,double> projectPointLine(const Point& p, const Point& a, const Point& b){
+	double ax = a.x, ay = a.y, bx = b.x, by = b.y, px = p.x, py = p.y;
+	double dx = bx - ax, dy = by - ay;
+	double len2 = dx*dx + dy*dy;
+	if(len2 == 0) return {ax, ay};
+	double t = (dx * (px - ax) + dy * (py - ay)) / len2;
+	return {ax + t * dx, ay + t * dy};
+}
+
+int main(){
+	Point a{0,0}, b{4,0}, p{2,3};
+	auto [px, py] = projectPointLine(p, a, b);
+	cout << "projection = (" << px << ", " << py << ")\n";  // (2, 0)
+	return 0;
+}
+\end{lstlisting}

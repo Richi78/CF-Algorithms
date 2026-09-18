@@ -1,0 +1,58 @@
+\subsubsection{MO}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O((n+q) * sqrt(n)) offline. Ordena queries por bloque de l, y dentro del bloque por r alternado.
+// usa: responder muchas queries sobre subarreglos cuando se puede agregar/quitar un elemento en O(1)
+//      (ej: contar distintos, suma en rango, frecuencia, xor, etc).
+struct Q{
+	int l,r,idx;
+};
+
+int main(){
+	int n,m; cin >> n >> m;
+	vector<int> a(n);
+	for(int i=0 ; i<n ; i++) cin >> a[i];
+
+	vector<Q> q(m);
+	for(int i=0 ; i<m ; i++){
+		int l,r; cin >> l >> r;
+		q[i].l = l-1;
+		q[i].r = r-1;
+		q[i].idx = i;
+	}
+
+	int rootN = sqrtl(n);
+	sort(q.begin(), q.end(), [&](Q x, Q y){
+		int bx = x.l / rootN, by = y.l / rootN;
+		if(bx != by) return bx < by;
+		return (bx & 1) ? (x.r > y.r) : (x.r < y.r);
+	});
+
+	vector<int> freq(1000001, 0);
+	long long curr = 0;
+	vector<long long> ans(m);
+
+	auto add = [&](int pos){
+		int x = a[pos];
+		if(freq[x] == 0) curr++;
+		freq[x]++;
+	};
+	auto del = [&](int pos){
+		int x = a[pos];
+		freq[x]--;
+		if(freq[x] == 0) curr--;
+	};
+
+	int l=0, r=-1;
+	for(int i=0 ; i<m ; i++){
+		int ql=q[i].l, qr=q[i].r;
+		while(r < qr){ add(++r); }
+		while(r > qr){ del(r--); }
+		while(l < ql){ del(l++); }
+		while(l > ql){ add(--l); }
+		ans[q[i].idx] = curr; // cuenta los distintos en [ql, qr]
+	}
+
+	for(int i=0 ; i<m ; i++) cout << ans[i] << "\n";
+	return 0;
+}
+\end{lstlisting}

@@ -1,0 +1,37 @@
+\subsubsection{Extended Euclidean Algorithm}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log(min(a, b)))
+// SC: O(log(min(a, b))) por la pila de recursion
+int extgcd(int a, int b, int &x, int &y){
+	if(b==0){
+		x=1; y=0;
+		return a;
+	}
+	int x1,y1;
+	int g=extgcd(b, a%b, x1, y1);
+	x = y1;
+	y = x1 - y1 * (a / b);
+	return g;
+}
+
+int main(){
+	// ejemplo 1: encontrar x, y tales que a*x + b*y = gcd(a, b)
+	int x, y;
+	int g = extgcd(12, 8, x, y);
+	cout << "gcd = " << g << "\n";              // 4
+	cout << "x = " << x << ", y = " << y << "\n"; // 1, -1
+	// verifica: 12*1 + 8*(-1) = 4
+
+	// ejemplo 2: inverso modular (cuando gcd(a, m) = 1)
+	// encuentra x tal que a*x congruente 1 (mod m)
+	int xi, yi;
+	int a = 3, m = 7;
+	int g2 = extgcd(a, m, xi, yi);
+	if(g2 == 1){
+		int inv = (xi % m + m) % m;  // ajustar a [0, m)
+		cout << a << " * " << inv << " mod " << m << " = "
+		     << (a * inv) % m << "\n"; // 3 * 5 mod 7 = 1
+	}
+	return 0;
+}
+\end{lstlisting}

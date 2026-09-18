@@ -1,0 +1,25 @@
+\subsubsection{Lucas theorem}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log_p n) per query
+// usa: C(n, k) mod p con p primo y n, k grandes
+#include <bits/stdc++.h>
+using namespace std;
+
+// usa: C(n, k) mod p cuando n y k son gigantes y p es primo
+// idea: escribir n y k en base p; C(n, k) congruente Productorio C(ni, ki) mod p
+//       (un producto por cada digito en base p)
+// requires fact[] and invFact[] already built for MOD (small case)
+long long nCrLucas(long long n, long long k, long long MOD){
+	if(k == 0) return 1;
+	long long ni = n % MOD, ki = k % MOD;
+	if(ki > ni) return 0;
+	return nCrLucas(n / MOD, k / MOD, MOD) * nCr((int)ni, (int)ki) % MOD;
+}
+
+int main(){
+	buildFact(MOD);  // precompute factorials mod MOD
+	// C(1000, 100) mod 998244353 using Lucas
+	cout << nCrLucas(1000, 100, MOD) << "\n";
+	return 0;
+}
+\end{lstlisting}

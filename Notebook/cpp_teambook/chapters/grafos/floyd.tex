@@ -1,0 +1,34 @@
+\subsubsection{Floyd-Warshall}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^3)
+// usa: camino minimo entre todo par de nodos; permite pesos negativos; detecta ciclo negativo si ans[i][i] < 0
+vector<vector<int>> floyd(int n, vector<vector<int>> adj[]){
+	vector<vector<int>> ans(n,vector<int>(n,1e18));
+	for(int i=0 ; i<n ; i++) ans[i][i]=0;
+	for(int i=0 ; i<n ; i++){
+		for(auto x : adj[i]){
+			int adjN=x[0] , adjW=x[1];
+			ans[i][adjN]=adjW;
+			ans[adjN][i]=adjW;
+		}
+	}
+
+	for(int via=0 ; via<n ; via++){
+		for(int i=0 ; i<n ; i++){
+			for(int j=0 ; j<n ; j++){
+				ans[i][j]=min(ans[i][j],
+				ans[i][via]+ans[via][j]);
+			}
+		}
+	}
+
+	// Detect negative cycle: if any ans[i][i] < 0 after the algorithm,
+	// then there is a negative cycle reachable from i.
+	for(int i=0 ; i<n ; i++){
+		if(ans[i][i] < 0){
+			// negative cycle reachable from source i
+			}
+		}
+	return ans;
+}
+\end{lstlisting}

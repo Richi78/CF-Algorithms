@@ -1,0 +1,81 @@
+\subsubsection{Aho-Corasick (basic)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(sum |patterns| + |text|)
+// usa: encontrar todos los patterns en un texto
+#include <bits/stdc++.h>
+using namespace std;
+
+struct AhoCorasick{
+	struct Node{
+		int next[26];
+		int link;
+		vector<int> out; // indices of patterns ending here
+		Node(){
+			fill(begin(next), end(next), -1);
+			link = -1;
+		}
+	};
+	vector<Node> t;
+	AhoCorasick(){ t.push_back(Node()); }
+	void addString(const string& s, int id){
+		int v = 0;
+		for(char c : s){
+			int k = c - 'a';
+			if(t[v].next[k] == -1){
+				t[v].next[k] = (int)t.size();
+				t.push_back(Node());
+			}
+			v = t[v].next[k];
+		}
+		t[v].out.push_back(id);
+	}
+	void build(){
+		queue<int> q;
+		t[0].link = 0;
+		for(int k=0;k<26;k++){
+			if(t[0].next[k] != -1){
+				t[t[0].next[k]].link = 0;
+				q.push(t[0].next[k]);
+			}else{
+				t[0].next[k] = 0;
+			}
+		}
+		while(!q.empty()){
+			int v = q.front(); q.pop();
+			for(int k=0;k<26;k++){
+				int u = t[v].next[k];
+				if(u != -1){
+					t[u].link = t[t[v].link].next[k];
+					// propagate outputs from link
+					for(int pid : t[t[u].link].out) t[u].out.push_back(pid);
+					q.push(u);
+				}else{
+					t[v].next[k] = t[t[v].link].next[k];
+				}
+			}
+		}
+	}
+	// returns count of occurrences per pattern id
+	vector<int> countOccurrences(const string& text, int numPatterns){
+		vector<int> cnt(numPatterns, 0);
+		int v = 0;
+		for(char c : text){
+			v = t[v].next[c - 'a'];
+			for(int pid : t[v].out) cnt[pid]++;
+		}
+		return cnt;
+	}
+};
+
+int main(){
+	AhoCorasick ac;
+	ac.addString("he", 0);
+	ac.addString("she", 1);
+	ac.addString("his", 2);
+	ac.build();
+	auto cnt = ac.countOccurrences("ushers", 3);
+	for(int c : cnt) cout << c << " ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

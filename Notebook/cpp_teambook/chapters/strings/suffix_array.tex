@@ -1,0 +1,114 @@
+\subsubsection{Suffix Array}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) build, O(N) memoria
+// usa: comparar substrings en O(1) (con LCP), contar substrings distintos,
+//      longest repeated substring, longest common substring entre 2 strings,
+//      pattern matching O(|p| log N) con binary search sobre SA,
+//      encontrar el k-esimo substring lex, concatenar strings y ordenar sufijos
+// sa.p[i]  = posicion en s del i-esimo sufijo en orden lexicografico
+// sa.c[i]  = clase de equivalencia (rank) del sufijo que empieza en i
+struct SuffArr{
+	vector<int> p,c;
+	int n;
+	string s;
+	SuffArr(string &a){
+		s=a;
+		n=s.size();
+		p.resize(n) ; c.resize(n);
+		build();
+	}
+	void count_sort(vector<int> &p, vector<int> &c){
+		int n=p.size();
+		vector<int> cnt(n);
+		for(auto x : c ) cnt[x]++;
+		vector<int> p_new(n) , pos(n);
+		pos[0]=0;
+		for(int i=1 ; i<n ; i++){
+			pos[i]=pos[i-1]+cnt[i-1];
+		}
+		for(auto x : p){
+			int i=c[x];
+			p_new[pos[i]]=x;
+			pos[i]++;
+		}
+		p=p_new;
+	}
+	void build(){
+		{
+			vector<pair<int,int>> tmp(n);
+			for(int i=0 ; i<n ; i++){
+				tmp[i]={s[i],i};
+			}
+			sort(all(tmp));
+			for(int i=0 ; i<n ; i++){
+				p[i]=tmp[i].S;
+			}
+			c[p[0]]=0;
+			for(int i=1 ; i<n ; i++){
+				if(tmp[i].F == tmp[i-1].F){
+					c[p[i]]=c[p[i-1]];
+				}else{
+					c[p[i]]=c[p[i-1]]+1;
+				}
+			}
+		}
+		int k=0;
+		while((1<<k) < n){
+			// k -> k+1
+			for(int i=0; i<n ; i++){
+				p[i]=(p[i]-(1<<k) + n)%n;
+			}
+
+			count_sort(p,c);
+
+			vector<int> c_new(n);
+			c_new[p[0]]=0;
+			for(int i=1 ; i<n ; i++){
+				pair<int,int> prev={c[p[i-1]],c[(p[i-1]+(1<<k))%n]};
+				pair<int,int> now={c[p[i]],c[(p[i]+(1<<k))%n]};
+				if(now == prev){
+					c_new[p[i]]=c_new[p[i-1]];
+				}else{
+					c_new[p[i]]=c_new[p[i-1]]+1;
+				}
+			}
+			c=c_new;
+			k++;
+		}
+	}
+};
+
+int main(){
+	string s = "banana";
+	SuffArr sa(s);
+
+	// (1) imprimir SA y sufijos en orden lex
+	cout << "SA: ";
+	for(int i = 0; i < sa.n; i++) cout << sa.p[i] << " ";  // 5 3 1 0 4 2
+	cout << "\nsufijos ordenados:\n";
+	for(int i = 0; i < sa.n; i++)
+		cout << "  " << sa.s.substr(sa.p[i]) << "\n";
+
+	// (2) contar ocurrencias de un patron en O(|p| log N) con binary search
+	string p = "ana";
+	auto cmpLess = [&](int suf){
+		return sa.s.compare(suf, (int)p.size(), p) < 0;
+	};
+	int lo = 0, hi = sa.n;
+	while(lo < hi){ int m = (lo+hi)/2; if(cmpLess(sa.p[m])) lo = m+1; else hi = m; }
+	int first = lo;
+	// upper bound: lower_bound(p + '{') (cualquier char > los del alfabeto)
+	string pNext = p + "{";
+	auto cmpLess2 = [&](int suf){
+		return sa.s.compare(suf, (int)pNext.size(), pNext) < 0;
+	};
+	lo = first; hi = sa.n;
+	while(lo < hi){ int m = (lo+hi)/2; if(cmpLess2(sa.p[m])) lo = m+1; else hi = m; }
+	int last = lo;
+	cout << "ocurrencias de \"" << p << "\": " << (last - first) << "\n";  // 2
+
+	// (3) longest repeated substring: max(lcp[i]) sobre todo el SA
+	//     (combinado con el LCP de Kasai - ver archivo lcp.tex)
+	return 0;
+}
+\end{lstlisting}

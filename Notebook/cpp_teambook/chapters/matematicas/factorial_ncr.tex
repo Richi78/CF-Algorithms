@@ -1,0 +1,30 @@
+\subsubsection{Factoriales + nCr mod p}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) precompute, O(1) query
+// usa: C(n, k) mod p, donde p es primo
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long MOD = 998244353LL;
+vector<long long> fact, invFact;
+
+void buildFact(int n){
+	fact.assign(n + 1, 1);
+	invFact.assign(n + 1, 1);
+	for(int i=1 ; i<=n ; i++) fact[i] = fact[i-1] * i % MOD;
+	invFact[n] = modpow(fact[n], MOD - 2, MOD);
+	for(int i=n ; i>=1 ; i--) invFact[i-1] = invFact[i] * i % MOD;
+}
+
+long long nCr(int n, int k){
+	if(k < 0 || k > n) return 0;
+	return fact[n] * invFact[k] % MOD * invFact[n-k] % MOD;
+}
+
+int main(){
+	buildFact(100);
+	cout << "C(10,3) = " << nCr(10, 3) << "\n";
+	cout << "C(100,50) mod = " << nCr(100, 50) << "\n";
+	return 0;
+}
+\end{lstlisting}

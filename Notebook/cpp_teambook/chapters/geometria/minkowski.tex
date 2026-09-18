@@ -1,0 +1,41 @@
+\subsubsection{Minkowski sum (convex polygons)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: suma de Minkowski; util para chequear colision entre dos poligonos convexos
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<Point> minkowskiSum(const vector<Point>& a, const vector<Point>& b){
+	// assumes both are in counter-clockwise order, no repeated last point
+	int n = (int)a.size(), m = (int)b.size();
+	auto edgesOf = [](const vector<Point>& p){
+		vector<Point> e;
+		int k = (int)p.size();
+		for(int i=0;i<k;i++) e.push_back(p[(i+1)%k] - p[i]);
+		return e;
+	};
+	vector<Point> ea = edgesOf(a), eb = edgesOf(b);
+	int i = 0, j = 0;
+	vector<Point> result;
+	Point cur{a[0].x + b[0].x, a[0].y + b[0].y};
+	result.push_back(cur);
+	while(i < n && j < m){
+		Point pa = ea[i], pb = eb[j];
+		long long cr = (long long)pa * pb;
+		if(cr >= 0){ cur.x += pa.x; cur.y += pa.y; i++; }
+		if(cr <= 0){ cur.x += pb.x; cur.y += pb.y; j++; }
+		result.push_back(cur);
+	}
+	while(i < n){ cur.x += ea[i].x; cur.y += ea[i].y; result.push_back(cur); i++; }
+	while(j < m){ cur.x += eb[j].x; cur.y += eb[j].y; result.push_back(cur); j++; }
+	return result;
+}
+
+int main(){
+	vector<Point> A = {{0,0},{2,0},{2,2},{0,2}};  // unit-ish square
+	vector<Point> B = {{1,1},{3,1},{3,3},{1,3}};
+	auto C = minkowskiSum(A, B);
+	cout << "Minkowski sum has " << C.size() << " vertices\n";
+	return 0;
+}
+\end{lstlisting}

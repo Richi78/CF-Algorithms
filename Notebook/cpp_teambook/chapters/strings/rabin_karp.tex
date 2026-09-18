@@ -1,0 +1,41 @@
+\subsubsection{Rabin-Karp (single hash)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M) expected
+// usa: encontrar patron con hash rodante; mejor con doble hash
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long BASE = 91138233LL;
+const long long MOD = 1000000007LL;
+
+// returns all starting positions of pattern in text
+vector<int> rabinKarp(const string& text, const string& pattern){
+	int n = text.size(), m = pattern.size();
+	if(m > n) return {};
+	long long h = 1;
+	for(int i=0;i<m-1;i++) h = h * BASE % MOD;
+	long long pHash = 0, tHash = 0;
+	for(int i=0;i<m;i++){
+		pHash = (pHash * BASE + pattern[i]) % MOD;
+		tHash = (tHash * BASE + text[i]) % MOD;
+	}
+	vector<int> occ;
+	for(int i=0;i<=n-m;i++){
+		if(pHash == tHash){
+			bool match = true;
+			for(int j=0;j<m;j++) if(text[i+j] != pattern[j]){ match = false; break; }
+			if(match) occ.push_back(i);
+		}
+		if(i < n - m){
+			tHash = ((tHash - text[i] * h % MOD + MOD) * BASE + text[i+m]) % MOD;
+		}
+	}
+	return occ;
+}
+
+int main(){
+	auto occ = rabinKarp("hello world", "world");
+	for(int pos : occ) cout << "found at " << pos << "\n";
+	return 0;
+}
+\end{lstlisting}

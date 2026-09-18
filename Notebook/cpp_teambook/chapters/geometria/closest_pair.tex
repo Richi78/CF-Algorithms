@@ -1,0 +1,41 @@
+\subsubsection{Closest pair of points (sweepline)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N)
+// usa: encontrar el par de puntos mas cercanos en un plano
+// idea: ordenar por x, mantener una "caja" (set ordenado por y) con puntos
+//       cuya x esta a <= d del actual; evict y query acotados por d
+// nota: hypot(dx,dy) = sqrt(dx^2+dy^2) sin overflow intermedio (mas seguro que sqrt(dx*dx+dy*dy))
+#include <bits/stdc++.h>
+using namespace std;
+
+double closestPair(vector<Point>& pts){
+	sort(pts.begin(), pts.end(), [](const Point& a, const Point& b){
+		return a.x < b.x || (a.x == b.x && a.y < b.y);
+	});
+	double d = 1e18;
+	set<pair<long long,long long>> box;
+	int j = 0;
+	for(int i = 0; i < (int)pts.size(); i++){
+		long long xi = pts[i].x, yi = pts[i].y;
+		while(j < i && (double)(xi - pts[j].x) > d){
+			box.erase({pts[j].y, pts[j].x});
+			j++;
+		}
+		long long ylow  = (long long)floor((double)yi - d);
+		long long yhigh = (long long)ceil((double)yi  + d);
+		for(auto it = box.lower_bound({ylow, LLONG_MIN});
+			it != box.end() && it->first <= yhigh; ++it){
+			double dist = hypot((double)(xi - it->second), (double)(yi - it->first));
+			if(dist < d) d = dist;
+		}
+		box.insert({yi, xi});
+	}
+	return d;
+}
+
+int main(){
+	vector<Point> pts = {{0,0}, {5,5}, {1,1}, {3,3}, {0,2}};
+	cout << "closest distance = " << closestPair(pts) << "\n";  // ~1.41
+	return 0;
+}
+\end{lstlisting}

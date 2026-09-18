@@ -1,0 +1,67 @@
+\subsubsection{Polynomial utilities (mod p)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) per operation (using NTT)
+// usa: requiere multiplyNTT ya definido
+#include <bits/stdc++.h>
+using namespace std;
+
+using Poly = vector<long long>;
+
+Poly polyAdd(const Poly& a, const Poly& b){
+	Poly c(max(a.size(), b.size()));
+	for(size_t i=0;i<a.size();i++) c[i] = (c[i] + a[i]) % MOD;
+	for(size_t i=0;i<b.size();i++) c[i] = (c[i] + b[i]) % MOD;
+	return c;
+}
+
+Poly polySub(const Poly& a, const Poly& b){
+	Poly c(max(a.size(), b.size()));
+	for(size_t i=0;i<a.size();i++) c[i] = (c[i] + a[i]) % MOD;
+	for(size_t i=0;i<b.size();i++) c[i] = (c[i] - b[i] + MOD) % MOD;
+	return c;
+}
+
+// inverse: 1/B(x) mod x^n
+Poly polyInv(const Poly& b, int n){
+	Poly r(1, modpow(b[0], MOD - 2, MOD));
+	int cur = 1;
+	while(cur < n){
+		cur <<= 1;
+		Poly a(min((int)b.size(), cur));
+		for(int i=0;i<(int)a.size();i++) a[i] = b[i];
+		Poly nr = multiplyNTT(a, multiplyNTT(r, r));
+		r.resize(cur);
+		for(int i=0;i<cur;i++) r[i] = (2LL * r[i] - (i < (int)nr.size() ? nr[i] : 0) + MOD) % MOD;
+	}
+	r.resize(n);
+	return r;
+}
+
+// derivative
+Poly polyDeriv(const Poly& a){
+	if(a.empty()) return {};
+	Poly b((int)a.size() - 1);
+	for(size_t i=1;i<a.size();i++) b[i-1] = a[i] * i % MOD;
+	return b;
+}
+
+// integral
+Poly polyInteg(const Poly& a){
+	Poly b(a.size() + 1);
+	// modular inverse of i+1 for each i
+	static vector<long long> inv(1, 1);
+	while((int)inv.size() <= (int)a.size()) inv.push_back(modpow(inv.size(), MOD - 2, MOD));
+	for(size_t i=0;i<a.size();i++) b[i+1] = a[i] * inv[i+1] % MOD;
+	return b;
+}
+
+int main(){
+	Poly a = {1, 2, 3};
+	Poly b = {4, 5};
+	Poly c = polyAdd(a, b);
+	Poly d = polySub(a, b);
+	Poly deriv = polyDeriv(a);  // {2, 6}
+	Poly integ = polyInteg(a);  // {0, 1, 1, 1}
+	return 0;
+}
+\end{lstlisting}

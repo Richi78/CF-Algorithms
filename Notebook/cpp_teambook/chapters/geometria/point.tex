@@ -1,0 +1,26 @@
+\subsubsection{Point + cross + dot}
+\begin{lstlisting}[style=mystyle, language=C++]
+struct Point{
+	int x,y;
+	void read(){cin >> x >> y;}
+	Point operator -(const Point &b) const {
+		return Point{x-b.x , y-b.y};
+	}
+
+	// Respecto al origen
+	int operator *(const Point &b) const {
+		return x*b.y - y*b.x;
+	}
+
+	// Respecto a this
+	int cross(const Point &b, const Point &c) const {
+		return (b-*this) * (c-*this);
+	}
+	int dot(const Point &b, const Point &c) const {
+		return (b.x-x)*(c.x-x) + (b.y-y)*(c.y-y);
+	}
+	bool operator <(const Point &b) const {
+		return make_pair(x,y)<make_pair(b.x,b.y);
+	}
+};
+\end{lstlisting}

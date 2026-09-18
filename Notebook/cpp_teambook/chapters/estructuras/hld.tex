@@ -1,0 +1,74 @@
+\subsubsection{Heavy-Light Decomposition (HLD)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) build, O(log^2 N) per path query (with segtree/BIT)
+// usa: queries en camino entre u y v
+#include <bits/stdc++.h>
+using namespace std;
+
+struct HLD{
+	int n, curPos;
+	vector<int> parent, depth, heavy, head, pos;
+	vector<vector<int>> adj;
+	HLD(int n): n(n){
+		parent.assign(n, -1);
+		depth.assign(n, 0);
+		heavy.assign(n, -1);
+		head.assign(n, 0);
+		pos.assign(n, 0);
+		adj.assign(n, {});
+		curPos = 0;
+	}
+	void addEdge(int u, int v){
+		adj[u].push_back(v);
+		adj[v].push_back(u);
+	}
+	int dfs(int v){
+		int size = 1, maxSub = 0;
+		for(int u : adj[v]){
+			if(u == parent[v]) continue;
+			parent[u] = v;
+			depth[u] = depth[v] + 1;
+			int sub = dfs(u);
+			if(sub > maxSub){ maxSub = sub; heavy[v] = u; }
+			size += sub;
+		}
+		return size;
+	}
+	void decompose(int v, int h){
+		head[v] = h;
+		pos[v] = curPos++;
+		if(heavy[v] != -1) decompose(heavy[v], h);
+		for(int u : adj[v]){
+			if(u == parent[v] || u == heavy[v]) continue;
+			decompose(u, u);
+		}
+	}
+	void build(int root = 0){
+		dfs(root);
+		decompose(root, root);
+	}
+	// returns the contiguous segments covering the path u->v in base array order
+	vector<pair<int,int>> pathSegments(int u, int v){
+		vector<pair<int,int>> segs;
+		while(head[u] != head[v]){
+			if(depth[head[u]] < depth[head[v]]) swap(u, v);
+			segs.push_back({pos[head[u]], pos[u]});
+			u = parent[head[u]];
+		}
+		if(depth[u] > depth[v]) swap(u, v);
+		segs.push_back({pos[u], pos[v]});
+		return segs;
+	}
+};
+
+int main(){
+	HLD hld(5);
+	hld.addEdge(0,1); hld.addEdge(1,2); hld.addEdge(1,3); hld.addEdge(3,4);
+	hld.build(0);
+	// path segments from 2 to 4 -> [(2,2), (1,3)] in pos[] order
+	auto segs = hld.pathSegments(2, 4);
+	for(auto [l,r] : segs) cout << "[" << l << "," << r << "] ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

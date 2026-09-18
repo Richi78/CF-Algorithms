@@ -1,0 +1,76 @@
+\subsubsection{Coordinate compression}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N)
+// usa: cuando los valores son hasta 1e9 pero solo hay N de ellos
+#include <bits/stdc++.h>
+using namespace std;
+
+// returns a vector of the same size as v, where each value is replaced
+//     by its rank in the sorted distinct set (0-indexed).
+vector<int> compress(const vector<int>& v){
+	vector<int> sorted = v;
+	sort(sorted.begin(), sorted.end());
+	sorted.erase(unique(sorted.begin(), sorted.end()), sorted.end());
+	vector<int> res(v.size());
+	for(size_t i=0;i<v.size();i++){
+		res[i] = (int)(lower_bound(sorted.begin(), sorted.end(), v[i]) - sorted.begin());
+	}
+	return res;
+}
+
+// if you also need the sorted distinct array itself:
+pair<vector<int>, vector<int>> compressWithMap(const vector<int>& v){
+	vector<int> sorted = v;
+	sort(sorted.begin(), sorted.end());
+	sorted.erase(unique(sorted.begin(), sorted.end()), sorted.end());
+	vector<int> res(v.size());
+	for(size_t i=0;i<v.size();i++){
+		res[i] = (int)(lower_bound(sorted.begin(), sorted.end(), v[i]) - sorted.begin());
+	}
+	return {res, sorted};
+}
+
+// 2D compression: compress both coordinates of each point independently
+// usa: grids, point sets, rectangle problems, etc.
+// T puede ser int o long long (u otro tipo ordenable)
+// TC: O(N log N)
+template<typename T>
+vector<pair<int,int>> compress2D(const vector<pair<T,T>>& points){
+	vector<T> xs, ys;
+	xs.reserve(points.size());
+	ys.reserve(points.size());
+	for(int i=0; i<points.size(); i++){
+		xs.push_back(points[i].first);
+		ys.push_back(points[i].second);
+	}
+	sort(xs.begin(), xs.end());
+	xs.erase(unique(xs.begin(), xs.end()), xs.end());
+	sort(ys.begin(), ys.end());
+	ys.erase(unique(ys.begin(), ys.end()), ys.end());
+
+	vector<pair<int,int>> res(points.size());
+	for(int i=0; i<points.size(); i++){
+		int cx = (int)(lower_bound(xs.begin(), xs.end(), points[i].first) - xs.begin());
+		int cy = (int)(lower_bound(ys.begin(), ys.end(), points[i].second) - ys.begin());
+		res[i] = make_pair(cx, cy);
+	}
+	return res;
+}
+
+int main(){
+	// typical usage: compress values up to 1e9 to [0, k)
+	vector<int> v = {1e9, 5, 100, 5, 1e9, 42}; // considerar long long
+	vector<int> c = compress(v);
+	for(int x : c) cout << x << " ";   // e.g. 3 0 2 0 3 1
+	cout << "\n";
+
+	// 2D example: compress points with coordinates up to 1e9
+	// xs unicos: [5, 100, 1e9] -> [0, 1, 2]
+	// ys unicos: [5, 42,  1e9] -> [0, 1, 2]
+	vector<pair<long long,long long>> pts = {{1e9, 5}, {5, 1e9}, {100, 42}, {5, 1e9}};
+	auto c2d = compress2D(pts);
+	for(auto& p : c2d) cout << "(" << p.first << "," << p.second << ") ";
+	cout << "\n"; // (2,0) (0,2) (1,1) (0,2)
+	return 0;
+}
+\end{lstlisting}

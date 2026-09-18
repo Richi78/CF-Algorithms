@@ -1,0 +1,42 @@
+\subsubsection{Segment Tree persistente}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) per query, O(log N) per update (creates new root)
+// usa: queries en versiones historicas del arreglo
+#include <bits/stdc++.h>
+using namespace std;
+
+struct PNode{
+	long long val;
+	PNode *l, *r;
+	PNode(long long v = 0, PNode* l = nullptr, PNode* r = nullptr): val(v), l(l), r(r){}
+};
+
+PNode* pBuild(int l, int r, const vector<long long>& a){
+	if(l == r) return new PNode(a[l]);
+	int m = (l + r) / 2;
+	return new PNode(0, pBuild(l, m, a), pBuild(m+1, r, a));
+}
+
+PNode* pUpdate(PNode* node, int l, int r, int pos, long long val){
+	if(l == r) return new PNode(val);
+	int m = (l + r) / 2;
+	if(pos <= m) return new PNode(0, pUpdate(node->l, l, m, pos, val), node->r);
+	else return new PNode(0, node->l, pUpdate(node->r, m+1, r, pos, val));
+}
+
+long long pQuery(PNode* node, int l, int r, int ql, int qr){
+	if(!node || ql > r || qr < l) return 0;
+	if(ql <= l && r <= qr) return node->val;
+	int m = (l + r) / 2;
+	return pQuery(node->l, l, m, ql, qr) + pQuery(node->r, m+1, r, ql, qr);
+}
+
+int main(){
+	vector<long long> a = {1, 2, 3, 4, 5};
+	PNode* root = pBuild(0, 4, a);
+	PNode* v2 = pUpdate(root, 0, 4, 2, 10);  // set a[2] = 10
+	cout << pQuery(root, 0, 4, 0, 4) << "\n";  // 15 (v1)
+	cout << pQuery(v2, 0, 4, 0, 4) << "\n";    // 22 (v2)
+	return 0;
+}
+\end{lstlisting}

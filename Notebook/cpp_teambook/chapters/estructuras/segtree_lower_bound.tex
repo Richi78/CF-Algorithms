@@ -1,0 +1,58 @@
+\subsubsection{Segment Tree Add + lower bound index}
+\begin{lstlisting}[style=mystyle, language=C++]
+struct SegmentTree {
+	struct Node {
+		int val = 0, lazy = 0;
+	};
+
+	int n;
+	vector<Node> st;
+
+	SegmentTree(int size) {
+		n = size;
+		while(__builtin_popcount(n) != 1) n++;
+		st.resize(2*n);
+	}
+
+	void push(int node, int l, int r) {
+		if(st[node].lazy == 0) return;
+		st[node].val += st[node].lazy;
+		if(l != r) {
+			st[node*2].lazy += st[node].lazy;
+			st[node*2+1].lazy += st[node].lazy;
+		}
+		st[node].lazy = 0;
+	}
+
+	void add_range(int node, int l, int r, int ql, int qr, int val) {
+		push(node, l, r);
+		if(ql <= l && r <= qr) {
+			st[node].lazy = val;
+			push(node, l, r);
+			return;
+		}
+		if(r < ql || qr < l) return;
+		int mid = l + (r-l)/2;
+		add_range(node*2, l, mid, ql, qr, val);
+		add_range(node*2+1, mid+1, r, ql, qr, val);
+		st[node].val = max(st[node*2].val, st[node*2+1].val);
+	}
+
+	int query(int node, int l, int r, int val, int bound) {
+		push(node, l, r);
+		if(r < bound || st[node].val < val) return -1;
+		if(l == r) return l;
+		int mid = l + (r-l)/2;
+		int left = query(node*2, l, mid, val, bound);
+		if(left == -1) return query(node*2+1, mid+1, r, val, bound);
+		return left;
+	}
+
+	void add(int l, int r, int val) {
+		add_range(1, 0, n-1, l, r, val);
+	}
+	int lower_bound_index(int val, int bound) {
+		return query(1, 0, n-1, val, bound);
+	}
+};
+\end{lstlisting}

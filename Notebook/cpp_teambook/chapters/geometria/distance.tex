@@ -1,0 +1,36 @@
+\subsubsection{Distance point-segment / point-line}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(1)
+// usa: distancia minima de un punto a un segmento o a la recta que lo contiene
+#include <bits/stdc++.h>
+using namespace std;
+
+// returns squared distance from p to line (a, b)
+long long dist2PointLine(const Point& p, const Point& a, const Point& b){
+	Point ab = b - a;
+	long long area2 = abs((long long)ab * (p - a));
+	long long len2 = 1LL * ab.x * ab.x + 1LL * ab.y * ab.y;
+	if(len2 == 0) return 1LL * (p.x - a.x) * (p.x - a.x) + 1LL * (p.y - a.y) * (p.y - a.y);
+	return (area2 * area2) / len2;
+}
+
+long long dist2PointSegment(const Point& p, const Point& a, const Point& b){
+	Point ap = p - a;
+	Point ab = b - a;
+	long long dot1 = 1LL * ab.x * ap.x + 1LL * ab.y * ap.y;
+	if(dot1 <= 0) return 1LL * ap.x * ap.x + 1LL * ap.y * ap.y;
+	Point bp = p - b;
+	long long dot2 = -1LL * ab.x * bp.x - 1LL * ab.y * bp.y;
+	if(dot2 <= 0) return 1LL * bp.x * bp.x + 1LL * bp.y * bp.y;
+	long long len2 = 1LL * ab.x * ab.x + 1LL * ab.y * ab.y;
+	long long area2 = abs((long long)ab * ap);
+	return (area2 * area2) / len2;
+}
+
+int main(){
+	Point a{0,0}, b{4,0}, p{2,3};
+	cout << "dist to segment: " << dist2PointSegment(p,a,b) << "\n";   // 9
+	cout << "dist to line:    " << dist2PointLine(p,a,b) << "\n";      // 9
+	return 0;
+}
+\end{lstlisting}

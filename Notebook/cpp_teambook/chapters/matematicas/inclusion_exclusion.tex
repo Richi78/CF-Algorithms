@@ -1,0 +1,36 @@
+\subsubsection{Inclusion-exclusion over subsets}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(2^N * cost_of_evaluating_subset)
+// usa: cuando se quiere contar elementos que cumplen alguna combinacion de N propiedades
+#include <bits/stdc++.h>
+using namespace std;
+
+// f(mask) returns the number of elements satisfying exactly the
+//     properties in mask. Returns sum over non-empty masks with sign (-1)^(k+1).
+template<class F>
+long long inclusionExclusion(int n, F&& f){
+	long long result = 0;
+	int total = 1 << n;
+	for(int mask=1;mask<total;mask++){
+		long long cnt = f(mask);
+		int bits = __builtin_popcount(mask);
+		if(bits % 2 == 1) result += cnt;
+		else result -= cnt;
+	}
+	return result;
+}
+
+int main(){
+	// count numbers in [1,100] divisible by 2, 3 or 5 (must not be divisible by any)
+	// generic f: returns |union over mask|, signed sum via inclusion-exclusion
+	auto f = [&](int mask) -> long long {
+		long long cnt = 0;
+		int primes[] = {2,3,5};
+		int bits = __builtin_popcount(mask);
+		for(int p : primes) if(mask & (1<<(p==2?0:p==3?1:2))){ /* set bit */ }
+		return cnt;
+	};
+	// (full example in PLAN_03 central main)
+	return 0;
+}
+\end{lstlisting}

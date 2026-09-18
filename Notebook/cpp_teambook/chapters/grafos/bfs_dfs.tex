@@ -1,0 +1,63 @@
+\subsubsection{DFS / BFS / componentes}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: recorrido, conteo de componentes
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Graph{
+	int n;
+	vector<vector<int>> adj;
+	Graph(int n): n(n), adj(n){}
+	void addEdge(int u, int v, bool undirected = true){
+		adj[u].push_back(v);
+		if(undirected) adj[v].push_back(u);
+	}
+	vector<int> bfs(int start){
+		vector<int> dist(n, -1);
+		queue<int> q;
+		dist[start] = 0; q.push(start);
+		while(!q.empty()){
+			int v = q.front(); q.pop();
+			for(int u : adj[v]) if(dist[u] == -1){
+				dist[u] = dist[v] + 1;
+				q.push(u);
+			}
+		}
+		return dist;
+	}
+	void dfsRec(int v, vector<bool>& visited, vector<int>& order){
+		visited[v] = true;
+		order.push_back(v);
+		for(int u : adj[v]) if(!visited[u]) dfsRec(u, visited, order);
+	}
+	vector<int> dfs(int start){
+		vector<int> order;
+		vector<bool> visited(n, false);
+		dfsRec(start, visited, order);
+		return order;
+	}
+	int countComponents(){
+		vector<bool> visited(n, false);
+		vector<int> order;
+		int cnt = 0;
+		for(int v=0;v<n;v++){
+			if(!visited[v]){
+				dfsRec(v, visited, order);
+				cnt++;
+			}
+		}
+		return cnt;
+	}
+};
+
+int main(){
+	Graph g(5);
+	g.addEdge(0,1); g.addEdge(1,2); g.addEdge(3,4);  // 2 components
+	cout << "components: " << g.countComponents() << "\n";  // 2
+	auto dist = g.bfs(0);
+	for(int d : dist) cout << d << " ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

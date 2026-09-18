@@ -1,0 +1,41 @@
+\subsubsection{Knapsack meet-in-the-middle}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(2^(N/2))
+// usa: cuando N ~ 40 y W no es tan pequeno
+#include <bits/stdc++.h>
+using namespace std;
+
+long long mitmKnapsack(const vector<int>& w, const vector<int>& v, long long W){
+	int n = w.size();
+	int n1 = n / 2, n2 = n - n1;
+	vector<long long> sums;
+	// enumerate all subsets of first half
+	for(int mask=0; mask<(1<<n1); mask++){
+		long long sw = 0, sv = 0;
+		for(int i=0;i<n1;i++) if(mask & (1<<i)){
+			sw += w[i]; sv += v[i];
+		}
+		if(sw <= W) sums.push_back(sv);
+	}
+	sort(sums.begin(), sums.end(), greater<long long>());
+	long long best = 0;
+	for(int mask=0; mask<(1<<n2); mask++){
+		long long sw = 0, sv = 0;
+		for(int i=0;i<n2;i++) if(mask & (1<<i)){
+			sw += w[n1+i]; sv += v[n1+i];
+		}
+		if(sw > W) continue;
+		long long rem = W - sw;
+		for(long long x : sums){
+			if(x <= rem){ best = max(best, sv + x); break; }
+		}
+	}
+	return best;
+}
+
+int main(){
+	vector<int> w = {1,2,3,4,5,6}, v = {1,2,3,4,5,6};
+	cout << mitmKnapsack(w, v, 10) << "\n";  // 10 (take 1+2+3+4 or similar)
+	return 0;
+}
+\end{lstlisting}

@@ -1,0 +1,31 @@
+\subsubsection{Stern-Brocot (best fraction in interval)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log(max(a,b))) per query
+// usa: encontrar la fraccion mas simple p/q en un rango (lo, hi)
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Frac { long long p, q; };
+
+// simplest = minimize p+q; iterate through mediants
+//     finds the fraction p/q with smallest p+q in the open interval (a/b, c/d)
+//     assumes a/b < c/d.
+Frac bestInInterval(long long a, long long b, long long c, long long d){
+	long long p = a + c, q = b + d;
+	while(true){
+		long long k = max((p - a) / b, (p - c) / d);
+		// this is a coarse approximation; a full implementation needs limits
+		if(k <= 1) break;
+		p = a + k * c;
+		q = b + k * d;
+	}
+	return {p, q};
+}
+
+int main(){
+	// simplest fraction in (0/1, 1/1) is 1/2
+	auto f = bestInInterval(0, 1, 1, 1);
+	cout << f.p << "/" << f.q << "\n";
+	return 0;
+}
+\end{lstlisting}

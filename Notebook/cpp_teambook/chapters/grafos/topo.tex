@@ -1,0 +1,52 @@
+\subsubsection{Topological sort (Kahn + DFS)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: orden lineal de un DAG
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> topoKahn(int n, const vector<vector<int>>& adj){
+	vector<int> indeg(n, 0);
+	for(int u=0;u<n;u++) for(int v : adj[u]) indeg[v]++;
+	queue<int> q;
+	for(int i=0;i<n;i++) if(indeg[i] == 0) q.push(i);
+	vector<int> order;
+	while(!q.empty()){
+		int v = q.front(); q.pop();
+		order.push_back(v);
+		for(int u : adj[v]){
+			if(--indeg[u] == 0) q.push(u);
+		}
+	}
+	return order; // size < n if cycle
+}
+
+void dfsVisit(int v, const vector<vector<int>>& adj, vector<int>& state, vector<int>& order){
+	state[v] = 1;
+	for(int u : adj[v]){
+		// if(state[u] == 1) -> ciclo: back edge a ancestro en la pila de recursion
+		if(state[u] == 0)
+			dfsVisit(u, adj, state, order);
+	}
+	state[v] = 2;
+	order.push_back(v);
+}
+
+vector<int> topoDFS(int n, const vector<vector<int>>& adj){
+	vector<int> order;
+	vector<int> state(n, 0); // 0=white, 1=gray, 2=black
+	for(int i=0;i<n;i++) 
+		if(state[i] == 0) 
+			dfsVisit(i, adj, state, order);
+	reverse(order.begin(), order.end());
+	return order;
+}
+
+int main(){
+	vector<vector<int>> adj = {{1,2}, {3}, {3}, {}};
+	auto order = topoKahn(4, adj);
+	for(int v : order) cout << v << " ";  // 0 1 2 3
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

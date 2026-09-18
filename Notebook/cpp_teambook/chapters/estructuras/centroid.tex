@@ -1,0 +1,55 @@
+\subsubsection{Centroid Decomposition}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) build; queries depend on problem
+// usa: problemas tipo "para cada nodo, encontrar el mas cercano que cumple X"
+#include <bits/stdc++.h>
+using namespace std;
+
+struct CentroidDecomp{
+	int n;
+	vector<vector<int>> adj;
+	vector<int> subSize;
+	vector<bool> removed;
+	vector<int> centroidParent;
+	CentroidDecomp(int n): n(n){
+		adj.assign(n, {});
+		subSize.assign(n, 0);
+		removed.assign(n, false);
+		centroidParent.assign(n, -1);
+	}
+	void addEdge(int u, int v){
+		adj[u].push_back(v);
+		adj[v].push_back(u);
+	}
+	int dfsSize(int v, int p){
+		subSize[v] = 1;
+		for(int u : adj[v]) if(u != p && !removed[u]) subSize[v] += dfsSize(u, v);
+		return subSize[v];
+	}
+	int dfsCentroid(int v, int p, int total){
+		for(int u : adj[v]){
+			if(u != p && !removed[u] && subSize[u] > total / 2){
+				return dfsCentroid(u, v, total);
+			}
+		}
+		return v;
+	}
+	void build(int v = 0, int p = -1){
+		int total = dfsSize(v, -1);
+		int c = dfsCentroid(v, -1, total);
+		centroidParent[c] = p;
+		removed[c] = true;
+		for(int u : adj[c]){
+			if(!removed[u]) build(u, c);
+		}
+	}
+};
+
+int main(){
+	CentroidDecomp cd(5);
+	cd.addEdge(0,1); cd.addEdge(1,2); cd.addEdge(2,3); cd.addEdge(3,4);
+	cd.build();
+	cout << "centroid parent of node 0: " << cd.centroidParent[0] << "\n";
+	return 0;
+}
+\end{lstlisting}

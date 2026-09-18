@@ -1,0 +1,37 @@
+\subsubsection{Sparse Table}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) build, O(1) query
+// usa: min/max/gcd en rango estatico (sin updates)
+#include <bits/stdc++.h>
+using namespace std;
+
+struct SparseTable{
+	int n, LOG;
+	vector<vector<int>> st;
+	vector<int> lg;
+	SparseTable(const vector<int>& a){
+		n = a.size();
+		LOG = 32 - __builtin_clz(n);
+		st.assign(LOG, vector<int>(n));
+		st[0] = a;
+		for(int k=1;k<LOG;k++){
+			for(int i=0;i + (1<<k) <= n;i++){
+				st[k][i] = min(st[k-1][i], st[k-1][i + (1<<(k-1))]);
+			}
+		}
+		lg.assign(n + 1, 0);
+		for(int i=2;i<=n;i++) lg[i] = lg[i/2] + 1;
+	}
+	int query(int l, int r){
+		int k = lg[r - l + 1];
+		return min(st[k][l], st[k][r - (1<<k) + 1]);
+	}
+};
+
+int main(){
+	SparseTable st({3, 1, 4, 1, 5, 9, 2, 6});
+	cout << st.query(0, 4) << "\n";  // 1 (min in [3,1,4,1,5])
+	cout << st.query(2, 7) << "\n";  // 2
+	return 0;
+}
+\end{lstlisting}

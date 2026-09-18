@@ -1,0 +1,43 @@
+\subsubsection{Kruskal}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(M log M)
+// usa: MST con aristas ordenadas por peso
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DSUk{
+	vector<int> p, r;
+	DSUk(int n): p(n), r(n, 0){ iota(p.begin(), p.end(), 0); }
+	int find(int v){ return p[v] == v ? v : p[v] = find(p[v]); }
+	bool unite(int a, int b){
+		a = find(a); b = find(b);
+		if(a == b) return false;
+		if(r[a] < r[b]) swap(a, b);
+		p[b] = a;
+		if(r[a] == r[b]) r[a]++;
+		return true;
+	}
+};
+
+long long kruskal(int n, vector<array<int,3>>& edges){
+	sort(edges.begin(), edges.end(), [](auto& A, auto& B){
+		return A[2] < B[2];
+	});
+	DSUk dsu(n);
+	long long total = 0;
+	int cnt = 0;
+	for(auto [u, v, w] : edges){
+		if(dsu.unite(u, v)){
+			total += w;
+			if(++cnt == n - 1) break;
+		}
+	}
+	return total;
+}
+
+int main(){
+	vector<array<int,3>> edges = {{0,1,4},{1,2,1},{2,3,2},{0,3,5}};
+	cout << "MST weight = " << kruskal(4, edges) << "\n";  // 7
+	return 0;
+}
+\end{lstlisting}

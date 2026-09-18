@@ -1,0 +1,35 @@
+\subsubsection{Criba lineal}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) build
+// usa: cuando se necesita lp[i] (lowest prime factor) para cada i
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> lp; // lowest prime factor
+vector<int> primes;
+
+void linearSieve(int n){
+	lp.assign(n + 1, 0);
+	primes.clear();
+	for(int i=2 ; i<=n ; i++){
+		if(lp[i] == 0){
+			lp[i] = i;
+			primes.push_back(i);
+		}
+		for(int p : primes){
+			long long v = 1LL * i * p;
+			if(v > n) break;
+			lp[v] = p;
+			if(p == lp[i]) break;
+		}
+	}
+}
+
+int main(){
+	linearSieve(100);
+	// lp[12] = smallest prime factor of 12 (= 2)
+	cout << "lp[12] = " << lp[12] << "\n";
+	cout << "#primes <= 100: " << primes.size() << "\n";
+	return 0;
+}
+\end{lstlisting}

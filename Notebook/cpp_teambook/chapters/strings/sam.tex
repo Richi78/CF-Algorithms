@@ -1,0 +1,103 @@
+\subsubsection{Suffix Automaton}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) build
+// usa: contar substrings distintas, longest common substring, etc.
+#include <bits/stdc++.h>
+using namespace std;
+
+struct SAM{
+	struct State{
+		int next[26];
+		int link, len;
+		long long occ; // number of end positions (for counting)
+		State(){
+			fill(begin(next), end(next), -1);
+			link = -1;
+			len = 0;
+			occ = 0;
+		}
+	};
+	vector<State> st;
+	int last;
+	SAM(int maxLen){
+		st.reserve(2 * maxLen);
+		st.push_back(State());
+		st[0].link = -1;
+		last = 0;
+	}
+	void extend(char c){
+		int k = c - 'a';
+		int cur = (int)st.size();
+		st.push_back(State());
+		st[cur].len = st[last].len + 1;
+		st[cur].occ = 1;
+		int p = last;
+		while(p != -1 && st[p].next[k] == -1){
+			st[p].next[k] = cur;
+			p = st[p].link;
+		}
+		if(p == -1){
+			st[cur].link = 0;
+		}else{
+			int q = st[p].next[k];
+			if(st[p].len + 1 == st[q].len){
+				st[cur].link = q;
+			}else{
+				int clone = (int)st.size();
+				st.push_back(st[q]);
+				st[clone].len = st[p].len + 1;
+				st[clone].occ = 0; // clone doesn't count as new end
+				while(p != -1 && st[p].next[k] == q){
+					st[p].next[k] = clone;
+					p = st[p].link;
+				}
+				st[q].link = st[cur].link = clone;
+			}
+		}
+		last = cur;
+	}
+	void build(const string& s){
+		for(char c : s) extend(c);
+		// propagate occ counts in reverse order of len
+		vector<int> order(st.size());
+		iota(order.begin(), order.end(), 0);
+		sort(order.begin(), order.end(), [&](int a, int b){ return st[a].len > st[b].len; });
+		for(int v : order){
+			if(st[v].link != -1) st[st[v].link].occ += st[v].occ;
+		}
+	}
+	// returns number of distinct substrings
+	long long countDistinct(){
+		long long ans = 0;
+		for(size_t i=1;i<st.size();i++){
+			ans += st[i].len - st[st[i].link].len;
+		}
+		return ans;
+	}
+	// longest common substring of s with the SAM's string
+	int longestCommonSubstring(const string& s){
+		int v = 0, l = 0, best = 0;
+		for(char c : s){
+			int k = c - 'a';
+			while(v != 0 && st[v].next[k] == -1){
+				v = st[v].link;
+				l = st[v].len;
+			}
+			if(st[v].next[k] != -1){
+				v = st[v].next[k];
+				l++;
+			}
+			best = max(best, l);
+		}
+		return best;
+	}
+};
+
+int main(){
+	SAM sam(100);
+	sam.build("ababa");
+	cout << "distinct substrings: " << sam.countDistinct() << "\n";
+	cout << "LCS with 'baba': " << sam.longestCommonSubstring("baba") << "\n";
+	return 0;
+}
+\end{lstlisting}

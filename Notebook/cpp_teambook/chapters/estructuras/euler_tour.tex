@@ -1,0 +1,39 @@
+\subsubsection{Euler Tour + range queries}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) build, O(log N) per query (with BIT/segtree)
+// usa: queries en subarbol (suma de valores en el subtree de v)
+#include <bits/stdc++.h>
+using namespace std;
+
+struct EulerTour{
+	int n, timer;
+	vector<int> tin, tout;
+	vector<vector<int>> adj;
+	EulerTour(int n): n(n){
+		tin.assign(n, 0);
+		tout.assign(n, 0);
+		adj.assign(n, {});
+		timer = 0;
+	}
+	void addEdge(int u, int v){
+		adj[u].push_back(v);
+		adj[v].push_back(u);
+	}
+	void dfs(int v, int p){
+		tin[v] = timer++;
+		for(int u : adj[v]) if(u != p) dfs(u, v);
+		tout[v] = timer - 1;
+	}
+	void build(int root = 0){ dfs(root, -1); }
+	// subtree of v corresponds to range [tin[v], tout[v]] in base array
+};
+
+int main(){
+	EulerTour et(5);
+	et.addEdge(0,1); et.addEdge(1,2); et.addEdge(1,3); et.addEdge(3,4);
+	et.build(0);
+	// subtree of node 1 maps to range [tin[1], tout[1]]
+	cout << "tin[1]=" << et.tin[1] << " tout[1]=" << et.tout[1] << "\n";
+	return 0;
+}
+\end{lstlisting}

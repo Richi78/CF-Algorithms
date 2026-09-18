@@ -1,0 +1,97 @@
+\subsubsection{Plantilla main + fast I/O}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: N/A (boilerplate)
+// usa: punto de partida para cualquier problema
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+	ios_base::sync_with_stdio(false);
+	cin.tie(0);
+
+	// freopen("input.txt", "r", stdin);
+	// freopen("output.txt", "w", stdout);
+
+	int n;
+	if(!(cin >> n)) return 0;
+	vector<int> a(n);
+	for(int i=0;i<n;i++) cin >> a[i];
+
+	// minimal example: print sum of n integers
+	long long sum = 0;
+	for(int x : a) sum += x;
+	cout << sum << "\n";
+	return 0;
+
+	// === Usage examples of other modules (uncomment as needed) ===
+	// See each module's listing for its own minimal main.
+
+	// --- Utilities ---
+	// shuffleVec(a);                   // random / mt19937
+	// BigInt b(123), c(456); c += b; cout << c.toString();
+	// DBGV(a);                          // debug pretty-printer
+	// vector<int> cmp = compress(a);    // coordinate compression
+
+	// --- Math ---
+	// sieve(100); cout << primes.size();
+	// linearSieve(100);
+	// cout << millerRabin(17ULL);
+	// vector<u64> f = factorize(123456ULL);
+	// cout << modpow(2, 10);
+	// cout << modInv(3, MOD);
+	// cout << crt({2, 3}, {5, 7});
+	// phiSieve(100); cout << phi[10];
+	// mobiusSieve(100);
+	// buildFact(20); cout << nCr(5, 2);
+	// cout << nCrLucas(1000, 100, MOD);
+	// buildStirlingS2(10);
+	// multiplyFFT({1,2,3}, {4,5});
+	// multiplyNTT({1,2,3}, {4,5});
+
+	// --- Data Structures ---
+	// DSUrb d(5); d.unite(0,1); d.unite(1,2); d.rollback();
+	// SegTree2D st(10, 10); st.update(3, 4, 7); cout << st.query(0,0,3,4);
+	// BIT bit(10); bit.add(3, 5); cout << bit.sum(5);
+	// SparseTable sp(a); cout << sp.query(1, 3);
+	// LCA lca(n); lca.addEdge(u,v); lca.build(0); cout << lca.lca(u,v);
+	// HLD hld(n); hld.build(); auto segs = hld.pathSegments(u,v);
+
+	// --- Strings ---
+	// cout << zFunction("abacaba")[3];
+	// auto occ = rabinKarp("hello world", "world");
+	// AhoCorasick ac; ac.addString("he",0); ac.addString("she",1); ac.build();
+	// auto cnt = ac.countOccurrences("ushers", 2);
+	// auto [odd, even] = manacher("abacaba");
+	// SuffArr sa(s); auto lcp = buildLCP(s, sa.p);
+	// SAM sam(s.size()); sam.build(s); cout << sam.countDistinct();
+
+	// --- Graphs ---
+	// Graph g(n); g.addEdge(0,1); cout << g.bfs(0)[1];
+	// auto order = topoKahn(n, adj);
+	// auto [ok, col] = isBipartite(n, adj);
+	// cout << zeroOneBFS(n, adj, 0)[n-1];
+	// cout << kruskal(n, edges);
+	// TarjanSCC scc(n, adj); cout << scc.numComps;
+	// Dinic dinic(n, s, t); dinic.addEdge(u,v,c); cout << dinic.maxflow();
+	// MCMF mcmf(n); mcmf.addEdge(u,v,c,k); auto [flow,cost] = mcmf.minCostMaxFlow(s,t);
+	// TwoSAT ts(n); ts.addOr(0, true, 1, false); auto val = ts.solve();
+
+	// --- DP ---
+	// cout << knapsack01({2,3,4}, {3,4,5}, 5);
+	// cout << lisLength({1,3,2,4});
+	// cout << lcs("abcde", "ace");
+	// cout << editDistance("kitten", "sitting");
+	// cout << sosDP({1,2,3,4})[3];
+	// cout << digitDP(1000);
+	// TreeDP tdp(n); tdp.addEdge(u,v); auto ans = tdp.solve();
+
+	// --- Geometry ---
+	// cout << dist2PointSegment(p, a, b);
+	// auto [px, py] = projectPointLine(p, a, b);
+	// cout << pointInPolygon(p, poly);
+	// auto msum = minkowskiSum(polyA, polyB);
+	// LiChao lc(0, 1e9); lc.addLine(Line(1, 0)); cout << lc.query(5);
+	// cout << closestPair(pts);
+	// cout << rotatingCalipers(convexPoly);
+}
+\end{lstlisting}

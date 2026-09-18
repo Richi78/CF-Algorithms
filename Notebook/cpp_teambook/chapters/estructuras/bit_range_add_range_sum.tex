@@ -1,0 +1,41 @@
+\subsubsection{BIT range add + range sum}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) per operation
+// usa: sumar delta a [l, r] y consultar suma de prefijo
+#include <bits/stdc++.h>
+using namespace std;
+
+struct BIT2{
+	int n;
+	vector<long long> t1, t2;
+	BIT2(int n): n(n), t1(n+1, 0), t2(n+1, 0){}
+	void add(vector<long long>& t, int i, long long delta){
+		for(; i <= n; i += i & -i) t[i] += delta;
+	}
+	long long sum(const vector<long long>& t, int i){
+		long long r = 0;
+		for(; i > 0; i -= i & -i) r += t[i];
+		return r;
+	}
+	void rangeAdd(int l, int r, long long delta){
+		add(t1, l, delta);
+		add(t1, r + 1, -delta);
+		add(t2, l, delta * (l - 1));
+		add(t2, r + 1, -delta * r);
+	}
+	long long prefixSum(int i){
+		return sum(t1, i) * i - sum(t2, i);
+	}
+	long long rangeSum(int l, int r){
+		return prefixSum(r) - prefixSum(l - 1);
+	}
+};
+
+int main(){
+	BIT2 bit(10);
+	bit.rangeAdd(2, 5, 3);
+	cout << bit.rangeSum(1, 10) << "\n";  // 12
+	cout << bit.rangeSum(3, 5) << "\n";   // 9
+	return 0;
+}
+\end{lstlisting}

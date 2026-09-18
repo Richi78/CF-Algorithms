@@ -1,0 +1,37 @@
+\subsubsection{Modular inverse}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log mod)
+// usa: 1/a mod p (con p primo), o por extended gcd si no
+#include <bits/stdc++.h>
+using namespace std;
+
+// when MOD is prime
+long long modInv(long long a, long long mod){
+	return modpow(a, mod - 2, mod);
+}
+
+// general version using extended gcd (works for any mod coprime with a)
+long long extGcd(long long a, long long b, long long& x, long long& y){
+	if(b == 0){ x = 1; y = 0; return a; }
+	long long x1, y1;
+	long long g = extGcd(b, a % b, x1, y1);
+	x = y1;
+	y = x1 - y1 * (a / b);
+	return g;
+}
+
+long long modInvGeneral(long long a, long long mod){
+	long long x, y;
+	long long g = extGcd(a, mod, x, y);
+	if(g != 1) return -1; // no inverse
+	return (x % mod + mod) % mod;
+}
+
+int main(){
+	// inverse of 3 mod 1e9+7
+	cout << modInv(3, 1000000007LL) << "\n";
+	// general (via extgcd)
+	cout << modInvGeneral(7, 26LL) << "\n";  // 7*15 = 105 = 1 mod 26
+	return 0;
+}
+\end{lstlisting}

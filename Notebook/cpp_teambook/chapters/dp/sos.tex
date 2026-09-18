@@ -1,0 +1,89 @@
+\subsubsection{SOS DP}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N * 2^N),   N = cantidad de bits (usar N <= 20)
+//
+// Las 4 variantes combinan 2 ejes:
+//   - Forward vs Backward: forward usa +=  (zeta / suma)
+//                          backward usa -= (mobius / inversa)
+//   - Sufijo 1 vs 2:      1 opera sobre subsets   (mask ^ (1<<i))
+//                          2 opera sobre supersets (mask | (1<<i))
+// Backward n es la inversa de Forward n.
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int bitsNeeded(int sz){
+    int n = 0;
+    while((1 << n) < sz) n++;
+    return n;
+}
+
+// dp[mask] = sum_{sub pertenece mask} f[sub]
+// Caso clasico: para cada mask, sumar f sobre todas sus sub-masks.
+vector<long long> sosForward1(const vector<long long>& f){
+    int n = bitsNeeded((int)f.size());
+    vector<long long> dp = f;
+    dp.resize(1 << n);
+    for(int i = 0; i < n; i++)
+        for(int mask = 0; mask < (1 << n); mask++)
+            if(mask & (1 << i))
+                dp[mask] += dp[mask ^ (1 << i)];
+    return dp;
+}
+
+// dp[mask] = sum_{sup contiene mask} f[sup]
+// Para cada mask, sumar f sobre las masks que la contienen.
+vector<long long> sosForward2(const vector<long long>& f){
+    int n = bitsNeeded((int)f.size());
+    vector<long long> dp = f;
+    dp.resize(1 << n);
+    for(int i = 0; i < n; i++)
+        for(int mask = 0; mask < (1 << n); mask++)
+            if(!(mask & (1 << i)))
+                dp[mask] += dp[mask | (1 << i)];
+    return dp;
+}
+
+// Inversa de sosForward1 (mobius en el lattice de subsets)
+vector<long long> sosBackward1(const vector<long long>& g){
+    int n = bitsNeeded((int)g.size());
+    vector<long long> dp = g;
+    dp.resize(1 << n);
+    for(int i = 0; i < n; i++)
+        for(int mask = 0; mask < (1 << n); mask++)
+            if(mask & (1 << i))
+                dp[mask] -= dp[mask ^ (1 << i)];
+    return dp;
+}
+
+// Inversa de sosForward2 (mobius en el lattice de supersets)
+vector<long long> sosBackward2(const vector<long long>& g){
+    int n = bitsNeeded((int)g.size());
+    vector<long long> dp = g;
+    dp.resize(1 << n);
+    for(int i = 0; i < n; i++)
+        for(int mask = 0; mask < (1 << n); mask++)
+            if(!(mask & (1 << i)))
+                dp[mask] -= dp[mask | (1 << i)];
+    return dp;
+}
+
+int main(){
+    vector<long long> f = {1, 2, 3, 4};  // n = 2
+
+    auto f1 = sosForward1(f);   // {1, 3, 4, 10}
+    auto f2 = sosForward2(f);   // {10, 6, 7, 4}
+    auto b1 = sosBackward1(f1); // {1, 2, 3, 4}  (recupera f)
+    auto b2 = sosBackward2(f2); // {1, 2, 3, 4}  (recupera f)
+    return 0;
+}
+\end{lstlisting}
+
+\smallskip
+\noindent\textbf{Gu\'ia r\'apida.}
+\begin{itemize}
+  \item \textbf{sosForward1}: cl\'asico. Para cada \emph{mask}, sumar/contar $f$ sobre sus \emph{subm\'ascaras}. Ej: dado un arreglo indexado por m\'ascara, contar cu\'antos elementos tienen flags $\subseteq$ cada \emph{mask}.
+  \item \textbf{sosForward2}: la condici\'on va al rev\'es. Para cada \emph{mask}, sumar sobre \emph{superm\'ascaras}. Ej: queries del tipo ``cu\'antos elementos tienen \emph{todos} los bits de la query prendidos'' ($\supseteq$).
+  \item \textbf{sosBackward1 / sosBackward2}: invierten el forward correspondiente. \'Util cuando quer\'is cancelar la contribuci\'on de una sola m\'ascara: aplic\'as forward a todo y despu\'es backward te deja exactamente lo que aporta esa m\'ascara (restando en orden inverso).
+  \item \textbf{Cuidados}: el patr\'on funciona porque $+$ es asociativa/invertible. Para $\oplus$, OR, AND, min/max con leyes distintas a Zeta, busc\'a FWT o la transformada adecuada.
+\end{itemize}

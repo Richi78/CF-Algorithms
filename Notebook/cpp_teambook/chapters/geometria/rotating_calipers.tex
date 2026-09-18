@@ -1,0 +1,38 @@
+\subsubsection{Rotating calipers (polygon diameter)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) (assumes convex polygon sorted counter-clockwise)
+// usa: encontrar el par de vertices mas distantes (diametro) en un poligono convexo
+#include <bits/stdc++.h>
+using namespace std;
+
+long long rotatingCalipers(const vector<Point>& p){
+	int n = (int)p.size();
+	if(n == 1) return 0;
+	if(n == 2){
+		long long dx = p[0].x - p[1].x, dy = p[0].y - p[1].y;
+		return dx*dx + dy*dy;
+	}
+	long long best = 0;
+	int k = 1;
+	for(int i=0;i<n;i++){
+		int ni = (i + 1) % n;
+		while(true){
+			int nk = (k + 1) % n;
+			long long cur = abs((long long)(p[ni] - p[i]) * (p[nk] - p[k]));
+			long long nxt = abs((long long)(p[ni] - p[i]) * (p[(nk+1)%n] - p[(k+1)%n]));
+			if(nxt > cur) k = nk;
+			else break;
+		}
+		long long d1 = 1LL * (p[i].x - p[k].x) * (p[i].x - p[k].x) + 1LL * (p[i].y - p[k].y) * (p[i].y - p[k].y);
+		long long d2 = 1LL * (p[ni].x - p[k].x) * (p[ni].x - p[k].x) + 1LL * (p[ni].y - p[k].y) * (p[ni].y - p[k].y);
+		best = max(best, max(d1, d2));
+	}
+	return best;
+}
+
+int main(){
+	vector<Point> tri = {{0,0}, {10,0}, {5,8}};  // triangle CCW
+	cout << "diameter^2 = " << rotatingCalipers(tri) << "\n";
+	return 0;
+}
+\end{lstlisting}

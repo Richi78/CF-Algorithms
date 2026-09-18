@@ -1,0 +1,44 @@
+\subsubsection{sqrt-decomposition generico}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(sqrt(N)) per operation
+// usa: cuando quieres una EDD simple y lazy
+#include <bits/stdc++.h>
+using namespace std;
+
+template<class T>
+struct SqrtDecomp{
+	int n, B;
+	vector<T> a, bucket;
+	SqrtDecomp(const vector<T>& v): a(v){
+		n = v.size();
+		B = (int)sqrt(n) + 1;
+		bucket.assign(B, 0);
+		for(int i=0;i<n;i++) bucket[i / B] += v[i];
+	}
+	void pointUpdate(int p, T val){
+		bucket[p / B] += val - a[p];
+		a[p] = val;
+	}
+	// range sum query
+	T rangeSum(int l, int r){
+		T res = 0;
+		int bl = l / B, br = r / B;
+		if(bl == br){
+			for(int i=l;i<=r;i++) res += a[i];
+		}else{
+			for(int i=l;i<(bl+1)*B;i++) res += a[i];
+			for(int i=bl+1;i<br;i++) res += bucket[i];
+			for(int i=br*B;i<=r;i++) res += a[i];
+		}
+		return res;
+	}
+};
+
+int main(){
+	SqrtDecomp<int> sd({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+	cout << sd.rangeSum(2, 7) << "\n";  // 3+4+5+6+7+8 = 33
+	sd.pointUpdate(4, 100);
+	cout << sd.rangeSum(2, 7) << "\n";  // 128
+	return 0;
+}
+\end{lstlisting}

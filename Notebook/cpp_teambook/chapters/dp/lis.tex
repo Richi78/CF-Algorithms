@@ -1,0 +1,87 @@
+\subsubsection{LIS O(n log n)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N)
+// usa: longitud de la LIS estrictamente creciente
+#include <bits/stdc++.h>
+using namespace std;
+
+int lisLength(const vector<int>& a){
+	vector<int> dp;
+	for(int x : a){
+		auto it = lower_bound(dp.begin(), dp.end(), x);
+		if(it == dp.end()) dp.push_back(x);
+		else *it = x;
+	}
+	return (int)dp.size();
+}
+
+// TC: O(N log N),   memoria O(N)
+// usa: reconstruye una LIS (la que el algoritmo encontro); una valida cualquiera
+//   no decreciente (LNDS): cambiar lower_bound -> upper_bound
+//   reconstruye via `parent[i]` (forward) + `dpIdx` (posicion final de la cola)
+vector<int> lisSequence(const vector<int>& a){
+	int n = (int)a.size();
+	if(n == 0) return {};
+	vector<int> dp;              // dp[k] = menor cola posible de una IS de long k+1
+	vector<int> dpIdx;           // dpIdx[k] = indice en a de esa cola
+	vector<int> parent(n, -1);   // parent[i] = indice previo en la LIS que termina en i
+	for(int i = 0; i < n; i++){
+		int pos = (int)(lower_bound(dp.begin(), dp.end(), a[i]) - dp.begin());
+		if(pos == (int)dp.size()){
+			dp.push_back(a[i]);
+			dpIdx.push_back(i);
+		}else{
+			dp[pos] = a[i];
+			dpIdx[pos] = i;
+		}
+		if(pos > 0) parent[i] = dpIdx[pos - 1];
+	}
+	// reconstruir desde la cola de la LIS
+	vector<int> res;
+	for(int i = dpIdx.back(); i != -1; i = parent[i])
+		res.push_back(a[i]);
+	reverse(res.begin(), res.end());
+	return res;
+}
+
+// TC: O(N log N),   memoria O(N) (solo un vector extra: n enteros)
+// usa: variante compacta. `insertedAt[i]` = pos en dp donde cayo a[i].
+//   Reconstruye recorriendo de atras hacia adelante y agarrando
+//   el ultimo i con insertedAt[i] == need (need baja de L-1 a 0).
+vector<int> lisSequenceCompact(const vector<int>& a){
+	int n = (int)a.size();
+	if(n == 0) return {};
+	vector<int> dp;
+	vector<int> insertedAt(n);
+	for(int i = 0; i < n; i++){
+		int pos = (int)(lower_bound(dp.begin(), dp.end(), a[i]) - dp.begin());
+		if(pos == (int)dp.size()) dp.push_back(a[i]);
+		else dp[pos] = a[i];
+		insertedAt[i] = pos;
+	}
+	vector<int> res;
+	for(int i = n - 1, need = (int)dp.size() - 1; i >= 0 && need >= 0; i--)
+		if(insertedAt[i] == need)
+			res.push_back(a[i]), need--;
+	reverse(res.begin(), res.end());
+	return res;
+}
+
+// Diferencia entre las 2:
+//   lisSequence       usa 2 vectores extra (parent, dpIdx); reconstruye forward.
+//   lisSequenceCompact usa 1 vector extra (insertedAt); reconstruye backward.
+// Compacta = menos memoria y menos codigo; basta para reconstruir una LIS.
+// Si necesitas contar/todas las LIS, o generalizar el "anterior", usa la primera.
+
+int main(){
+	vector<int> a = {1, 3, 2, 4, 5, 2};
+	cout << lisLength(a) << "\n";            // 4
+	auto seq = lisSequence(a);
+	for(int x : seq) cout << x << " ";       // p.ej. 1 2 4 5  (alguna LIS valida)
+	cout << "\n";
+	auto seq2 = lisSequenceCompact(a);
+	for(int x : seq2) cout << x << " ";      // p.ej. 1 2 4 5  (alguna LIS valida)
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

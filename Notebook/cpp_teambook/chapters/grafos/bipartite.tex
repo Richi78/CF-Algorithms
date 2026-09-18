@@ -1,0 +1,31 @@
+\subsubsection{Bipartite check + 2-coloring}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: chequear si un grafo es bipartito y asignar colores
+#include <bits/stdc++.h>
+using namespace std;
+
+pair<bool, vector<int>> isBipartite(int n, const vector<vector<int>>& adj){
+	vector<int> color(n, -1);
+	for(int s=0;s<n;s++){
+		if(color[s] != -1) continue;
+		queue<int> q;
+		color[s] = 0; q.push(s);
+		while(!q.empty()){
+			int v = q.front(); q.pop();
+			for(int u : adj[v]){
+				if(color[u] == -1){ color[u] = color[v] ^ 1; q.push(u); }
+				else if(color[u] == color[v]) return {false, {}};
+			}
+		}
+	}
+	return {true, color};
+}
+
+int main(){
+	vector<vector<int>> adj = {{1}, {0,2}, {1,3}, {2}};  // path of 4: bipartite
+	auto [ok, color] = isBipartite(4, adj);
+	cout << (ok ? "bipartite" : "not bipartite") << "\n";
+	return 0;
+}
+\end{lstlisting}

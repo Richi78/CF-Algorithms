@@ -1,0 +1,100 @@
+\subsubsection{Segment Tree Lazy Add + Set + Sum}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log n) por operacion, O(n) en memoria
+// usa: sumar o asignar valores en rangos y consultar sumas
+// lazy_set = LLONG_MAX indica "no hay set pendiente" (sirve para set a 0)
+struct SegmentTree {
+	struct Node {
+		int val = 0, lazy_add = 0;
+		int lazy_set = LLONG_MAX;
+		Node(int x=0) { val = x; lazy_add = 0; lazy_set = LLONG_MAX; }
+	};
+
+	int n;
+	vector<Node> st;
+
+	SegmentTree(const vector<int>& a) {
+		n = a.size();
+		while(__builtin_popcount(n) != 1) n++;
+		st.resize(2*n);
+		for(int i=0 ; i<(int)a.size() ; i++)
+		st[n+i] = Node(a[i]);
+		for(int i=n-1 ; i>=1; i--)
+		st[i] = merge(st[2*i], st[2*i+1]);
+	}
+
+	Node merge(Node &left, Node &right) {
+		Node ans;
+		ans.val = left.val + right.val;
+		return ans;
+	}
+
+	void push(int node, int l, int r) {
+		if(st[node].lazy_set != LLONG_MAX) {
+			st[node].val = st[node].lazy_set * (r-l+1);
+			if(l != r) {
+				st[node*2].lazy_set = st[node].lazy_set;
+				st[node*2].lazy_add = 0;
+				st[node*2+1].lazy_set = st[node].lazy_set;
+				st[node*2+1].lazy_add = 0;
+			}
+			st[node].lazy_set = LLONG_MAX;
+		}
+		if(st[node].lazy_add != 0) {
+			st[node].val += st[node].lazy_add * (r-l+1);
+			if(l != r) {
+				st[node*2].lazy_add += st[node].lazy_add;
+				st[node*2+1].lazy_add += st[node].lazy_add;
+			}
+			st[node].lazy_add = 0;
+		}
+	}
+
+	void update(int node, int l, int r, int ql, int qr, int val,
+	int type) {
+		push(node, l, r);
+		if(ql <= l && r <= qr) {
+			if(type == 1) st[node].lazy_add += val;
+			else st[node].lazy_set = val;
+			push(node, l, r);
+			return;
+		}
+		if(r < ql || qr < l) return;
+		int mid = l + (r-l)/2;
+		update(node*2, l, mid, ql, qr, val, type);
+		update(node*2+1, mid+1, r, ql, qr, val, type);
+		st[node].val = st[node*2].val + st[node*2+1].val;
+	}
+
+	int query(int node, int l, int r, int ql, int qr) {
+		push(node, l, r);
+		if(ql <= l && r <= qr) return st[node].val;
+		if(r < ql || qr < l) return 0;
+		int mid = l + (r-l)/2;
+		return query(node*2, l, mid, ql, qr)
+		+ query(node*2+1, mid+1, r, ql, qr);
+	}
+
+	// Funciones publicas
+	void add_range(int l, int r, int val) {
+		update(1, 0, n-1, l, r, val, 1);
+	}
+	void set_range(int l, int r, int val) {
+		update(1, 0, n-1, l, r, val, 2);
+	}
+	int sum(int l, int r) {
+		return query(1, 0, n-1, l, r);
+	}
+};
+int main(){
+	SegmentTree st({1, 2, 3, 4, 5});
+	st.add_range(0, 4, 2);        // [3,4,5,6,7]
+	cout << st.sum(0, 4) << endl; // 25
+	st.set_range(1, 3, 0);        // [3,0,0,0,7]
+	st.add_range(0, 4, 1);        // [4,1,1,1,8]
+	cout << st.sum(0, 4) << endl; // 15
+	st.set_range(2, 4, 5);        // [4,1,5,5,5]
+	cout << st.sum(2, 4) << endl; // 15
+	return 0;
+}
+\end{lstlisting}

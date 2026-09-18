@@ -1,0 +1,66 @@
+\subsubsection{Treap implicito}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) per operation (amortized)
+// usa: secuencia con insert/delete por posicion, split/merge
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Treap{
+	struct Node{
+		int val, pr, sz;
+		Node *l, *r;
+		Node(int v): val(v), pr(rand()), sz(1), l(nullptr), r(nullptr){}
+	};
+	Node* root = nullptr;
+	int sz(Node* t){ return t ? t->sz : 0; }
+	void upd(Node* t){ if(t) t->sz = 1 + sz(t->l) + sz(t->r); }
+	// split by position: [0, k) and [k, n)
+	void split(Node* t, int k, Node*& l, Node*& r){
+		if(!t){ l = r = nullptr; return; }
+		if(sz(t->l) >= k){
+			split(t->l, k, l, t->l);
+			r = t;
+			upd(r);
+		}else{
+			split(t->r, k - sz(t->l) - 1, t->r, r);
+			l = t;
+			upd(l);
+		}
+	}
+	// merge two treaps where all in l come before all in r
+	Node* merge(Node* l, Node* r){
+		if(!l || !r) return l ? l : r;
+		if(l->pr > r->pr){
+			l->r = merge(l->r, r);
+			upd(l);
+			return l;
+		}else{
+			r->l = merge(l, r->l);
+			upd(r);
+			return r;
+		}
+	}
+	// insert value at position pos
+	void insert(int pos, int val){
+		Node *l, *r;
+		split(root, pos, l, r);
+		root = merge(merge(l, new Node(val)), r);
+	}
+	// erase element at position pos
+	void erase(int pos){
+		Node *l, *m, *r;
+		split(root, pos, l, m);
+		split(m, 1, m, r);
+		delete m;
+		root = merge(l, r);
+	}
+};
+
+int main(){
+	Treap t;
+	t.insert(0, 10); t.insert(1, 20); t.insert(2, 30);
+	// erase position 1
+	t.erase(1);
+	return 0;
+}
+\end{lstlisting}

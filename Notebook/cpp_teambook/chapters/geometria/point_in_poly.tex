@@ -1,0 +1,28 @@
+\subsubsection{Point in polygon (ray casting)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N)
+// usa: comprobar si un punto esta dentro de un poligono simple
+#include <bits/stdc++.h>
+using namespace std;
+
+bool pointInPolygon(const Point& p, const vector<Point>& poly){
+	int n = (int)poly.size();
+	bool inside = false;
+	for(int i=0,j=n-1 ; i<n ; j=i++){
+		if((poly[i].y > p.y) != (poly[j].y > p.y)){
+			long long num = 1LL * (p.y - poly[j].y) * (poly[i].x - poly[j].x);
+			long long den = poly[i].y - poly[j].y;
+			long long x_intersect = poly[j].x + num / den;
+			if(p.x < x_intersect) inside = !inside;
+		}
+	}
+	return inside;
+}
+
+int main(){
+	vector<Point> square = {{0,0},{4,0},{4,4},{0,4}};
+	cout << pointInPolygon({2,2}, square) << "\n";  // 1 (inside)
+	cout << pointInPolygon({5,5}, square) << "\n";  // 0 (outside)
+	return 0;
+}
+\end{lstlisting}

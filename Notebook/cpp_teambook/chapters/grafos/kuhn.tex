@@ -1,0 +1,40 @@
+\subsubsection{Kuhn (bipartite matching)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(V * E) donde V = nodos lado izquierdo, E = aristas
+// usa: matching maximo en grafo bipartito; usa DFS con vis para encontrar augmenting paths
+// nota: para N, M <= 1e3 anda bien; para mas usar Hopcroft-Karp (O(sqrt(V) * E))
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, m;
+vector<int> adj[1005];
+
+bool try_match(int u, vector<int> adj[], vector<int>& matchR, vector<bool>& vis){
+	for(int v : adj[u]){
+		if(vis[v]) continue;
+		vis[v] = true;
+		if(matchR[v] == -1 || try_match(matchR[v], adj, matchR, vis)){
+			matchR[v] = u;
+			return true;
+		}
+	}
+	return false;
+}
+
+int main(){
+	// entrada: n nodos izquierda, m nodos derecha, m aristas (u, v) con u en [1..n], v en [1..m]
+	cin >> n >> m;
+	for(int i=0;i<m;i++){
+		int u, v; cin >> u >> v;
+		adj[u].push_back(v);
+	}
+	vector<int> matchR(m + 1, -1);
+	int matching = 0;
+	for(int u = 1; u <= n; u++){
+		vector<bool> vis(m + 1, false);
+		if(try_match(u, adj, matchR, vis)) matching++;
+	}
+	cout << matching << "\n";
+	return 0;
+}
+\end{lstlisting}

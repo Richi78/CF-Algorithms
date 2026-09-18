@@ -1,0 +1,50 @@
+\subsubsection{Disjoint Sparse Table}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) build, O(1) query
+// usa: queries idempotentes en arreglos estaticos (alternativa a Sparse Table)
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DisjointSparseTable{
+	int n, LOG;
+	vector<vector<int>> st;
+	vector<int> lg;
+	DisjointSparseTable(const vector<int>& a){
+		n = a.size();
+		LOG = 32 - __builtin_clz(n + 1);
+		st.assign(LOG, vector<int>(n));
+		st[0] = a;
+		int len = 1;
+		for(int k=1;k<LOG;k++){
+			for(int i=0 ; i<n ; i++){
+				int j = i + len;
+				if(j >= n){ st[k][i] = st[k-1][i]; continue; }
+				st[k][i] = min(st[k-1][i], st[k-1][j]);
+			}
+			for(int i=n-1 ; i>=0 ; i--){
+				int j = i - len;
+				if(j < 0){ 
+					st[k][i] = (i+1 < n ? min(st[k][i], st[k-1][i+1]) : st[k-1][i]); 
+					continue; 
+				}
+				st[k][i] = min(st[k-1][i], st[k-1][j]);
+			}
+			len <<= 1;
+		}
+		lg.assign(n + 1, 0);
+		for(int i=2 ; i<=n ; i++) lg[i] = lg[i/2] + 1;
+	}
+	int query(int l, int r){
+		if(l == r) return st[0][l];
+		int k = lg[l ^ r];
+		return min(st[k][l], st[k][r]);
+	}
+};
+
+int main(){
+	DisjointSparseTable dst({3, 1, 4, 1, 5, 9, 2, 6});
+	cout << dst.query(0, 4) << "\n";  // 1
+	cout << dst.query(2, 7) << "\n";  // 2
+	return 0;
+}
+\end{lstlisting}

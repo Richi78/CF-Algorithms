@@ -1,0 +1,114 @@
+\subsubsection{Digit DP template}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(D * 10 * state_size) where D is number of digits
+// usa: contar numeros en [0, N] que cumplen una propiedad sobre sus digitos
+#include <bits/stdc++.h>
+using namespace std;
+
+// skeleton only; adapt state, transition, and base case to your problem
+string digitStr;
+long long memo[20][2][200]; // dimensions depend on problem (pos, tight, state)
+
+long long updateState(long long state, int d){
+	// problem-specific; return new state after appending digit d
+	return state;
+}
+
+long long digitDFS(int pos, bool tight, long long state){
+	if(pos == (int)digitStr.size()) return 1; // adapt per problem (e.g., state matches)
+	if(!tight && memo[pos][0][state] != -1) return memo[pos][0][state];
+	int limit = tight ? digitStr[pos] - '0' : 9;
+	long long res = 0;
+	for(int d=0; d<=limit; d++){
+		long long ns = updateState(state, d);
+		res += digitDFS(pos + 1, tight && (d == limit), ns);
+	}
+	if(!tight) memo[pos][0][state] = res;
+	return res;
+}
+
+long long digitDP(long long N){
+	digitStr = to_string(N);
+	memset(memo, -1, sizeof(memo));
+	return digitDFS(0, true, 0);
+}
+
+int main(){
+	// count numbers in [0, 999] whose digit sum equals 10
+	digitStr = to_string(999);
+	memset(memo, -1, sizeof(memo));
+	cout << digitDFS(0, true, 0) << "\n";  // (skeleton; fill updateState)
+	return 0;
+}
+\end{lstlisting}
+
+\smallskip
+\noindent\textbf{Versi\'on iterativa (forward).} Tabla \texttt{dp[pos][smaller][state]} llenada de \texttt{pos=0} a \texttt{pos=D}. \texttt{smaller=0} $\Rightarrow$ tight (prox d\'igito $\leq$ \texttt{N[pos]}); \texttt{smaller=1} $\Rightarrow$ libre (\texttt{0..9}).
+
+\begin{lstlisting}[style=mystyle, language=C++]
+// Cuenta cuantos x en [0, N) (= [0, N-1]) cumplen una propiedad sobre sus digitos.
+// Para rango [a, b] INCLUSIVO:    digitDP(b+1) - digitDP(a).
+// TC: O(D * 10 * (STATE_MAX + 1)).   Memoria: O(D * 2 * (STATE_MAX + 1)).
+
+// Ejemplo de abajo: contar x sin dos digitos adyacentes iguales.
+//   state = "ultimo digito colocado" (o NOT_STARTED al principio).
+long long digitDP(long long N){
+	// 1) digitos de N, mas significativo primero.
+	vector<int> dig;
+	if(N == 0){
+		dig = {0};
+	}else{
+		long long t = N;
+		while(t > 0){ dig.push_back((int)(t % 10)); t /= 10; }
+		reverse(dig.begin(), dig.end());
+	}
+	int D = (int)dig.size();
+
+	// 2) cota + sentinel. Para "no adyacentes iguales" alcanza 10.
+	// adaptar, ahorita esta del 0 al 9 y el 10 de flag
+	const int STATE_MAX   = 10;     
+	const int NOT_STARTED = STATE_MAX;
+
+	// 3) dp[pos][smaller][state], state en [0, STATE_MAX].
+	vector<vector<vector<long long>>> dp(D + 1,
+		vector<vector<long long>>(2, vector<long long>(STATE_MAX + 1, 0)));
+	dp[0][0][NOT_STARTED] = 1;
+
+	// 4) DP.
+	for(int pos = 0; pos < D; pos++){
+		for(int smaller = 0; smaller <= 1; smaller++){
+			for(int digit = 0; digit <= STATE_MAX; digit++){
+				long long ways = dp[pos][smaller][digit];
+				// poda
+				if(ways == 0) continue;                                 
+				for(int nxt = 0; nxt <= (smaller ? 9 : dig[pos]); nxt++){
+					// en este caso no puede haber 2 digitos consecutivos iguales
+					// se puede modificar para se salten transiciones no validas
+					if(nxt == digit) continue;
+					
+					int new_digit = nxt;
+					if(digit == NOT_STARTED && nxt == 0){
+						new_digit = NOT_STARTED;
+					}
+					dp[pos + 1][smaller || (nxt < dig[pos])][new_digit] += ways;
+				}
+			}
+		}
+	}
+
+	// 5) Finales validos. dp[D][1][*] = "< N"; dp[D][0][*] = N exacto (no se suma).
+	//    Para "no adyacentes": cualquier final vale (incluye NOT_STARTED -> el numero 0).
+	long long ans = 0;
+	for(int digit = 0; digit <= STATE_MAX; digit++)  
+		ans += dp[D][1][digit];   // considera menores a N, [0,N)
+	return ans;
+}
+
+int main(){
+	// Ejemplo: contar x en [0, N) sin dos digitos adyacentes iguales.
+	cout << digitDP(11)  << "\n";   // -> 11 (0..10 todos validos)
+	cout << digitDP(12)  << "\n";   // -> 11 (sin el 11)
+	cout << digitDP(100) << "\n";   // -> 91 
+	return 0;
+}
+\end{lstlisting}

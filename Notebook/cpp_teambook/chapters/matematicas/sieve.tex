@@ -1,0 +1,31 @@
+\subsubsection{Criba de Eratostenes}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log log N) build, O(1) isPrime query
+// usa: enumerar primos hasta N, comprobar primalidad
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> primes;
+vector<bool> is_composite;
+
+void sieve(int n){
+	is_composite.assign(n + 1, false);
+	is_composite[0] = is_composite[1] = true;
+	for(int i=2 ; i*i<=n ; i++){
+		if(!is_composite[i]){
+			for(int j=i*i;j<=n;j+=i) is_composite[j] = true;
+		}
+	}
+	primes.clear();
+	for(int i=2;i<=n;i++) 
+		if(!is_composite[i]) primes.push_back(i);
+}
+
+int main(){
+	sieve(100);
+	for(int p : primes) cout << p << " ";
+	cout << "\n";
+	cout << "first 10 primes count: " << primes.size() << "\n";
+	return 0;
+}
+\end{lstlisting}

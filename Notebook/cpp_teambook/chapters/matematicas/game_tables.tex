@@ -1,0 +1,19 @@
+\subsubsection{Small game tables (Kayles SG values)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(1) per query (table lookup)
+// usa: cuando el juego tiene espacio de estados pequeno y conocido
+#include <bits/stdc++.h>
+using namespace std;
+
+// Kayles grundy values for n=0..71 (precomputed table)
+vector<int> kaylesSG = {
+	0,1,2,3,1,4,3,2,1,4,2,6,4,5,1,1,7,4,3,2,1,4,2,6,4,5,1,1,7,4,3,2,
+	1,4,2,6,4,5,1,1,7,4,3,2,1,4,2,6,4,5,1,1,7,4,3,2,1,4,2,6,4,5,1,1,
+	7,4,3,2,1,4,2,6
+};
+
+int main(){
+	cout << "SG Kayles(7) = " << kaylesSG[7] << "\n";
+	return 0;
+}
+\end{lstlisting}

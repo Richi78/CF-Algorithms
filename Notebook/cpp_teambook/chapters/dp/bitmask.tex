@@ -1,0 +1,25 @@
+\subsubsection{Bitmask DP over subsets}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N * 2^N)
+// usa: DP donde el estado es un subconjunto de N elementos
+#include <bits/stdc++.h>
+using namespace std;
+
+// iterate subsets in increasing order
+// for(int mask=0; mask<(1<<N); mask++){ ... }
+
+// iterate submasks of mask
+// for(int sub=mask; sub; sub=(sub-1)&mask){ ... }
+
+// iterate over supersets of mask (within universe U)
+// for(int sup=mask; sup<U; sup=(sup+1)|mask){ ... }
+
+int main(){
+	// iterate submasks of a mask
+	int mask = 0b1011;
+	for(int sub = mask; sub; sub = (sub-1) & mask){
+		// process sub
+	}
+	return 0;
+}
+\end{lstlisting}

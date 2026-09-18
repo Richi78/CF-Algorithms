@@ -1,0 +1,58 @@
+\subsubsection{Pollard's Rho + factorizacion}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: expected O(n^{1/4}) per factor
+// usa: descomponer numeros hasta 2^64 en factores primos
+#include <bits/stdc++.h>
+using namespace std;
+
+using u64 = unsigned long long;
+using u128 = __uint128_t;
+
+// assumes millerRabin and modpow_mr are defined above
+
+static u64 modmul(u64 a, u64 b, u64 mod){
+	return (u128)a * b % mod;
+}
+
+static u64 pollard(u64 n){
+	if(n % 2 == 0) return 2;
+	static std::mt19937_64 rng((u64)chrono::steady_clock::now().time_since_epoch().count());
+	while(true){
+		u64 c = uniform_int_distribution<u64>(1, n - 1)(rng);
+		u64 x = uniform_int_distribution<u64>(0, n - 1)(rng);
+		u64 y = x;
+		u64 d = 1;
+		auto f = [&](u64 v){ return (modmul(v, v, n) + c) % n; };
+		while(d == 1){
+			x = f(x);
+			y = f(f(y));
+			d = std::gcd<u64>(x > y ? x - y : y - x, n);
+		}
+		if(d != n) return d;
+	}
+}
+
+// returns sorted list of prime factors (with multiplicity)
+void factorRec(u64 n, vector<u64>& out){
+	if(n == 1) return;
+	if(millerRabin(n)){ out.push_back(n); return; }
+	u64 d = pollard(n);
+	factorRec(d, out);
+	factorRec(n / d, out);
+}
+
+vector<u64> factorize(u64 n){
+	vector<u64> out;
+	factorRec(n, out);
+	sort(out.begin(), out.end());
+	return out;
+}
+
+int main(){
+	// factor 123456789012345 = 3^2 * 5 * 7 * 13 * 29 * 41 * 271 * 9091
+	auto f = factorize(123456789012345ULL);
+	for(u64 p : f) cout << p << " ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

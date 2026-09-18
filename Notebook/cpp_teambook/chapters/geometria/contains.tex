@@ -1,0 +1,12 @@
+\subsubsection{Contains colineal}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(1)
+// usa: checa si el punto c esta en el segmento [a,b] (colineal y dentro del bounding box)
+bool contains(Point a, Point b, Point c){
+	if( a.cross(b,c) == 0){
+		return (min(a.x,b.x)<=c.x) && (c.x<=max(a.x,b.x))
+		&& (min(a.y,b.y)<=c.y) && (c.y<=max(a.y,b.y));
+	}
+	return false;
+}
+\end{lstlisting}

@@ -1,0 +1,41 @@
+\subsubsection{Aho-Corasick DP for forbidden patterns}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(L * states * alphabet) per DP step
+// usa: contar strings de longitud L evitando ciertos patterns
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long AC_MOD = 998244353LL;
+
+// assumes AhoCorasick is built; transition automaton is already computed.
+long long countAvoiding(const AhoCorasick& ac, int L){
+	int S = (int)ac.t.size();
+	vector<long long> dp(S, 0), ndp(S, 0);
+	if(ac.t[0].out.empty()) dp[0] = 1;
+	for(int i=0;i<L;i++){
+		fill(ndp.begin(), ndp.end(), 0);
+		for(int v=0;v<S;v++){
+			if(dp[v] == 0) continue;
+			for(int k=0;k<26;k++){
+				int u = ac.t[v].next[k];
+				if(ac.t[u].out.empty()){
+					ndp[u] = (ndp[u] + dp[v]) % AC_MOD;
+				}
+			}
+		}
+		dp = ndp;
+	}
+	long long total = 0;
+	for(long long x : dp) total = (total + x) % AC_MOD;
+	return total;
+}
+
+int main(){
+	// count strings of length L over [a-z] avoiding all patterns in ac
+	AhoCorasick ac;
+	ac.addString("ab", 0);
+	ac.build();
+	cout << countAvoiding(ac, 3) << "\n";  // 26^3 - count with "ab"
+	return 0;
+}
+\end{lstlisting}

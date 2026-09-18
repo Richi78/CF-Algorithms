@@ -1,0 +1,89 @@
+\subsubsection{Min-Cost Max-Flow}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(F * N * M) with SPFA; swap for Dijkstra + potentials to get O(F * (N+M) log N)
+// usa: maximo flujo con costo minimo (asume costos no negativos)
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18;
+
+struct MCMF{
+	// to = destino, rev = indice de la arista inversa en g[to]
+	// cap = capacidad restante, cost = costo unitario
+	struct Edge{ int to, rev; long long cap, cost; };
+	int n;
+	// dist = distancia reducida desde s
+	vector<vector<Edge>> g;
+	// pot = potentials para Dijkstra (h(v) en reweighting)
+	vector<long long> dist, pot;
+	// parent_v = nodo anterior en el camino aumentante, parent_e = indice de la arista usada
+	vector<int> parent_v, parent_e;
+	MCMF(int n): n(n){
+		g.assign(n, {});
+		dist.assign(n, INF);
+		pot.assign(n, 0);
+		parent_v.assign(n, -1);
+		parent_e.assign(n, -1);
+	}
+	void addEdge(int u, int v, long long cap, long long cost){
+		Edge a{v, (int)g[v].size(), cap, cost};   // arista real
+		Edge b{u, (int)g[u].size(), 0, -cost};    // arista residual (cap 0, costo negativo)
+		g[u].push_back(a);
+		g[v].push_back(b);
+	}
+	// returns (maxflow, mincost)
+	pair<long long,long long> minCostMaxFlow(int s, int t){
+		long long flow = 0, cost = 0;
+		while(true){
+			// SPFA con potentials: busca el camino de costo minimo de s a t en el grafo residual
+			fill(dist.begin(), dist.end(), INF);
+			dist[s] = 0;
+			vector<bool> inq(n, false);       // inq = nodo actualmente en la cola de SPFA
+			queue<int> q;
+			q.push(s); inq[s] = true;
+			while(!q.empty()){
+				int v = q.front(); q.pop();
+				inq[v] = false;
+				for(int i=0;i<(int)g[v].size();i++){
+					auto& e = g[v][i];
+					// arista relajable con costos reducidos (pot[v] - pot[e.to] >= 0)
+					if(e.cap > 0 && dist[v] + e.cost + pot[v] - pot[e.to] < dist[e.to]){
+						dist[e.to] = dist[v] + e.cost + pot[v] - pot[e.to];
+						parent_v[e.to] = v;
+						parent_e[e.to] = i;
+						if(!inq[e.to]){ inq[e.to] = true; q.push(e.to); }
+					}
+				}
+			}
+			if(dist[t] == INF) break;   // no hay mas camino de s a t
+			// actualiza potentials para mantener costos reducidos no negativos
+			for(int v=0;v<n;v++) if(dist[v] < INF) pot[v] += dist[v];
+			// encuentra el cuello de botella (minima capacidad en el camino)
+			long long add = INF;
+			for(int v=t; v != s; v = parent_v[v]){
+				add = min(add, g[parent_v[v]][parent_e[v]].cap);
+			}
+			// empuja flujo por el camino y suma el costo
+			for(int v=t; v != s; v = parent_v[v]){
+				auto& e = g[parent_v[v]][parent_e[v]];
+				e.cap -= add;
+				g[v][e.rev].cap += add;
+				cost += add * e.cost;
+			}
+			flow += add;
+		}
+		return {flow, cost};
+	}
+};
+
+int main(){
+	MCMF mcmf(4);
+	mcmf.addEdge(0,1,10,1);
+	mcmf.addEdge(0,2,5,2);
+	mcmf.addEdge(1,3,10,1);
+	mcmf.addEdge(2,3,10,1);
+	auto [flow, cost] = mcmf.minCostMaxFlow(0, 3);
+	cout << "flow=" << flow << " cost=" << cost << "\n";
+	return 0;
+}
+\end{lstlisting}

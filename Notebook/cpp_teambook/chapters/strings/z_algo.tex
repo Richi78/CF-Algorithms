@@ -1,0 +1,57 @@
+\subsubsection{Z-algorithm}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) build
+// usa: encontrar todas las ocurrencias de un patron en un texto concatenado
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<int> zFunction(const string& s){
+	int n = s.size();
+	vector<int> z(n, 0);
+	int l = 0, r = 0;
+	for(int i=1;i<n;i++){
+		if(i <= r) z[i] = min(r - i + 1, z[i - l]);
+		while(i + z[i] < n && s[z[i]] == s[i + z[i]]) z[i]++;
+		if(i + z[i] - 1 > r){ l = i; r = i + z[i] - 1; }
+	}
+	return z;
+}
+
+int main(){
+	string s = "abacaba";
+	int n = s.size();
+	auto z = zFunction(s);
+	for(int x : z) cout << x << " ";  // 7 0 3 0 1 0 1
+	cout << "\n";
+
+	// (1) LCP entre s y cualquier sufijo s[i..]: max(z[i+1..n-1])
+	int best = 0;
+	for(int i = 1; i < n; i++) best = max(best, z[i]);
+	cout << "max LCP(s, s[i..]) = " << best << "\n";  // 3 ("aba")
+
+	// (2) ocurrencias de cada prefijo de largo k como substring (diff array)
+	vector<int> prefCnt(n + 2, 0);
+	for(int i = 1; i < n; i++){ prefCnt[1]++; prefCnt[z[i] + 1]--; }
+	for(int k = 1; k <= n; k++) prefCnt[k] += prefCnt[k - 1];
+	for(int k = 1; k <= n; k++)
+		cout << "prefijo largo " << k << " aparece " << prefCnt[k] << " veces\n";
+
+	// (3) palindromos impares: z sobre s + "#" + reverse(s)
+	//     palindromo centrado en c tiene largo zp[n+1+(n-1-2*c)]
+	string rs(s.rbegin(), s.rend());
+	auto zp = zFunction(s + "#" + rs);
+	cout << "palindromos impares por centro:\n";
+	for(int c = 0; c < n; c++){
+		int idx = n + 1 + (n - 1 - 2*c);
+		if(idx >= 0 && idx < (int)zp.size())
+			cout << "  centro " << c << " -> largo " << zp[idx] << "\n";
+	}
+
+	// (4) pattern matching: z de (patron + '#' + texto)
+	string p = "aba", t = "abacabacaba";
+	auto z2 = zFunction(p + "#" + t);
+	for(int i = 0; i < (int)z2.size(); i++)
+		if(z2[i] == (int)p.size()) cout << "match at " << i - p.size() - 1 << "\n";
+	return 0;
+}
+\end{lstlisting}

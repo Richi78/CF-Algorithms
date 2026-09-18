@@ -1,0 +1,60 @@
+\subsubsection{Stirling S2 (particiones)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^2)
+// usa: numero de formas de particionar N elementos en K subconjuntos no vacios
+// rec: S2[i][j] = S2[i-1][j-1] + j * S2[i-1][j]
+//      el elem i forma un bloque nuevo, o se une a uno de los j bloques existentes
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long MOD = 998244353LL;
+vector<vector<long long>> S2;
+
+void buildStirlingS2(int n){
+	S2.assign(n + 1, vector<long long>(n + 1, 0));
+	S2[0][0] = 1;
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=i;j++){
+			S2[i][j] = (S2[i-1][j-1] + j * S2[i-1][j]) % MOD;
+		}
+	}
+}
+
+int main(){
+	buildStirlingS2(10);
+	// partitions of 5 elements into 2 nonempty subsets
+	cout << "S2(5,2) = " << S2[5][2] << "\n";
+	return 0;
+}
+\end{lstlisting}
+
+\subsubsection{Stirling S1 (permutaciones por ciclos)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^2)
+// usa: numero de permutaciones de N elementos con exactamente K ciclos
+// rec: S1[i][j] = S1[i-1][j-1] + (i-1) * S1[i-1][j]
+//      el elem i forma un ciclo de 1, o se inserta en uno de los i-1 huecos de ciclos previos
+// nota: version sin signo; con signo s(n,k)=(-1)^(n-k)*S1[n][k] es coeficiente de (x)_n
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long MOD = 998244353LL;
+vector<vector<long long>> S1;
+
+void buildStirlingS1(int n){
+	S1.assign(n + 1, vector<long long>(n + 1, 0));
+	S1[0][0] = 1;
+	for(int i=1;i<=n;i++){
+		for(int j=1;j<=i;j++){
+			S1[i][j] = (S1[i-1][j-1] + (long long)(i - 1) * S1[i-1][j]) % MOD;
+		}
+	}
+}
+
+int main(){
+	buildStirlingS1(10);
+	// permutations of 4 elements with exactly 2 cycles -> 11
+	cout << "S1(4,2) = " << S1[4][2] << "\n";
+	return 0;
+}
+\end{lstlisting}

@@ -1,0 +1,74 @@
+\subsubsection{Kosaraju SCC}
+% original used `vector<...> adj[n]` which is a VLA (non-standard C++).
+%     The code below is kept as reference; for a portable template see PLAN_01 fix 1.5.
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: encuentra componentes fuertemente conexas (SCC) usando dos DFS: una por orden de salida y otra sobre el grafo transpuesto
+void dfs(int node, vector<pair<int,int>> adj[], vector<bool> &vis,
+stack<int> &st){
+	vis[node]=1;
+	for(auto [adjN,adjW] : adj[node]){
+		if(!vis[adjN]){
+			dfs(adjN , adj , vis , st);
+		}
+	}
+	st.push(node);
+}
+
+void dfs2(int node, vector<pair<int,int>> adj[], vector<bool> &vis,
+vector<int> &scc, int scc_number){
+	vis[node]=1;
+	scc[node]=scc_number;
+	for(auto [adjN,adjW] : adj[node]){
+		if(!vis[adjN]){
+			dfs2(adjN , adj , vis , scc , scc_number);
+		}
+	}
+}
+
+void solve(){
+	int n,m; cin >> n >> m;
+	vector< pair<int,int> > adj[n];
+	for(int i=0 ; i<m ; i++){
+		int u,v,w; cin >> u >> v >> w;
+		u--; v--;
+		adj[u].emplace_back(v,w);
+	}
+
+	vector<bool> vis(n);
+	stack<int> st;
+	for(int i=0 ; i<n ; i++){
+		if(!vis[i]){
+			dfs(i , adj , vis , st);
+		}
+	}
+
+	vector<pair<int,int>> adjT[n];
+	for(int i=0 ; i<n ; i++){
+		vis[i]=0;
+		for(auto [adjN,adjW] : adj[i]){
+			adjT[adjN].push_back({i,adjW});
+		}
+	}
+
+	vector<int> scc(n);
+	int scc_number=0;
+	while(!st.empty()){
+		int node=st.top();
+		st.pop();
+		if(!vis[node]){
+			scc_number++;
+			dfs2(node, adjT, vis, scc, scc_number);
+		}
+	}
+
+	vector<pair<int,int>> adjCond[scc_number];
+	for(int i=0 ; i<n ; i++){
+		for(auto [adjN,adjW] : adj[i]){
+			if(scc[i] != scc[adjN]){
+				adjCond[scc[i]-1].emplace_back(scc[adjN]-1,adjW);
+			}
+		}
+	}
+}
+\end{lstlisting}

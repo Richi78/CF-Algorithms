@@ -1,0 +1,28 @@
+\subsubsection{Sweep line template}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: depends on problem; usually O((N + E) log N)
+// usa: problemas donde se barre una linea/punto y se mantiene una EDD sobre eventos
+#include <bits/stdc++.h>
+using namespace std;
+
+struct SweepEvent{
+	long long x;
+	int type; // 0 = add, 1 = query, 2 = remove (problem-specific)
+	int id;
+	bool operator<(const SweepEvent& o) const { return x < o.x; }
+};
+
+// usage:
+//   sort events by x
+//   maintain a data structure (set, multiset, segment tree) keyed by y
+//   process events in order, calling add/query/remove handlers
+
+int main(){
+	// skeleton: fill events with x, type, id and process in order
+	vector<SweepEvent> evts = {{1, 0, 0}, {3, 1, 1}, {5, 2, 0}};
+	sort(evts.begin(), evts.end());
+	for(auto& e : evts) cout << "(" << e.x << "," << e.type << "," << e.id << ") ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

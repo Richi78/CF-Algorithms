@@ -1,0 +1,70 @@
+\subsubsection{Segment Tree Lazy Assign + Sum}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log n) por operacion, O(n) en memoria
+// usa: asignar un valor a un rango y consultar la suma en un rango
+struct SegmentTree {
+	struct Node {
+		int val = 0;
+		int lazy = LLONG_MAX; // valor neutro
+	};
+
+	int n;
+	vector<Node> st;
+
+	SegmentTree(int size) {
+		n = size;
+		while(__builtin_popcount(n) != 1) n++;
+		st.resize(2*n);
+	}
+
+	void push(int node, int l, int r) {
+		if(st[node].lazy == LLONG_MAX) return;
+		st[node].val = (r-l+1) * st[node].lazy;
+		if(l != r) {
+			st[node*2].lazy = st[node].lazy;
+			st[node*2+1].lazy = st[node].lazy;
+		}
+		st[node].lazy = LLONG_MAX;
+	}
+
+	void assign_range(int node, int l, int r, int ql, int qr, int val) {
+		push(node, l, r);
+		if(ql <= l && r <= qr) {
+			st[node].lazy = val;
+			push(node, l, r);
+			return;
+		}
+		if(r < ql || qr < l) return;
+		int mid = l + (r-l)/2;
+		assign_range(node*2, l, mid, ql, qr, val);
+		assign_range(node*2+1, mid+1, r, ql, qr, val);
+		st[node].val = st[node*2].val + st[node*2+1].val;
+	}
+
+	int query(int node, int l, int r, int ql, int qr) {
+		push(node, l, r);
+		if(ql <= l && r <= qr) return st[node].val;
+		if(r < ql || qr < l) return 0;
+		int mid = l + (r-l)/2;
+		return query(node*2, l, mid, ql, qr)
+		+ query(node*2+1, mid+1, r, ql, qr);
+	}
+
+	void assign(int l, int r, int val) {
+		assign_range(1, 0, n-1, l, r, val);
+	}
+	int sum(int l, int r) {
+		return query(1, 0, n-1, l, r);
+	}
+};
+int main(){
+	SegmentTree st(5);
+	st.assign(0, 4, 1);          // [1,1,1,1,1]
+	st.assign(1, 3, 2);          // [1,2,2,2,1]
+	cout << st.sum(0, 4) << endl; // 8
+	cout << st.sum(1, 3) << endl; // 6
+	st.assign(0, 4, 5);          // [5,5,5,5,5]
+	cout << st.sum(0, 4) << endl; // 25
+	return 0;
+}
+\end{lstlisting}

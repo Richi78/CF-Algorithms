@@ -1,0 +1,171 @@
+\subsubsection{Hamiltonian path / cycle (bitmask DP + backtracking)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^2 * 2^N)  (bitmask DP), O(N!) peor caso (backtracking)
+// usa: existencia y construccion de camino / ciclo hamiltoniano;
+//     TSP (min costo de ciclo hamiltoniano) si las aristas tienen peso
+#include <bits/stdc++.h>
+using namespace std;
+
+// -- Teorema de Dirac (condicion SUFICIENTE) --
+//   Si G es simple, |V| = n >= 3, y todo vertice tiene grado >= n/2,
+//   entonces G tiene un ciclo hamiltoniano. (No es necesario.)
+//   Ore: si para todo par no adyacente (u,v) se cumple
+//        deg(u) + deg(v) >= n, entonces G es hamiltoniano.
+
+bool satisfiesDirac(int n, const vector<vector<int>>& adj){
+	if(n < 3) return false;
+	for(int v=0;v<n;v++) if((int)adj[v].size() < (n+1)/2) return false;
+	return true;
+}
+bool satisfiesOre(int n, const vector<vector<int>>& adj){
+	if(n < 3) return false;
+	// construye conjunto de adyacencia
+	vector<vector<char>> A(n, vector<char>(n, 0));
+	for(int u=0;u<n;u++) for(int v:adj[u]) A[u][v] = 1;
+	for(int u=0;u<n;u++)
+		for(int v=u+1;v<n;v++)
+			if(!A[u][v] && ((int)adj[u].size() + (int)adj[v].size() < n))
+				return false;
+	return true;
+}
+
+// -- Bitmask DP: Hamiltonian path starting at 'src' --
+// dp[mask][v] = true si hay un camino que visita exactamente 'mask' y termina en v
+// memoria: O(N * 2^N) bool; tiempo: O(N^2 * 2^N)
+bool hasHamiltonianPathFrom(int n, const vector<vector<int>>& adj, int src){
+	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
+	dp[1<<src][src] = 1;
+	for(int mask=1; mask<(1<<n); mask++){
+		for(int v=0; v<n; v++) if(dp[mask][v]){
+			for(int u : adj[v]){
+				if(!(mask & (1<<u))){
+					dp[mask | (1<<u)][u] = 1;
+				}
+			}
+		}
+	}
+	for(int mask=1; mask<(1<<n); mask++){
+		if(__builtin_popcount(mask) != n) continue;
+		for(int v=0; v<n; v++) if(dp[mask][v]) return true;
+	}
+	return false;
+}
+
+// -- Bitmask DP: Hamiltonian cycle --
+// dp[mask][v] = true si hay un camino de 'src' que visita 'mask' y termina en v
+bool hasHamiltonianCycle(int n, const vector<vector<int>>& adj, int src = 0){
+	if(n < 3) return false;
+	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
+	dp[1<<src][src] = 1;
+	for(int mask=1; mask<(1<<n); mask++){
+		for(int v=0; v<n; v++) if(dp[mask][v]){
+			for(int u : adj[v]){
+				if(!(mask & (1<<u))){
+					dp[mask | (1<<u)][u] = 1;
+				}
+			}
+		}
+	}
+	int full = (1<<n) - 1;
+	for(int v=0; v<n; v++){
+		if(dp[full][v]){
+			// cierra el ciclo si v es adyacente a src
+			for(int u : adj[v]) if(u == src) return true;
+		}
+	}
+	return false;
+}
+
+// -- Reconstruccion de un camino hamiltoniano (bitmask DP) --
+// devuelve la secuencia de vertices o vacio si no existe
+vector<int> findHamiltonianPath(int n, const vector<vector<int>>& adj, int src){
+	vector<vector<int>> par(1<<n, vector<int>(n, -1));
+	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
+	dp[1<<src][src] = 1;
+	for(int mask=1; mask<(1<<n); mask++){
+		for(int v=0; v<n; v++) if(dp[mask][v]){
+			for(int u : adj[v]){
+				if(!(mask & (1<<u))){
+					dp[mask | (1<<u)][u] = 1;
+					par[mask | (1<<u)][u] = v;
+				}
+			}
+		}
+	}
+	int endV = -1, full = -1;
+	for(int mask=1; mask<(1<<n); mask++){
+		if(__builtin_popcount(mask) != n) continue;
+		for(int v=0; v<n; v++) if(dp[mask][v]){ endV = v; full = mask; break; }
+		if(endV != -1) break;
+	}
+	if(endV == -1) return {};
+	vector<int> path;
+	int cur = endV, m = full;
+	while(cur != -1){
+		path.push_back(cur);
+		int p = par[m][cur];
+		m &= ~(1<<cur);
+		cur = p;
+	}
+	reverse(path.begin(), path.end());
+	return path;
+}
+
+// -- TSP minimo: ciclo hamiltoniano de costo minimo --
+// dp[mask][v] = min costo de camino src -> ... -> v visitando 'mask'
+// respuesta = min_v dp[full][v] + w(v, src) si el cierre es valido
+const long long LINF = (1LL<<60);
+long long tspMinCycle(int n, const vector<vector<long long>>& w, int src = 0){
+	if(n == 1) return 0;
+	vector<vector<long long>> dp(1<<n, vector<long long>(n, LINF));
+	dp[1<<src][src] = 0;
+	for(int mask=1; mask<(1<<n); mask++){
+		for(int v=0; v<n; v++){
+			if(dp[mask][v] == LINF) continue;
+			for(int u=0; u<n; u++){
+				if(!(mask & (1<<u)) && w[v][u] < LINF){
+					dp[mask | (1<<u)][u] = min(dp[mask | (1<<u)][u],
+					dp[mask][v] + w[v][u]);
+				}
+			}
+		}
+	}
+	int full = (1<<n) - 1;
+	long long ans = LINF;
+	for(int v=0; v<n; v++){
+		if(dp[full][v] < LINF && w[v][src] < LINF){
+			ans = min(ans, dp[full][v] + w[v][src]);
+		}
+	}
+	return ans;
+}
+
+int main(){
+	// ejemplo: ciclo de 4 vertices (0-1-2-3-0) -> claramente hamiltoniano
+	int n = 4;
+	vector<vector<int>> adj(n);
+	auto add = [&](int u, int v){
+		adj[u].push_back(v); adj[v].push_back(u);
+	};
+	add(0,1); add(1,2); add(2,3); add(3,0);
+
+	cout << "Dirac: " << satisfiesDirac(n, adj) << " (n/2 = 2, todos grado 2 -> true)\n";
+	cout << "Ore:   " << satisfiesOre(n, adj) << "\n";
+	cout << "cycle? " << hasHamiltonianCycle(n, adj) << "\n";
+	cout << "path?  " << hasHamiltonianPathFrom(n, adj, 0) << "\n";
+
+	auto path = findHamiltonianPath(n, adj, 0);
+	for(int v : path) cout << v << " ";
+	cout << "\n";
+
+	// TSP: mismo grafo con pesos -> ciclo minimo
+	vector<vector<long long>> w(n, vector<long long>(n, LINF));
+	for(int i=0;i<n;i++) w[i][i] = 0;
+	w[0][1] = w[1][0] = 10;
+	w[1][2] = w[2][1] = 20;
+	w[2][3] = w[3][2] = 30;
+	w[3][0] = w[0][3] = 40;
+	cout << "TSP min = " << tspMinCycle(n, w) << "\n"; // 10+20+30+40 = 100
+	return 0;
+}
+\end{lstlisting}

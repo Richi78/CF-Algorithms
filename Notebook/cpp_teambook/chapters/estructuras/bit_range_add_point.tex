@@ -1,0 +1,34 @@
+\subsubsection{BIT range add + point query}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) per operation
+// usa: sumar delta a [l, r] y consultar un punto
+#include <bits/stdc++.h>
+using namespace std;
+
+struct BITRangeAdd{
+	int n;
+	vector<long long> t;
+	BITRangeAdd(int n): n(n), t(n+1, 0){}
+	void add(int i, long long delta){
+		for(; i <= n; i += i & -i) t[i] += delta;
+	}
+	void rangeAdd(int l, int r, long long delta){
+		add(l, delta);
+		if(r + 1 <= n) add(r + 1, -delta);
+	}
+	long long pointQuery(int i){
+		long long r = 0;
+		for(; i > 0; i -= i & -i) r += t[i];
+		return r;
+	}
+};
+
+int main(){
+	BITRangeAdd bit(10);
+	bit.rangeAdd(2, 5, 3);
+	cout << bit.pointQuery(1) << "\n";  // 0
+	cout << bit.pointQuery(3) << "\n";  // 3
+	cout << bit.pointQuery(6) << "\n";  // 0
+	return 0;
+}
+\end{lstlisting}

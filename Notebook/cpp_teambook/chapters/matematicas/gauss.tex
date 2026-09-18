@@ -1,0 +1,108 @@
+\subsubsection{Gauss-Jordan (mod p)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^3) where N is the matrix dimension
+// usa: resolver sistemas lineales, calcular determinante y rango
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long MOD = 998244353LL;
+
+// returns rank; mutates a in-place to row-echelon form
+int gaussJordan(vector<vector<long long>>& a){
+	int n = a.size(), m = a[0].size(), rank = 0;
+	int row = 0;
+	for(int col=0; col<m && row<n; col++){
+		int sel = row;
+		for(int i=row;i<n;i++) if(a[i][col]){ sel = i; break; }
+		if(!a[sel][col]) continue;
+		swap(a[sel], a[row]);
+		long long inv = modpow(a[row][col], MOD - 2, MOD);
+		for(int j=col;j<m;j++) a[row][j] = a[row][j] * inv % MOD;
+		for(int i=0;i<n;i++){
+			if(i != row && a[i][col]){
+				long long factor = a[i][col];
+				for(int j=col;j<m;j++){
+					a[i][j] = (a[i][j] - factor * a[row][j] % MOD + MOD) % MOD;
+				}
+			}
+		}
+		row++; rank++;
+	}
+	return rank;
+}
+
+long long determinant(vector<vector<long long>> a){
+	int n = a.size();
+	long long det = 1;
+	for(int i=0;i<n;i++){
+		int sel = i;
+		for(int j=i;j<n;j++) if(a[j][i]){ sel = j; break; }
+		if(!a[sel][i]) return 0;
+		if(sel != i){ swap(a[sel], a[i]); det = (MOD - det) % MOD; }
+		det = det * a[i][i] % MOD;
+		long long inv = modpow(a[i][i], MOD - 2, MOD);
+		for(int j=i+1;j<n;j++){
+			long long factor = a[j][i] * inv % MOD;
+			for(int k=i;k<n;k++){
+				a[j][k] = (a[j][k] - factor * a[i][k] % MOD + MOD) % MOD;
+			}
+		}
+	}
+	return det;
+}
+
+// --- Resolver Ax = b usando gaussJordan sobre la matriz aumentada ---
+// gaussJordan devuelve el RANGO r de la matriz aumentada [A|b].
+//   - Si tras la REF existe alguna fila i con todos los coeficientes
+//     en cero pero el termino independiente aug[i][n] != 0, el
+//     sistema es INCONSISTENTE: no hay solucion.
+//   - Si r == n (rango == #incognitas), hay SOLUCION UNICA y vive
+//     en la ultima columna de la RREF: x[i] = aug[i][n].
+//   - Si r < n, quedan (n - r) variables libres: hay INFINITAS
+//     soluciones. La ultima columna da una solucion particular
+//     poniendo las libres en 0.
+// Retorna:
+//   0 -> sin solucion
+//   1 -> solucion unica (escrita en 'sol')
+//   2 -> infinitas soluciones (escribe una particular en 'sol')
+int solveSystem(vector<vector<long long>> A, vector<long long> b,
+				vector<long long>& sol){
+	int n = (int)A.size();
+	// 1) construir la matriz aumentada [A | b] de tamano n x (n+1)
+	vector<vector<long long>> aug(n, vector<long long>(n + 1));
+	for(int i = 0; i < n; i++){
+		for(int j = 0; j < n; j++) aug[i][j] = A[i][j];
+		aug[i][n] = b[i];
+	}
+
+	// 2) RREF + rango
+	int r = gaussJordan(aug);
+
+	// 3) checar inconsistencia: fila nula con termino independiente != 0
+	for(int i = r; i < n; i++)
+		if(aug[i][n] != 0) return 0;   // sin solucion
+
+	// 4) rango < #incognitas -> variables libres -> infinitas soluciones
+	if(r < n) return 2;
+
+	// 5) solucion unica: se lee directo de la ultima columna
+	sol.assign(n, 0);
+	for(int i = 0; i < n; i++) sol[i] = aug[i][n];
+	return 1;
+}
+
+int main(){
+	vector<vector<long long>> A = {{1,2,3},{4,5,6},{7,8,10}};
+	int r = gaussJordan(A);
+	cout << "rank = " << r << "\n";
+	cout << "det = " << determinant({{1,2},{3,4}}) << "\n";  // -2 mod p
+
+	// Ejemplo: 2x + y = 5 ,  x - y = 1   ->  x = 2, y = 1
+	vector<vector<long long>> M = {{2,1},{1,-1}};
+	vector<long long> b = {5,1}, x;
+	int status = solveSystem(M, b, x);   // status = 1, x = {2, 1}
+	for(long long v : x) cout << v << " ";
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

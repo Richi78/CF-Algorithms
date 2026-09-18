@@ -1,0 +1,26 @@
+\subsubsection{Convex Hull (monotono)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) por sort; el barrido es amortizado O(N) (cada pop_back se hace a lo sumo N veces por iter)
+// usa: devuelve los puntos del casco convexo en orden CCW (sin colineales si cambias <=0 a <0)
+vector<Point> convexHull(vector<Point> points) {
+	sort(points.begin(), points.end());
+
+	vector<Point> hull;
+	for(int iter=0; iter<2; iter++) {
+		int S = hull.size();
+		for(const Point &c : points) {
+			while((int)hull.size() >= S+2) {
+				Point a = hull.end()[-2], b = hull.end()[-1];
+				// <=0 incluye colineales
+				if(a.cross(b, c) <= 0) break;
+				hull.pop_back();
+			}
+			hull.push_back(c);
+		}
+		hull.pop_back(); // evita duplicar el ultimo punto
+		reverse(points.begin(), points.end());
+	}
+
+	return hull;
+}
+\end{lstlisting}

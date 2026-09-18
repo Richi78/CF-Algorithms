@@ -1,0 +1,86 @@
+\subsubsection{Hopcroft-Karp}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(sqrt(V) * E) donde V = nodos lado izquierdo, E = aristas
+// usa: matching maximo en grafo bipartito; usa BFS + DFS por capas para encontrar varios augmenting paths por fase
+// nota: para N, M <= 1e5; para N, M <= 1e3 alcanza Kuhn (O(V*E))
+struct HopcroftKarp {
+	int n, m; // n->#left_nodes  m->#right_nodes
+	vector<vector<int>> adj;
+	vector<int> dist, matchU, matchV;
+
+	HopcroftKarp(int n, int m): n(n), m(m) {
+		adj.assign(n + 1, {});
+		matchU.assign(n + 1, 0);
+		matchV.assign(m + 1, 0);
+		dist.assign(n + 1, 0);
+	}
+
+	void addEdge(int u, int v) {
+		adj[u].push_back(v);
+	}
+
+	bool bfs() {
+		queue<int> q;
+		for (int u = 1; u <= n; u++) {
+			if (matchU[u] == 0) {
+				dist[u] = 0;
+				q.push(u);
+			} else {
+				dist[u] = -1;
+			}
+		}
+		bool found = false;
+		while (!q.empty()) {
+			int u = q.front(); q.pop();
+			for (int v : adj[u]) {
+				if (matchV[v] != 0 && dist[matchV[v]] == -1) {
+					dist[matchV[v]] = dist[u] + 1;
+					q.push(matchV[v]);
+				}
+				if (matchV[v] == 0) {
+					found = true;
+				}
+			}
+		}
+		return found;
+	}
+
+	bool dfs(int u) {
+		for (int v : adj[u]) {
+			if (matchV[v] == 0 ||
+			(dist[matchV[v]] == dist[u] + 1 && dfs(matchV[v]))) {
+				matchU[u] = v;
+				matchV[v] = u;
+				return true;
+			}
+		}
+		dist[u] = -1;
+		return false;
+	}
+
+	int maxMatching() {
+		int matching = 0;
+		while (bfs()) {
+			for (int u = 1; u <= n; u++) {
+				if (matchU[u] == 0 && dfs(u)) {
+					matching++;
+				}
+			}
+		}
+		return matching;
+	}
+};
+
+int main(){
+	// entrada: n nodos izquierda, m nodos derecha, k aristas (u, v) con u en [1..n], v en [1..m]
+	int n, m, k;
+	cin >> n >> m >> k;
+	HopcroftKarp hk(n, m);
+	for(int i=0;i<k;i++){
+		int u, v; cin >> u >> v;
+		hk.addEdge(u, v);
+	}
+	cout << hk.maxMatching() << "\n";
+	return 0;
+}
+\end{lstlisting}

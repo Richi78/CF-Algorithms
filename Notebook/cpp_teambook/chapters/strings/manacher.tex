@@ -1,0 +1,109 @@
+\subsubsection{Manacher}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N) para construir odd/even; cada query O(1) con los helpers
+// usa: longest palindromic substring, contar palindromos, queries O(1) "es s[l..r] palindromo?"
+#include <bits/stdc++.h>
+using namespace std;
+
+// Convencion de ESTE codigo (distinta a la "clasica de radio"):
+//   odd[i]  = k (k >= 1): el palindromo IMPAR mas largo centrado en i
+//             es s[i - k + 1 .. i + k - 1] (longitud 2k - 1).
+//             -> cuenta ademas cuantos palindromos impares hay centrados en i:
+//                k palindromos (los de longitud 1, 3, 5, ..., 2k-1).
+//   even[i] = k (k >= 0): el palindromo PAR mas largo "centrado entre i-1 e i"
+//             es s[i - k .. i + k - 1] (longitud 2k). Si k == 0 no hay palindromo par ahi.
+//             -> cuenta cuantos palindromos pares hay "centrados en i": k.
+//     Equivalencias utiles:
+//       palindromo impar centrado en i de longitud L impar -> odd[i] >= (L+1)/2
+//       palindromo par   "centrado entre i-1 e i" de long 2k -> even[i] >= k
+pair<vector<int>, vector<int>> manacher(const string& s){
+	int n = (int)s.size();
+	vector<int> odd(n, 0);
+	int l = 0, r = -1;
+	for(int i = 0; i < n; i++){
+		int k = (i > r) ? 1 : min(odd[l + r - i], r - i + 1);
+		while(i - k >= 0 && i + k < n && s[i - k] == s[i + k]) k++;
+		odd[i] = k;
+		if(i + k - 1 > r){ l = i - k + 1; r = i + k - 1; }
+	}
+	vector<int> even(n, 0);
+	l = 0; r = -1;
+	for(int i = 0; i < n; i++){
+		int k = (i > r) ? 0 : min(even[l + r - i + 1], r - i + 1);
+		while(i - k - 1 >= 0 && i + k < n && s[i - k - 1] == s[i + k]) k++;
+		even[i] = k;
+		if(i + k - 1 > r){ l = i - k; r = i + k - 1; }
+	}
+	return {odd, even};
+}
+
+// LONGEST PALINDROMIC SUBSTRING
+string longestPalindrome(const string& s,
+						 const vector<int>& odd,
+						 const vector<int>& even){
+	int n = (int)s.size(), bestL = 0, bestLen = 1;
+	for(int i = 0; i < n; i++){
+		// impar centrado en i: longitud 2*odd[i] - 1
+		int len = 2 * odd[i] - 1;
+		if(len > bestLen){ bestLen = len; bestL = i - odd[i] + 1; }
+		// par centrado entre i-1 e i: longitud 2*even[i]
+		len = 2 * even[i];
+		if(len > bestLen){ bestLen = len; bestL = i - even[i]; }
+	}
+	return s.substr(bestL, bestLen);
+}
+
+// COUNT PALINDROMES
+long long countPalindromes(const vector<int>& odd,
+						   const vector<int>& even){
+	long long total = 0;
+	for(int x : odd)  total += x;
+	for(int x : even) total += x;
+	return total;
+}
+
+// PALINDROMIC SUBSTRING QUERIES
+//   Devuelve true sii s[l..r] (0-indexed, inclusivo) es palindromo.
+bool isPalindrome(int l, int r,
+				  const vector<int>& odd,
+				  const vector<int>& even){
+	int len = r - l + 1;
+	if(len <= 1) return true;
+	if(len % 2 == 1){
+		int c = (l + r) / 2;          // centro del palindromo impar
+		return odd[c] >= (len + 1) / 2;
+	} else {
+		int c = (l + r + 1) / 2;      // borde derecho del centro par
+		return even[c] >= len / 2;
+	}
+}
+
+int main(){
+	string s = "abacaba";
+	auto [odd, even] = manacher(s);
+
+	// imprime los radios
+	for(int x : odd)  cout << x << " ";  cout << "\n";
+	for(int x : even) cout << x << " ";  cout << "\n";
+
+	// 1) longest palindromic substring -> "abacaba"
+	cout << "longest = " << longestPalindrome(s, odd, even) << "\n";
+
+	// 2) count palindromes -> 12 para "abacaba"
+	cout << "count   = " << countPalindromes(odd, even) << "\n";
+
+	// 3) queries O(1) "es s[l..r] palindromo?"
+	//    (0-indexed, inclusivo)
+	auto Q = [&](int l, int r){
+		return isPalindrome(l, r, odd, even);
+	};
+	cout << "s[0..6] aba...? " << Q(0, 6) << "\n";   // 1 -> "abacaba"
+	cout << "s[0..5] aba...? " << Q(0, 5) << "\n";   // 0
+	cout << "s[0..2] aba?   " << Q(0, 2) << "\n";    // 1 -> "aba"
+	cout << "s[1..3] bac?   " << Q(1, 3) << "\n";    // 0
+	cout << "s[2..4] aca?   " << Q(2, 4) << "\n";    // 1 -> "aca"
+	cout << "s[0..1] ab?    " << Q(0, 1) << "\n";    // 0
+	cout << "s[0..0] a?     " << Q(0, 0) << "\n";    // 1
+	return 0;
+}
+\end{lstlisting}

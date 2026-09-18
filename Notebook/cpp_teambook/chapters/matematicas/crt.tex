@@ -1,0 +1,33 @@
+\subsubsection{Chinese Remainder Theorem}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N * log(max(m))) donde N = num. congruencias
+//     (cada modpow cuesta O(log m[i]))
+// SC: O(1) extra
+// usa: resolver sistema de congruencias pairwise coprimes
+#include <bits/stdc++.h>
+using namespace std;
+
+// returns smallest x >= 0 such that x == r[i] (mod m[i]) for all i
+//     assumes m[i] are pairwise coprime
+long long crt(const vector<long long>& r, const vector<long long>& m){ 
+	long long x = 0;
+	long long M = 1; // modular inverse
+	for(int i=0 ; i<r.size() ; i++){
+		long long diff = (r[i] - x) % m[i];
+		if(diff < 0) diff += m[i];
+		long long inv = modpow(M % m[i], m[i] - 2, m[i]);  // (a^b) % m[i]
+		long long t = diff * inv % m[i];
+		x = x + M * t;
+		M *= m[i];
+		x %= M;
+		if(x < 0) x += M;
+	}
+	return x;
+}
+
+int main(){
+	// x == 2 (mod 3), x == 3 (mod 5), x == 2 (mod 7) -> x = 23
+	cout << crt({2, 3, 2}, {3, 5, 7}) << "\n";
+	return 0;
+}
+\end{lstlisting}

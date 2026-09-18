@@ -1,0 +1,65 @@
+\subsubsection{Mo con updates}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^{5/3}) per query
+// usa: queries offline con updates mezclados
+#include <bits/stdc++.h>
+using namespace std;
+
+struct MoWithUpdates{
+	struct Query{
+		int l, r, t, idx;
+	};
+	struct Update{
+		int pos, val;
+	};
+	int n, q;
+	vector<Query> queries;
+	vector<Update> updates;
+	vector<int> a;
+	long long curAns = 0;
+	vector<long long> ans;
+
+	void addPos(int x){
+		// update curAns given that position x is added to current range
+	}
+	void removePos(int x){
+		// update curAns given that position x is removed from current range
+	}
+	void applyUpdate(const Update& u){
+		// apply update; if u.pos is in [curL, curR], update state
+	}
+	void revertUpdate(const Update& u){
+		// revert update; mirror of applyUpdate
+	}
+	void solve(){
+		int blockSize = pow(n, 2.0/3.0);
+		sort(queries.begin(), queries.end(), [&](const Query& A, const Query& B){
+			int bA = A.l / blockSize, bB = B.l / blockSize;
+			if(bA != bB) return bA < bB;
+			int bAr = A.r / blockSize, bBr = B.r / blockSize;
+			if(bAr != bBr) return bAr < bBr;
+			return A.t < B.t;
+		});
+		ans.assign(queries.size(), 0);
+		int curL = 0, curR = -1, curT = -1;
+		for(const auto& qry : queries){
+			while(curL > qry.l) addPos(--curL);
+			while(curR < qry.r) addPos(++curR);
+			while(curL < qry.l) removePos(curL++);
+			while(curR > qry.r) removePos(curR--);
+			while(curT < qry.t) applyUpdate(updates[++curT]);
+			while(curT > qry.t) revertUpdate(updates[curT--]);
+			ans[qry.idx] = curAns;
+		}
+	}
+};
+
+int main(){
+	// skeleton: addPos/removePos/applyUpdate/revertUpdate must be filled
+	// per problem; see standard Mo's algorithm tutorial.
+	MoWithUpdates mwu;
+	// mwu.addPos, mwu.removePos, mwu.applyUpdate, mwu.revertUpdate need impl
+	// mwu.solve();
+	return 0;
+}
+\end{lstlisting}

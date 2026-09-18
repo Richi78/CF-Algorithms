@@ -1,0 +1,38 @@
+\subsubsection{0-1 BFS}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: grafos con aristas 0 o 1
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18;
+
+vector<long long> zeroOneBFS(int n, const vector<vector<pair<int,int>>>& adj, int start){
+	vector<long long> dist(n, INF);
+	deque<int> q;
+	dist[start] = 0;
+	q.push_back(start);
+	while(!q.empty()){
+		int v = q.front(); q.pop_front();
+		for(auto [u, w] : adj[v]){
+			if(dist[v] + w < dist[u]){
+				dist[u] = dist[v] + w;
+				if(w == 0) q.push_front(u);
+				else q.push_back(u);
+			}
+		}
+	}
+	return dist;
+}
+
+int main(){
+	vector<vector<pair<int,int>>> adj(4);
+	adj[0] = {{1,0}, {2,1}};
+	adj[1] = {{2,0}, {3,1}};
+	adj[2] = {{3,1}};
+	auto d = zeroOneBFS(4, adj, 0);
+	for(long long x : d) cout << x << " ";  // 0 0 0 1
+	cout << "\n";
+	return 0;
+}
+\end{lstlisting}

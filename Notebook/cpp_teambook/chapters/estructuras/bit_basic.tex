@@ -1,0 +1,33 @@
+\subsubsection{BIT point update + prefix sum}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(log N) per operation
+// usa: queries de suma en prefijo
+#include <bits/stdc++.h>
+using namespace std;
+
+struct BIT{
+	int n;
+	vector<long long> t;
+	BIT(int n): n(n), t(n+1, 0){}
+	void add(int i, long long delta){
+		for(; i <= n; i += i & -i) t[i] += delta;
+	}
+	long long sum(int i){
+		long long r = 0;
+		for(; i > 0; i -= i & -i) r += t[i];
+		return r;
+	}
+	long long rangeSum(int l, int r){
+		return sum(r) - sum(l - 1);
+	}
+};
+
+int main(){
+	BIT bit(10);
+	bit.add(3, 5);
+	bit.add(7, 2);
+	cout << bit.sum(5) << "\n";     // 5
+	cout << bit.rangeSum(1, 10) << "\n";  // 7
+	return 0;
+}
+\end{lstlisting}

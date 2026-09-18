@@ -1,0 +1,26 @@
+\subsubsection{Sprague-Grundy template}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: depends on game; usually O(states * transitions)
+// usa: juegos impartial, nim-heap decomposition
+#include <bits/stdc++.h>
+using namespace std;
+
+unordered_map<long long, long long> sgMemo;
+
+long long grundy(long long state){
+	if(sgMemo.count(state)) return sgMemo[state];
+	set<long long> reachable;
+	// populate 'reachable' with grundy of all positions reachable from 'state'
+	// ... (game-specific) ...
+	long long mex = 0;
+	while(reachable.count(mex)) mex++;
+	return sgMemo[state] = mex;
+}
+
+int main(){
+	// Nim with 3 piles of sizes 1, 2, 3
+	int g = grundy(1) ^ grundy(2) ^ grundy(3);
+	cout << (g ? "first player wins" : "second player wins") << "\n";
+	return 0;
+}
+\end{lstlisting}
