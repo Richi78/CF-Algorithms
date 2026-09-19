@@ -1,0 +1,83 @@
+\subsubsection{Aho-Corasick DP for forbidden patterns}
+
+\paragraph{Idea intuitiva.}
+El problema de contar o encontrar cadenas de longitud $L$ sobre un alfabeto $\Sigma$ que \textbf{no contengan} ningun patron de un conjunto prohibido se modela de forma natural como una programacion dinamica sobre el autómata de \textbf{Aho-Corasick}.
+
+Cada estado del autómata representa la clase de equivalencia del sufijo mas largo que coincide con un prefijo de algun patron. Un estado $u$ es \textbf{prohibido} (terminal) si \verb|!t[u].out.empty()|, es decir, si representa la finalizacion de al menos un patron prohibido. La DP calcula:
+\[
+dp[i][v] = \text{cantidad de cadenas de longitud } i \text{ validas que terminan en el estado } v
+\]
+Para construir la cadena de longitud $i+1$, desde cada estado valido $v$ se transiciona por cada caracter $k \in \Sigma$ hacia el estado $u = \text{next}[v][k]$. Si $u$ no es un estado terminal, se acumula:
+\[
+dp[i+1][u] = \sum_{v \to_k u, \, u \notin \text{prohibidos}} dp[i][v] \pmod M
+\]
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Espacio de estados reducido: $dp$ solo necesita el nivel previo y el nuevo ($dp$ y $ndp$), usando memoria $O(|S|)$.
+	\item Estado inicial: $dp[0] = 1$ (cadena vacia en la raiz), siempre que la raiz no contenga la cadena vacia como patron prohibido.
+	\item Criterio de validez: un estado $u$ es valido si y solo si \verb|ac.t[u].out.empty()|.
+	\item Para $L$ grande ($L \le 10^{18}$) y $|S| \le 100$, la transicion es lineal y fija, pudiendose resolver en $O(|S|^3 \log L)$ mediante \textbf{exponenciacion de matrices}.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Paso de programacion dinamica con optimizacion de memoria:
+\begin{verbatim}
+for (int i = 0; i < L; ++i) {
+    fill(ndp.begin(), ndp.end(), 0);
+    for (int v = 0; v < S; ++v) {
+        if (dp[v] == 0) continue;
+        for (int k = 0; k < 26; ++k) {
+            int u = ac.t[v].next[k];
+            if (ac.t[u].out.empty()) {
+                ndp[u] = (ndp[u] + dp[v]) % AC_MOD;
+            }
+        }
+    }
+    dp = ndp;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Tiempo}: $O(L \cdot |S| \cdot |\Sigma|)$ donde $|S|$ es la cantidad de nodos del trie de Aho-Corasick y $|\Sigma| = 26$.
+	\item \textbf{Memoria}: $O(|S|)$ utilizando solo dos vectores de estados ($dp$ y $ndp$).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Exponenciacion de matrices ($L \le 10^{18}$)}: definir una matriz de adyacencia $M[v][u]$ que cuente cuantas transiciones validas $k \in \Sigma$ llevan de $v$ a $u$. Elevar $M^L$ mediante exponenciacion binaria.
+	\item \textbf{Maximizar puntaje / Longitud minima}: cambiar la suma modular por operaciones $(\max, +)$ o $(\min, +)$ para encontrar la cadena con maximo puntaje o menor costo.
+	\item \textbf{Patrones obligatorios en lugar de prohibidos}: anadir una mascara de bits a los estados de la DP para rastrear que subconjunto de patrones ya ha aparecido en la cadena.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Requisito de construccion previa}: Aho-Corasick debe haberse construido completamente con \verb|ac.build()| para que las transiciones \verb|next[v][k]| y la propagacion de salidas \verb|out| esten completas antes de ejecutar la DP.
+	\item \textbf{Patron vacio prohibido}: si alguno de los patrones prohibidos es la cadena vacia, la raiz misma es terminal y la respuesta para cualquier $L$ es 0.
+	\item \textbf{Modulo en cada transicion}: aplicar modulo en cada suma dentro del bucle interno para evitar desbordamientos aritméticos.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion countAvoiding:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int S = (int)ac.t.size();| -- obtiene la cantidad total de estados $|S|$ en el autómata.
+	\item \verb|vector<long long> dp(S, 0), ndp(S, 0);| -- vectores para almacenar las cantidades de cadenas en el nivel actual y siguiente.
+	\item \verb|if(ac.t[0].out.empty()) dp[0] = 1;| -- caso base: si la raiz no contiene patrones prohibidos, hay 1 forma de iniciar con longitud 0.
+	\item \verb|for(int i = 0; i < L; i++)| -- itera sobre cada longitud de 0 a $L-1$.
+	\item \verb|if(dp[v] == 0) continue;| -- poda: omite estados inalcanzables en el nivel actual.
+	\item \verb|int u = ac.t[v].next[k];| -- calcula el siguiente estado al anadir el caracter $k$.
+	\item \verb|if(ac.t[u].out.empty()) ndp[u] = (ndp[u] + dp[v]) % AC_MOD;| -- si el estado resultante no completa ningun patron prohibido, acumula las formas.
+	\item \verb|dp = ndp;| -- actualiza el vector para avanzar a la siguiente longitud.
+	\item \verb|for(long long x : dp) total = (total + x) % AC_MOD;| -- suma las formas de todos los estados validos al alcanzar longitud $L$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|ac.addString("ab", 0); ac.build();| -- inserta el patron prohibido ``ab'' y compila el autómata.
+	\item \verb|countAvoiding(ac, 3);| -- calcula cadenas de longitud 3 sobre el alfabeto $[a-z]$ que no contienen la subcadena ``ab'' ($26^3 - \text{cadenas con ``ab''}$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Aho-Corasick DP for forbidden patterns}.
+
+\vspace{0.5em}

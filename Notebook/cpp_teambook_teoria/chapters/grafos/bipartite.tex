@@ -1,0 +1,56 @@
+﻿\subsubsection{Bipartite check + 2-coloring}
+
+\paragraph{Idea intuitiva.}
+Un grafo es \textbf{bipartito} si sus vertices se pueden dividir en dos conjuntos $L$ y $R$ tales que toda arista va de $L$ a $R$. Esto equivale a decir que se puede \textbf{2-colorear} sin que dos vertices adyacentes tengan el mismo color. BFS alternando colores detecta esto: si en algun momento dos adyacentes tienen el mismo color, no es bipartito. La demostracion: por cada componente, fijar el color de un nodo determina todos los demas; si en algun paso hay conflicto, hay un ciclo impar (no bipartito).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Grafo bipartito $\Leftrightarrow$ sin ciclos impares.
+	\item Conexo: si un componente no es bipartito, todo el grafo no lo es.
+	\item Si hay \textbf{multiple componentes}, cada uno se colorea independientemente.
+	\item La 2-coloracion es unica salvo swap de colores.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+BFS con 2-coloreo:
+\begin{verbatim}
+vector<int> color(n, -1);
+for (int v = 0; v < n; ++v) if (color[v] == -1) {
+    color[v] = 0;
+    queue<int> q; q.push(v);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int w : adj[u]) {
+            if (color[w] == -1) { color[w] = 1 - color[u]; q.push(w); }
+            else if (color[w] == color[u]) return false;
+        }
+    }
+}
+return true;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Memoria $O(V)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Colorear desde multiples fuentes}: BFS desde cada nodo no coloreado.
+	\item \textbf{Bipartito + matching}: Hopcroft-Karp.
+	\item \textbf{Grafo bipartito ponderado}: Hungarian algorithm.
+	\item \textbf{Verificar bipartito en subgrafo}: solo aplicar BFS a los nodos relevantes.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Verificar \textbf{todos} los componentes, no solo el primero.
+	\item Para grafos con auto-loops, un auto-loop hace al grafo no bipartito.
+	\item En multigrafos, las aristas multiples no afectan el chequeo de bipartito.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Bipartite check + 2-coloring}.
+
+\vspace{0.5em}

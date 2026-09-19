@@ -1,0 +1,92 @@
+\subsubsection{BIT range add + range sum}
+
+\paragraph{Idea intuitiva.}
+Permite realizar actualizaciones de suma en rango y consultas de suma en rango en $O(\log n)$ usando dos arboles de Fenwick (BIT), evitando la sobrecarga de un Segment Tree con lazy propagation. La idea matematica: sea $D[k] = A[k] - A[k-1]$ el arreglo de diferencias (de modo que $A[k] = \sum_{j=1}^k D[j]$). La suma prefija $\sum_{k=1}^x A[k]$ se puede reescribir intercambiando el orden de sumatoria:
+\[
+\sum_{k=1}^x A[k] = \sum_{k=1}^x \sum_{j=1}^k D[j] = \sum_{j=1}^x (x - j + 1) D[j] = x \sum_{j=1}^x D[j] - \sum_{j=1}^x (j - 1) D[j]
+\]
+Se utilizan dos BITs: $t_1$ mantiene las diferencias $D[j]$, y $t_2$ mantiene los productos $D[j] \cdot (j - 1)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Al sumar $d$ en $[l, r]$:
+	\begin{itemize}\setlength\itemsep{0pt}
+		\item En $t_1$: $+d$ en $l$, y $-d$ en $r+1$.
+		\item En $t_2$: $+d \cdot (l - 1)$ en $l$, y $-d \cdot r$ en $r+1$ (puesto que el indice es $r+1$ y $(r+1)-1 = r$).
+	\end{itemize}
+	\item La suma acumulada en $[1, x]$ se evalua directamente como:
+	\[
+	\text{prefixSum}(x) = x \cdot t_1.\text{sum}(x) - t_2.\text{sum}(x)
+	\]
+	\item La suma en cualquier rango $[l, r]$ se obtiene por diferencia de prefijos: $\text{prefixSum}(r) - \text{prefixSum}(l - 1)$.
+	\item Indexacion 1-based: los arboles de Fenwick requieren indices estrictamente positivos ($1 \le i \le n$).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Suma en rango y consulta en rango con dos Fenwick trees:
+\begin{verbatim}
+void rangeAdd(int l, int r, long long delta) {
+    add(t1, l, delta);
+    add(t1, r + 1, -delta);
+    add(t2, l, delta * (l - 1));
+    add(t2, r + 1, -delta * r);
+}
+
+long long prefixSum(int i) {
+    return sum(t1, i) * i - sum(t2, i);
+}
+
+long long rangeSum(int l, int r) {
+    return prefixSum(r) - prefixSum(l - 1);
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Actualizacion en rango: $O(\log n)$ (realiza 4 llamadas a \texttt{add}).
+	\item Consulta en rango: $O(\log n)$ (realiza 4 llamadas a \texttt{sum}).
+	\item Memoria: $O(n)$ ($2n$ enteros de 64 bits en dos vectores continuos, consumo mucho menor que Segment Tree).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{2D range add + range sum}: se expande la misma logica de sumatorias dobles a 4 BITs en $O(\log n \cdot \log m)$ por operacion.
+	\item \textbf{Aritmetica modular}: aplicar \texttt{\% MOD} y sumas positivas con \texttt{+ MOD} en cada multiplicacion y acumulacion.
+	\item \textbf{Punto a punto}: para consultar el valor actual de un solo elemento $A[i]$, basta con consultar $t_1.\text{sum}(i)$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Desbordamiento de 32 bits}: los productos $\text{delta} \times (l - 1)$ y $\text{delta} \times r$ pueden superar con facilidad $2 \cdot 10^9$ (por ejemplo, para $n = 10^5$ y $\text{delta} = 10^5$, el producto es $10^{10}$). Ambos arreglos $t_1$ y $t_2$ deben ser de tipo \texttt{long long}.
+	\item \textbf{Indices con base cero}: intentar consultar o actualizar en el indice 0 provoca un bucle infinito en \texttt{i -= i \& -i} o \texttt{i += i \& -i}. Siempre usar indexacion 1-based o sumar $+1$ internamente.
+	\item \textbf{Limite superior $r + 1$}: la cancelacion se aplica en $r + 1$, por lo que los vectores deben reservarse con al menos $n + 2$ elementos (o $n + 1$ si $r \le n$ estricto).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura BIT2:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct BIT2 { int n; vector<long long> t1, t2; };| -- encapsula dos arboles de Fenwick para range add y range sum.
+	\item \verb|BIT2(int n): n(n), t1(n+1, 0), t2(n+1, 0) {}| -- inicializa ambos arreglos con tamano $n+1$ en cero.
+	\item \verb|void add(vector<long long>& t, int i, long long delta)| -- suma \texttt{delta} a la posicion $i$ en el BIT especificado.
+	\item \verb|for(; i <= n; i += i & -i) t[i] += delta;| -- propaga la actualizacion por potencias de 2 hacia arriba (\texttt{lowbit}).
+	\item \verb|long long sum(const vector<long long>& t, int i)| -- calcula la suma prefija $[1, i]$ en el BIT \texttt{t}.
+	\item \verb|for(; i > 0; i -= i & -i) r += t[i];| -- desciende eliminando el bit menos significativo.
+	\item \verb|void rangeAdd(int l, int r, long long delta)| -- anade \texttt{delta} al rango $[l, r]$.
+	\item \verb|add(t1, l, delta); add(t1, r + 1, -delta);| -- actualiza las diferencias de primer orden en \texttt{t1}.
+	\item \verb|add(t2, l, delta * (l - 1)); add(t2, r + 1, -delta * r);| -- actualiza las correcciones lineales en \texttt{t2}.
+	\item \verb|long long prefixSum(int i)| -- calcula la suma acumulada $[1, i]$ usando la formula $i \cdot t_1 - t_2$.
+	\item \verb|long long rangeSum(int l, int r)| -- retorna la suma del intervalo $[l, r]$ restando prefijos.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|BIT2 bit(10);| -- inicializa la estructura para 10 elementos (indices 1 a 10).
+	\item \verb|bit.rangeAdd(2, 5, 3);| -- suma 3 a las posiciones de la 2 a la 5.
+	\item \verb|cout << bit.rangeSum(1, 10) << "\n";| -- imprime 12 ($3 \times 4$ elementos modificados).
+	\item \verb|cout << bit.rangeSum(3, 5) << "\n";| -- imprime 9 ($3 \times 3$ elementos en el rango).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{BIT range add + range sum}.
+
+\vspace{0.5em}
+

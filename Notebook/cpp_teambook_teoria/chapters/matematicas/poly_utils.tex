@@ -1,0 +1,94 @@
+﻿\subsubsection{Polynomial utilities (mod p)}
+
+\paragraph{Idea intuitiva.}
+Capa de utilidades sobre NTT/FFT: suma, resta, \textbf{inversa} (Newton iterativo), derivada, integral. La inversa usa que si $B \cdot B^{-1} \equiv 1 \pmod{x^n}$, entonces aproximar a $2n$ y doblar la precision en cada paso. La recurrencia de Newton: si $r_k$ es inversa mod $x^{2^k}$, entonces $r_{k+1} \equiv r_k \cdot (2 - B \cdot r_k) \pmod{x^{2^{k+1}}}$. La intuicion: $r_{k+1}$ satisface $B \cdot r_{k+1} \equiv 1 + (B \cdot r_k - 1)^2 \pmod{x^{2^{k+1}}}$ y el error cuadratico decae mas rapido.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{polyInv(b, n)}: asume \texttt{b[0]} invertible (no cero).
+	\item Usa NTT internamente; misma complejidad $O(N \log N)$.
+	\item \texttt{polyInteg} necesita el inverso de \texttt{i+1} mod $p$; se precomputa en una \texttt{static vector} que crece a demanda.
+	\item Cada iteracion de Newton dobla la precision.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Newton iterativo para inversa polinomial:
+\begin{verbatim}
+vector<int> polyInv(const vector<int>& b, int n) {
+    vector<int> r(1, modpow(b[0], MOD - 2, MOD));
+    int cur = 1;
+    while (cur < n) {
+        cur <<= 1;
+        vector<int> b_cut(b.begin(), b.begin() + min((int)b.size(), cur));
+        vector<int> nr = r * r % MOD * b_cut % MOD;  // 2*r - r^2*b
+        // nr = 2*r - r^2 * b mod x^cur
+        nr.resize(cur);
+        r = (2LL * r[0] * ...);  // simplificacion algebraica
+        r = nr;
+    }
+    r.resize(n);
+    return r;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Operaciones polinomiales $O(N \log N)$.
+	\item Newton converge en $O(\log n)$ pasos; cada paso $O(N \log N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Division}: aniadir \texttt{polyDiv(a, b)} usando la inversa de $b$ truncada.
+	\item \textbf{Multi-point evaluation}: $O(N \log^2 N)$ con divide y venceras.
+	\item \textbf{Composition}: muy dificil en general; no recomendado en contests.
+	\item \textbf{Logaritmo polinomial}: $\log(f) = \int f'/f$, requiere inversa de $f$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{polyInv} asume \texttt{b[0]} no es 0 modulo $p$; sino, no existe la inversa.
+	\item Olvidar \texttt{r.resize(cur)} deja residuos de la iteracion anterior.
+	\item En Newton, $r$ se modifica en cada paso; no reusar la misma variable.
+	\item Los vectores de NTT deben tener tamano potencia de 2; aniadir padding si hace falta.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Suma y resta:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|using Poly = vector<long long>;| -- alias para polinomio (vector de coeficientes).
+	\item \verb|polyAdd(...)| -- suma componente a componente.
+	\item \verb|Poly c(max(a.size(), b.size()));| -- crea resultado del tamano del mayor.
+	\item \verb|c[i] = (c[i] + a[i]) % MOD;| -- suma coeficientes de $a$.
+	\item \verb|c[i] = (c[i] + b[i]) % MOD;| -- suma coeficientes de $b$.
+	\item \verb|polySub(...)| -- resta componente a componente (mod $p$).
+	\item \verb|c[i] = (c[i] - b[i] + MOD) % MOD;| -- resta y ajusta a positivo.
+\end{itemize}
+\textbf{Inversa polinomial \texttt{polyInv}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|Poly r(1, modpow(b[0], MOD - 2, MOD));| -- $r \equiv 1/b_0 \pmod{x}$ (termino constante).
+	\item \verb|int cur = 1;| -- precision actual.
+	\item \verb|while(cur < n)| -- duplica precision hasta alcanzar $n$.
+	\item \verb|cur <<= 1;| -- dobla la precision objetivo.
+	\item \verb|Poly a(min((int)b.size(), cur));| -- trunca $b$ a la precision actual.
+	\item \verb|Poly nr = multiplyNTT(a, multiplyNTT(r, r));| -- calcula $b \cdot r^2$ truncado (NTT).
+	\item \verb|r.resize(cur);| -- prepara $r$ para la nueva precision.
+	\item \verb|r[i] = (2LL * r[i] - nr[i] + MOD) % MOD;| -- Newton: $r' = 2r - b \cdot r^2 \pmod{x^{\text{cur}}}$.
+	\item \verb|r.resize(n);| -- trunca al tamano pedido.
+\end{itemize}
+\textbf{Derivada \texttt{polyDeriv}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|if(a.empty()) return {};| -- polinomio vacio.
+	\item \verb|Poly b((int)a.size() - 1);| -- derivada tiene un termino menos.
+	\item \verb|b[i-1] = a[i] * i % MOD;| -- $b'_i = (i+1) \cdot a_{i+1}$.
+\end{itemize}
+\textbf{Integral \texttt{polyInteg}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|Poly b(a.size() + 1);| -- integral tiene un termino mas.
+	\item \verb|static vector<long long> inv(1, 1);| -- cache de inversas $(i+1)^{-1} \bmod p$.
+	\item \verb|inv.push_back(modpow(inv.size(), MOD - 2, MOD));| -- precomputa inversas a demanda.
+	\item \verb|b[i+1] = a[i] * inv[i+1] % MOD;| -- $b_{i+1} = a_i / (i+1)$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{...}.

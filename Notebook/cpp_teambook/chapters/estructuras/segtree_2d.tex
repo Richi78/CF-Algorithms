@@ -22,8 +22,16 @@ struct SegTree2D{
 			tree[vx][vy] = tree[vx][vy*2] + tree[vx][vy*2+1];
 		}
 	}
+	void updateX(int vx, int lx, int rx, int x, int y, int val){
+		if(lx != rx){
+			int mx = (lx + rx) / 2;
+			if(x <= mx) updateX(vx*2, lx, mx, x, y, val);
+			else updateX(vx*2+1, mx+1, rx, x, y, val);
+		}
+		updateY(vx, lx, rx, 1, 0, m-1, x, y, val);
+	}
 	void update(int x, int y, int val){
-		updateY(1, 0, n-1, 1, 0, m-1, x, y, val);
+		updateX(1, 0, n-1, x, y, val);
 	}
 	int queryY(int vx, int vy, int ly, int ry, int y1, int y2){
 		if(y1 > ry || y2 < ly) return 0;

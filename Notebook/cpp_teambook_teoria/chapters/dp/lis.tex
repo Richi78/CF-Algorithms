@@ -1,0 +1,51 @@
+﻿\subsubsection{LIS O(n log n)}
+
+\paragraph{Idea intuitiva.}
+La \textbf{Longest Increasing Subsequence} se calcula en $O(n \log n)$ con el truco del \textbf{patience sorting}: mantener un arreglo \texttt{dp} donde \texttt{dp[len]} es el minimo ultimo valor de una IS de largo \texttt{len}. Para cada $x$, encontrar el primer \texttt{dp[len] >= x} y reemplazarlo. El largo final es la LIS. La demostracion: si hay dos IS del mismo largo, la que termina en un valor menor es ``mejor'' (puede extenderse mas facilmente).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{dp} es estrictamente creciente.
+	\item \texttt{lower\_bound} da LIS estricta; \texttt{upper\_bound} da no-estricta ($\le$).
+	\item El algoritmo es \textbf{online}: procesa elementos en orden.
+	\item La longitud de \texttt{dp} es la LIS al final.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La version online:
+\begin{verbatim}
+vector<int> dp;
+for (int x : a) {
+    auto it = lower_bound(dp.begin(), dp.end(), x);
+    if (it == dp.end()) dp.push_back(x);
+    else *it = x;
+}
+// dp.size() = longitud de LIS estricta
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n \log n)$.
+	\item Memoria $O(n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir la LIS}: aniadir \texttt{parent[]} y \texttt{posInDp[]} para backtrack.
+	\item \textbf{Contar LIS}: DP clasica $O(n^2)$ o segment tree sobre $dp$.
+	\item \textbf{LDS / Longest non-increasing}: invertir la condicion en \texttt{lower\_bound} o multiplicar por -1.
+	\item \textbf{Longest bitonic subsequence}: combinar LIS desde izq y desde der.
+	\item \textbf{LIS en 2D}: ordenar por una dimension y aplicar LIS en la otra.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{lower\_bound} vs \texttt{upper\_bound}: si tu comparacion es $\le$ vs $<$, cambia.
+	\item Si los elementos son \texttt{int} pero podrian ser negativos, aniadir offset para usar como indices.
+	\item Para LIS reconstruida, aniadir el array \texttt{parent} que apunta al anterior en la IS.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{LIS O(n log n)}.
+
+\vspace{0.5em}

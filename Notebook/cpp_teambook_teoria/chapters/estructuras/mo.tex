@@ -1,0 +1,71 @@
+﻿\subsubsection{MO}
+
+\paragraph{Idea intuitiva.}
+Algoritmo de Mo ``puro'' (sin updates): queries offline ordenadas por $(L/\sqrt{n}, R)$ (con $R$ alternando entre ascendente y descendente segun el bloque). Mover $L$ o $R$ entre queries consecutivas es $O(1)$; el total es $O((N + Q) \sqrt{n})$. La intuicion: al reordenar las queries, los punteros $L$ y $R$ se mueven ``lo menos posible''; cada elemento del array se visita $O(\sqrt{n} \cdot Q/N)$ veces.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{Q} guarda \texttt{(l, r, idx)}.
+	\item El sort prioriza bloque de $L$; dentro del bloque, alterna $R$ ascendente/descendente para mejorar la locality.
+	\item Tres punteros \texttt{l}, \texttt{r} que se mueven paso a paso.
+	\item Tamano de bloque optimo: $\sim N / \sqrt{Q}$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El sort clasico de Mo con alternancia:
+\begin{verbatim}
+int block = (int)sqrt(n);
+sort(queries.begin(), queries.end(), [&](const Q& a, const Q& b) {
+    int blockA = a.l / block, blockB = b.l / block;
+    if (blockA != blockB) return blockA < blockB;
+    return (blockA & 1) ? (a.r > b.r) : (a.r < b.r);
+});
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O((N + Q) \sqrt{n})$.
+	\item Con Hilbert order, $\sim 30\%$ mas rapido en practica.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Hilbert order}: alternativa al sort clasico; da mejor locality y es mas rapido en practica.
+	\item \textbf{Aniadir la operacion concreta}: el snippet tiene \texttt{// add} y \texttt{// delete} como comentarios; reemplazarlos con la logica del problema (contar distintos, suma de frecuencias, etc.).
+	\item \textbf{Bloque optimo}: calcular \texttt{int block = max(1, (int)(n / sqrt(q)));}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Los indices en el sort son \textbf{0-based} (\texttt{q[i].l = l - 1}), consistente con el resto del codigo.
+	\item \texttt{add} y \texttt{remove} deben ser \textbf{inversos exactos}; sino, las queries dan respuestas incorrectas.
+	\item Para queries cerradas $[l, r]$, Mo suele usar $[l, r+1)$ (half-open); aniadir o restar 1 consistentemente.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura y programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Q\{ int l,r,idx; \};| -- cada query guarda limites e indice original.
+	\item \texttt{int main(){ int n,m; cin >> n >> m;}} -- lee tamano y numero de queries.
+	\item \texttt{vector<int> a(n); for(int i=0 ; i<n ; i++) cin >> a[i];} -- lee el arreglo.
+	\item \texttt{vector<Q> q(m);} -- almacena queries.
+	\item \texttt{int l,r; cin >> l >> r; q[i].l = l-1; q[i].r = r-1; q[i].idx = i;} -- convierte a 0-based y guarda.
+	\item \texttt{int rootN = sqrtl(n);} -- tamano de bloque.
+	\item \texttt{sort(q.begin(), q.end(), [\&](Q x, Q y){...});} -- orden por bloque de \texttt{L}, alternando \texttt{R}.
+	\item \texttt{int bx = x.l / rootN, by = y.l / rootN;} -- calcula bloques.
+	\item \texttt{return (bx \& 1) ? (x.r > y.r) : (x.r < y.r);} -- alterna direccion de \texttt{R} por bloque.
+	\item \texttt{vector<int> freq(1000001, 0);} -- frecuencias para contar distintos.
+	\item \texttt{long long curr = 0;} -- respuesta actual.
+	\item \texttt{auto add = [\&](int pos){ int x = a[pos]; if(freq[x] == 0) curr++; freq[x]++; };} -- aniade elemento.
+	\item \texttt{auto del = [\&](int pos){ int x = a[pos]; freq[x]--; if(freq[x] == 0) curr--; };} -- quita elemento.
+	\item \texttt{int l=0, r=-1;} -- punteros iniciales (rango vacio).
+	\item \texttt{while(r < qr){ add(++r); }} -- expande \texttt{R} a la derecha.
+	\item \texttt{while(r > qr){ del(r--); }} -- contrae \texttt{R}.
+	\item \texttt{while(l < ql){ del(l++); }} -- contrae \texttt{L} desde la izquierda.
+	\item \texttt{while(l > ql){ add(--l); }} -- expande \texttt{L} hacia la izquierda.
+	\item \texttt{ans[q[i].idx] = curr;} -- guarda respuesta en el indice original.
+\end{itemize}
+|\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{MO}.
+
+\vspace{0.5em|||}

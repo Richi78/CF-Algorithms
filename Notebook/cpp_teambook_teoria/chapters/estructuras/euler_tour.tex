@@ -1,0 +1,75 @@
+\subsubsection{Euler Tour + range queries}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{Euler Tour} (primer-visita DFS) asigna a cada nodo $v$ un tiempo de entrada \texttt{tin[v]} y un tiempo de salida \texttt{tout[v]}. El subarbol de $v$ corresponde exactamente al \textbf{rango contiguo} $[\text{tin}[v], \text{tout}[v]]$ en el arreglo base. La razon del rango contiguo: el DFS entra al subarbol de $v$ y no sale hasta haber visitado todos sus descendientes; por ende, las posiciones $\text{tin}[v], \text{tin}[v]+1, \dots, \text{tout}[v]$ corresponden exactamente a los nodos del subarbol en orden de visita.
+
+Esto permite resolver queries y actualizaciones sobre subarboles con cualquier estructura de rango (BIT, Segment Tree) sobre el arreglo base de tamano $n$, con la correspondencia directa: operar sobre el subarbol de $v$ es equivalente a operar sobre el rango $[\text{tin}[v], \text{tout}[v]]$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{tin[v]}: indice en el arreglo base al momento de \textbf{entrar} al nodo $v$ (se asigna antes de visitar los hijos).
+	\item \texttt{tout[v]}: indice del \textbf{ultimo descendiente} de $v$ visitado (se asigna despues de recursionar en todos los hijos).
+	\item Tamano del subarbol de $v$: $\text{tout}[v] - \text{tin}[v] + 1$.
+	\item Verificacion de ancestro en $O(1)$: $u$ es ancestro de $v$ si y solo si $\text{tin}[u] \le \text{tin}[v]$ y $\text{tout}[v] \le \text{tout}[u]$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El DFS que construye el Euler Tour:
+\begin{verbatim}
+void dfs(int v, int p) {
+    tin[v] = timer++;
+    for (int u : adj[v])
+        if (u != p) dfs(u, v);
+    tout[v] = timer - 1;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n)$ en tiempo y memoria.
+	\item \textbf{Query / Update sobre subarbol}: $O(\log n)$ con BIT o Segment Tree sobre el arreglo base.
+	\item \textbf{Verificacion de ancestro}: $O(1)$ sin estructuras adicionales.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Valor por nodo}: durante el DFS, guardar el valor del nodo $v$ en la posicion \verb|tin[v]| del arreglo base. Luego usar BIT/Segment Tree sobre ese arreglo para responder queries de rango.
+	\item \textbf{Queries en caminos}: el Euler Tour de primera visita \textbf{no} resuelve queries sobre caminos arbitrarios $u \to v$; para eso usar HLD o LCA con Binary Lifting.
+	\item \textbf{LCA via Euler Tour de aristas}: existe una variante en que se registra cada nodo tanto al entrar como al salir (generando un arreglo de tamano $2n - 1$); sobre este arreglo se puede calcular LCA con RMQ. Esta variante es distinta de la implementacion actual.
+	\item \textbf{Bosque (grafo no conexo)}: invocar \verb|build(r)| para cada raiz $r$ de cada componente conexa.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Confusion entre \texttt{tin} y posicion en arreglo}: \verb|tin[v]| es el indice donde se ubica $v$ en el arreglo base, NO el instante de tiempo en sentido reloj. El arreglo base de tamano $n$ tiene exactamente una entrada por nodo.
+	\item \textbf{Formula de \texttt{tout}}: en esta implementacion \verb|tout[v] = timer - 1| (la posicion del ultimo hijo procesado), de modo que el subarbol es $[\text{tin}[v], \text{tout}[v]]$ \textbf{inclusive}. Si se usa \verb|tout[v] = timer| sin restar, el rango seria $[\text{tin}[v], \text{tout}[v])$ semiincluyente --- mezclar convenciones causa bugs sutiles.
+	\item \textbf{Timer inicial}: el timer comienza en 0 y los rangos son 0-indexados; al usar un BIT 1-indexado hay que sumar 1 a todos los indices.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura EulerTour:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct EulerTour { ... };| -- encapsula el Euler Tour de primera visita.
+	\item \verb|int n, timer;| -- cantidad de nodos y contador global de posiciones asignadas.
+	\item \verb|vector<int> tin, tout;| -- tiempos de entrada y salida de cada nodo.
+	\item \verb|vector<vector<int>> adj;| -- lista de adyacencia del arbol.
+	\item \verb|EulerTour(int n): n(n)| -- constructor: inicializa los vectores y pone \verb|timer = 0|.
+	\item \verb|void addEdge(int u, int v)| -- inserta arista bidireccional entre $u$ y $v$.
+	\item \verb|void dfs(int v, int p)| -- DFS que asigna \verb|tin[v]| al entrar y \verb|tout[v]| al salir.
+	\item \verb|tin[v] = timer++;| -- asigna la posicion actual a $v$ y avanza el contador.
+	\item \verb|for(int u : adj[v]) if(u != p) dfs(u, v);| -- recursa en los hijos (excluye al padre $p$).
+	\item \verb|tout[v] = timer - 1;| -- el ultimo indice asignado dentro del subarbol de $v$ es \verb|timer - 1|.
+	\item \verb|void build(int root = 0)| -- inicia el DFS desde \verb|root| con padre ficticio $-1$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|EulerTour et(5);| -- crea la estructura para un arbol de 5 nodos.
+	\item \verb|et.addEdge(0, 1); et.addEdge(1, 2); ...| -- construye la topologia del arbol.
+	\item \verb|et.build(0);| -- ejecuta el DFS con el nodo 0 como raiz.
+	\item \verb|cout << "tin[1]=" << et.tin[1] << " tout[1]=" << et.tout[1] << "\n";| -- imprime el rango del subarbol del nodo 1.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Euler Tour + range queries}.
+
+\vspace{0.5em}

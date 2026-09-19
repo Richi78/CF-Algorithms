@@ -1,0 +1,79 @@
+﻿\subsubsection{Mobius precompute}
+
+\paragraph{Idea intuitiva.}
+La funcion $\mu(n)$ (``Mobius'') vale $1$ si $n$ es producto de un numero par de primos distintos, $-1$ si es impar, $0$ si tiene un primo al cuadrado. Aparece en inclusion-exclusion: si $f(n) = \sum_{d \mid n} g(d)$, entonces $g(n) = \sum_{d \mid n} \mu(n/d) f(d)$ (\textbf{inversion de Mobius}). Se precomputa junto a la criba lineal. La relacion con inclusion-exclusion: $\mu$ es la ``inversa'' del operador ``suma sobre divisores'', asi que si conocemos los acumulados podemos recuperar los originales.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $\sum_{d \mid n} \mu(d) = [n = 1]$ (funcion indicador de 1).
+	\item Si $\gcd(a, b) = 1$, $\mu(ab) = \mu(a) \mu(b)$ (multiplicativa).
+	\item $\sum_{d \mid n} \mu(d) \cdot \frac{n}{d} = \varphi(n)$ (relacion con totient).
+	\item Para $n$ cuadrado libre: $|\mu(n)| = 1$ y $\mu(n) = (-1)^{\omega(n)}$ donde $\omega$ es el numero de factores primos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Mobius durante la criba lineal:
+\begin{verbatim}
+mu[1] = 1;
+for (int i = 2; i <= n; ++i) {
+    if (!lp[i]) { lp[i] = i; primes.push_back(i); mu[i] = -1; }
+    for (int p : primes) {
+        if (p > lp[i] || (long long)i * p > n) break;
+        lp[i * p] = p;
+        if (p == lp[i]) mu[i * p] = 0;        // cuadrado
+        else mu[i * p] = -mu[i];              // nuevo primo
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precompute $O(N)$ con la criba lineal. Consulta $O(1)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Suma de $\gcd$}: $\sum_{i=1}^{N} \gcd(i, n) = \sum_{d \mid n} d \cdot \varphi(n/d)$, alternativa con Mobius: $\sum_{d \mid n} \mu(d) \cdot S(\lfloor n/d \rfloor)$ donde $S(x) = \sum_{k \le x} k$.
+	\item \textbf{Mobius en inclusion-exclusion}: el snippet es solo para precompute; usarlo combinado con divisor enumeration en queries.
+	\item \textbf{Conteo de coprimos}: $\sum_{d \mid n} \mu(d) \cdot \lfloor n/d \rfloor = \varphi(n)$.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+$\mu(1) = 1$, $\mu(2) = -1$, $\mu(6) = 1$ (dos primos distintos), $\mu(4) = 0$ (cuadrado). $\sum_{d \mid 6} \mu(d) = \mu(1) + \mu(2) + \mu(3) + \mu(6) = 1 - 1 - 1 + 1 = 0$ (correcto: $6 \ne 1$).
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $\mu(0) = 0$ (por definicion, $0$ no es producto de primos distintos).
+	\item El snippet inicializa \texttt{mu[0] = 0, mu[1] = 1} por separado.
+	\item Si precomputas junto a la criba lineal, mantener consistencia: \texttt{mu[p]} para primo es $-1$ (un solo primo).
+	\item En queries de Mobius, sumar con el signo correcto; $(-1)^{\omega(n)}$ se puede calcular con la criba.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{mobiusSieve}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> mu;| -- arreglo global con los valores de $\mu(n)$.
+	\item \verb|mu.assign(n + 1, 1);| -- inicializa todos en $1$ (luego se corrige).
+	\item \verb|mu[0] = 0; mu[1] = 1;| -- casos base: $\mu(0)=0$, $\mu(1)=1$.
+	\item \verb|vector<bool> is_composite(n + 1, false);| -- marca de compuesto (estilo Eratostenes).
+	\item \verb|for(int i=2;i<=n;i++)| -- itera sobre cada entero.
+	\item \verb|if(!is_composite[i])| -- si no fue marcado, es primo.
+	\item \verb|primes.push_back(i); mu[i] = -1;| -- registra el primo y $\mu(i) = -1$ (un solo factor).
+	\item \verb|for(int p : primes)| -- bucle interno estilo criba lineal.
+	\item \verb|long long v = 1LL * i * p;| -- producto $i \cdot p$.
+	\item \verb|if(v > n) break;| -- si excede $n$, termina.
+	\item \verb|is_composite[v] = true;| -- marca el compuesto.
+	\item \verb|if(i % p == 0)| -- si $p$ divide a $i$, $v$ tiene un cuadrado de $p$.
+	\item \verb|mu[v] = 0; break;| -- $\mu(v) = 0$ y termina (preserva linealidad).
+	\item \verb|else mu[v] = -mu[i];| -- si $p$ es nuevo factor, $\mu(v) = -\mu(i)$ (alterna signo).
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|mobiusSieve(20);| -- precomputa $\mu$ hasta $20$.
+	\item \verb|cout << "mu(" << i << ") = " << mu[i] << "\textbackslash n";| -- imprime $\mu(1)=1, \mu(2)=-1, \mu(6)=1, \mu(4)=0$, etc.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Mobius precompute}.
+
+\vspace{0.5em|||}

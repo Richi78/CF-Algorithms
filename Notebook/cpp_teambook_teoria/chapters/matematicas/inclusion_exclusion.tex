@@ -1,0 +1,73 @@
+﻿\subsubsection{Inclusion-exclusion over subsets}
+
+\paragraph{Idea intuitiva.}
+Para contar elementos que cumplen \textbf{alguna} de $n$ propiedades, la formula clasica de inclusion-exclusion es: $|\bigcup A_i| = \sum_{\emptyset \ne I} (-1)^{|I|+1} |\bigcap_{i \in I} A_i|$. Esto se computa iterando sobre todos los $2^n - 1$ subconjuntos no vacios y aplicando el signo correspondiente. La demostracion usa que la formula del PIE cancela exactamente las sobreposiciones multiples, dejando solo los elementos que cumplen al menos una propiedad.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El usuario pasa una funcion \texttt{f(mask)} que cuenta cuantos elementos cumplen \textbf{exactamente} las propiedades en \texttt{mask}.
+	\item El signo es $(-1)^{|I|+1}$, equivalente a $+1$ si $|I|$ impar, $-1$ si par.
+	\item Para $n \le 20$ es factible ($2^{20} \approx 10^6$); para mas, usar otra tecnica (Mobius, formula cerrada).
+	\item Variantes: ``todos cumplen'' = $(-1)^{|I|}$ (signo invertido).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Inclusion-exclusion clasica sobre todos los subconjuntos:
+\begin{verbatim}
+long long ans = 0;
+for (int mask = 1; mask < (1 << n); ++mask) {
+    long long cnt = f(mask);  // |interseccion|
+    if (__builtin_popcount(mask) % 2 == 1) ans += cnt;
+    else ans -= cnt;
+}
+return ans;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(2^n \cdot \text{costo de } f)$.
+	\item Memoria $O(1)$ (no se almacena subconjunto).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Subset de subconjuntos} (elementos con un subconjunto de propiedades): usar bitmask para mapear cada elemento a un mask, luego contar ocurrencias por mask y sumar con signo.
+	\item \textbf{Aniadir la interseccion}: en lugar de $|\bigcap A_i|$ exacta, aproximar o usar otra estructura.
+	\item \textbf{Cambiar el signo}: si tu problema tiene inclusion-exclusion ``inversa'', invertir el patron $\pm$.
+	\item \textbf{Version con Mobius}: si las propiedades son divisibilidad, $\mu(d)$ reemplaza el patron $\pm$.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Contar elementos de $[1, N]$ no divisibles por ninguno de $\{2, 3, 5\}$:
+\[ N - \lfloor N/2 \rfloor - \lfloor N/3 \rfloor - \lfloor N/5 \rfloor + \lfloor N/6 \rfloor + \lfloor N/10 \rfloor + \lfloor N/15 \rfloor - \lfloor N/30 \rfloor. \]
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet dado es solo el \textbf{esqueleto} (\texttt{f} no esta implementado); hay que adaptarlo al problema.
+	\item Para $n > 25$ la iteracion sobre $2^n$ se vuelve intratable; buscar otra estructura.
+	\item El signo se calcula con el bit menos significativo (LSB) si la mascara lo tiene, o con \texttt{popcount} modulo 2.
+	\item Si $|I|$ es par pero muy grande, considerar $2^{|I|}$ ``pesado''; aniadir memoizacion en \texttt{f}.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Plantilla \texttt{inclusionExclusion}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|template<class F>| -- permite pasar cualquier funcion/lambda como argumento.
+	\item \verb|long long inclusionExclusion(int n, F&& f)| -- recibe el numero de propiedades y la funcion que cuenta intersecciones.
+	\item \verb|long long result = 0;| -- acumulador del resultado.
+	\item \verb|int total = 1 << n;| -- numero total de subconjuntos ($2^n$).
+	\item \verb|for(int mask=1;mask<total;mask++)| -- itera sobre todos los subconjuntos no vacios.
+	\item \verb|long long cnt = f(mask);| -- evalua la funcion para este subconjunto: $|\bigcap_{i \in mask} A_i|$.
+	\item \verb|int bits = __builtin_popcount(mask);| -- numero de bits encendidos (tamano del subconjunto).
+	\item \verb|if(bits % 2 == 1) result += cnt;| -- si $|I|$ impar, suma (signo $+1$).
+	\item \verb|else result -= cnt;| -- si $|I|$ par, resta (signo $-1$).
+\end{itemize}
+\textbf{Programa principal (ejemplo):}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int primes[] = {2,3,5};| -- las propiedades son ``ser divisible por 2, 3 o 5''.
+	\item \verb|for(int p : primes) if(mask & (1<<(p==2?0:p==3?1:2))){ /* set bit */ }| -- mapea cada primo a su bit correspondiente.
+	\item \verb|return cnt;| -- retorna el conteo para este subconjunto.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{...}.

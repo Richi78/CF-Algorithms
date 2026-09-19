@@ -1,0 +1,61 @@
+﻿\subsubsection{Convex Hull (monotono)}
+
+\paragraph{Idea intuitiva.}
+Algoritmo de \textbf{Andrew's monotone chain}: ordenar puntos por $(x, y)$, luego construir la hull inferior y superior por separado. Para cada punto, aniadirlo al hull y, mientras el ultimo giro no sea ``counter-clockwise'' (\texttt{cross > 0}), popear. La demostracion: si los puntos se procesan en orden, el hull inferior y superior cubren la frontera completa sin auto-intersecciones.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Ordena los puntos en $O(n \log n)$.
+	\item Construye la hull en $O(n)$ despues.
+	\item Output: poligono convexo en counter-clockwise, sin punto final duplicado.
+	\item El \texttt{<= 0} incluye colineales; usar \texttt{< 0} para excluirlos.
+	\item Cada punto aparece en la hull inferior o superior (no ambos).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion del hull inferior y superior:
+\begin{verbatim}
+sort(p.begin(), p.end());
+vector<Point> lower, upper;
+for (auto& p : points) {
+    while (lower.size() >= 2 && cross(lower.back() - lower[lower.size()-2],
+                                       p - lower.back()) <= 0)
+        lower.pop_back();
+    lower.push_back(p);
+}
+for (int i = points.size() - 1; i >= 0; --i) {
+    auto& p = points[i];
+    while (upper.size() >= 2 && cross(upper.back() - upper[upper.size()-2],
+                                       p - upper.back()) <= 0)
+        upper.pop_back();
+    upper.push_back(p);
+}
+vector<Point> hull = lower;
+hull.insert(hull.end(), upper.begin() + 1, upper.end() - 1);
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n \log n)$.
+	\item Constante muy pequena (solo cross products).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Colineales}: cambiar \texttt{<= 0} por \texttt{< 0} para excluirlos del hull.
+	\item \textbf{Puntos repetidos}: \texttt{unique} despues de sort.
+	\item \textbf{Hull 3D}: gift wrapping es $O(n^2)$; convex hull 3D es mas complejo.
+	\item \textbf{Output con los puntos}: aniadir el hull completo (no solo upper/lower).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El \texttt{pop\_back} y el \texttt{reverse} son esenciales para no duplicar el ultimo punto.
+	\item Para excluir colineales, ajustar el \texttt{<= 0} vs \texttt{< 0}.
+	\item Si los puntos estan duplicados, aniadir \texttt{unique} antes del sort.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Convex Hull (monotono)}.
+
+\vspace{0.5em}

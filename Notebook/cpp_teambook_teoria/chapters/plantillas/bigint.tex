@@ -1,0 +1,59 @@
+﻿\subsubsection{BigInt (add + multiply, base 1e9)}
+
+\paragraph{Idea intuitiva.}
+Un \texttt{long long} soporta hasta $\approx 9 \times 10^{18}$. Si el problema requiere operar con numeros de cientos o miles de digitos (factoriales grandes, sumas de Catalan, etc.), hace falta una representacion propia. La eleccion mas simple es almacenar los digitos en \textbf{base $10^9$} dentro de un \texttt{vector<int>} (least significant first): asi cada \texttt{int} guarda un ``bloque'' de 9 digitos, y las operaciones aritmeticas se reducen a lo que aprendimos en la escuela, pero con bloques en vez de digitos. La suma es lineal en el numero de bloques; la multiplicacion por un \texttt{int} (no por otro \texttt{BigInt}) tambien lineal. La eleccion de base $10^9$ es la mayor potencia de 10 que cabe en \texttt{int} ($2^{31} - 1 \approx 2.1 \cdot 10^9 > 10^9$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Base $10^9$ asegura que la suma de dos bloques (max $2 \cdot 10^9 - 2$) entra en \texttt{long long} y el carry es a lo sumo $1$.
+	\item \texttt{d} siempre tiene el least significant block primero (indice 0).
+	\item No hay ceros a la izquierda en \texttt{d}: si el numero es $0$, \texttt{d} esta vacio.
+	\item \texttt{neg} indica signo; las operaciones asumen mismo signo.
+	\item Cada bloque satisface $0 \le \texttt{d[i]} < 10^9$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El nucleo de la suma (lo que pasa en la escuela, con bloques):
+\begin{verbatim}
+long long carry = 0;
+size_t n = max(d.size(), other.d.size());
+d.resize(n);
+for (size_t i = 0; i < n; ++i) {
+    long long s = carry + d[i];
+    if (i < other.d.size()) s += other.d[i];
+    d[i] = int(s % 1'000'000'000);
+    carry = s / 1'000'000'000;
+}
+if (carry) d.push_back(int(carry));
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{+=}: O(N) donde N = \texttt{max(d.size(), other.d.size())}.
+	\item \texttt{*=} (por int): O(N).
+	\item \texttt{toString}: O(N).
+	\item Multiplicacion entre dos \texttt{BigInt}: O($N^2$) si se hace con el metodo clasico; \textbf{no implementado} en este snippet (habria que aniadir un \texttt{*=} que itera bloques o usar FFT para O($N \log N$)).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir multiplicacion entre \texttt{BigInt}}: aniadir \texttt{operator*=(const BigInt\&)} o \texttt{operator*}. Para N $\sim$ 1000 bloques la version O($N^2$) sirve; para mas, usar FFT sobre coeficientes \texttt{long long}.
+	\item \textbf{Aniadir resta con signo}: complica el invariante ``mismo signo''; mejor aniadir un \texttt{sign()} interno y hacer la resta en valor absoluto, luego ajustar el signo.
+	\item \textbf{Cambiar base}: usar base $10^4$ o $10^{18}$ acelera la multiplicacion pero requiere mas cuidado con overflow al multiplicar (usar \texttt{\_\_int128}).
+	\item \textbf{Imprimir negativo}: ya hay soporte parcial en \texttt{toString()} con el flag \texttt{neg}; falta activarlo en las operaciones.
+	\item \textbf{Division por int} (\texttt{/=} int): lineal, con cuidado de redondear el residuo.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Multiplicar dos bloques en base $10^9$ puede dar hasta $\approx 10^{18}$ que entra en \texttt{long long} pero \textbf{no} en \texttt{int}. Usar siempre \texttt{long long} o \texttt{\_\_int128} para el producto.
+	\item \texttt{toString} usa \texttt{\%09d} para rellenar con ceros a la izquierda; si la base cambia, hay que ajustar el formato.
+	\item El snippet NO tiene operador \texttt{<}, \texttt{>}, ni division; si los necesitas, aniadelos con cuidado.
+	\item Comparar numeros: comparar primero \texttt{d.size()}; si iguales, comparar de mayor a menor indice.
+	\item Olvidar \texttt{normalize()} tras operaciones puede dejar bloques $\ge 10^9$ que rompen \texttt{toString}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{BigInt (add + multiply, base 1e9)}.
+
+\vspace{0.5em}

@@ -1,0 +1,80 @@
+﻿\subsubsection{Miller-Rabin primality}
+
+\paragraph{Idea intuitiva.}
+Para $n$ impar, escribir $n - 1 = 2^s \cdot d$ con $d$ impar. Si $n$ es primo, entonces para \textbf{cualquier} $a$ con $1 < a < n-1$ se cumple que $a^d \equiv 1 \pmod n$ o $a^{2^r \cdot d} \equiv -1 \pmod n$ para algun $r < s$. El test verifica esto con varios \texttt{a} (testigos). Si ningun testigo delata a $n$, es primo. Con un conjunto fijo de testigos, es \textbf{determinista} para $n < 2^{64}$. La demostracion se basa en el hecho de que en $\mathbb{Z}/p\mathbb{Z}$ con $p$ primo, el grupo $(\mathbb{Z}/p\mathbb{Z})^*$ es ciclico de orden $p-1$, asi que $a^{p-1} \equiv 1$ por Fermat, y la extraccion de raices cuadradas solo tiene dos posibilidades ($\pm 1$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Probabilistico si los testigos son aleatorios; \textbf{determinista} con el set del snippet para $u64$.
+	\item Falla para $n < 2$ (no es primo).
+	\item Bases: $\{2, 325, 9375, 28178, 450775, 9780504, 1795265022\}$ cubren todos los $u64$.
+	\item Falsos positivos: si un testigo no delata, $n$ puede ser primo \textbf{o} un fuerte pseudoprimo respecto a ese testigo.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La ronda de Miller-Rabin para un testigo $a$:
+\begin{verbatim}
+long long x = modpow(a, d, n);
+if (x == 1 || x == n - 1) return true;  // pasa este testigo
+for (int r = 0; r < s - 1; ++r) {
+    x = mul_mod(x, x, n);
+    if (x == n - 1) return true;  // aparece -1 en alguna iteracion
+}
+return false;  // n es compuesto
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log^3 n)$ por la exponenciacion modular, pero con constante pequena. Para $u64$, unos pocos microsegundos.
+	\item Con 7 testigos para $u64$: $< 10$ microsegundos en hardware moderno.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar el set de testigos}: si necesitas testear numeros $> 2^{64}$, aniadir mas testigos o usar BPSW.
+	\item \textbf{Devolver un certificado}: aniadir la secuencia de cuadrados que llevo al fallo para debugging.
+	\item \textbf{\texttt{u128}}: el snippet usa \texttt{\_\_uint128\_t} para multiplicar mod $n$ sin overflow. En GCC/clang funciona; en MSVC aniadir \texttt{\#include <boost/multiprecision/cpp\_int.hpp>}.
+	\item \textbf{Solo testigos pequenos}: si sabes que $n < 2^{32}$, basta con $\{2, 7, 61\}$ (solo 3 testigos).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Multiplicar \texttt{u64 * u64} puede overflow; \textbf{siempre} usar \texttt{u128}.
+	\item Si $n$ es par, el test responde rapido (lo chequea con \texttt{n \% p == 0}).
+	\item Cuidado con bases que sean multiplos de $n$; el snippet las saltea con \texttt{if (a \% n == 0) continue;}.
+	\item Si el loop \texttt{for (int r = ...)} itera \texttt{r < s - 1} (no \texttt{r < s}), el ultimo caso se chequea afuera.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Exponenciacion modular \texttt{modpow\_mr}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|using u64 = unsigned long long;| -- tipo de 64 bits sin signo (para evitar overflow en restos).
+	\item \verb|using u128 = __uint128_t;| -- tipo de 128 bits (solo en GCC/Clang) para multiplicacion sin overflow.
+	\item \verb|static u64 modpow_mr(u64 a, u64 e, u64 mod)| -- calcula $a^e \bmod \text{mod}$.
+	\item \verb|u64 r = 1; a %= mod;| -- inicializa resultado en 1 y reduce la base.
+	\item \verb|if(e & 1) r = (u128)r * a % mod;| -- si el bit de exponente esta encendido, multiplica.
+	\item \verb|a = (u128)a * a % mod;| -- eleva al cuadrado la base.
+	\item \verb|e >>= 1;| -- divide exponente entre 2.
+\end{itemize}
+\textbf{Test de Miller-Rabin:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|if(n < 2) return false;| -- $n$ menor que 2 no es primo.
+	\item \verb|for(u64 p : {2ULL, ..., 37ULL})| -- chequea los primos pequenos primero.
+	\item \verb|if(n % p == 0) return n == p;| -- si divisible por $p$, es primo solo si $n = p$.
+	\item \verb|u64 d = n - 1, s = 0;| -- descompone $n-1 = 2^s \cdot d$.
+	\item \verb|while((d & 1) == 0){ d >>= 1; s++; }| -- cuenta los factores de 2.
+	\item \verb|for(u64 a : {2ULL, 325ULL, ..., 1795265022ULL})| -- conjunto fijo de bases para determinismo hasta $2^{64}$.
+	\item \verb|if(a % n == 0) continue;| -- salta bases que no son coprimas con $n$.
+	\item \verb|u64 x = modpow_mr(a, d, n);| -- calcula $a^d \bmod n$.
+	\item \verb|if(x == 1 || x == n - 1) continue;| -- si cumple trivialmente, pasa al siguiente testigo.
+	\item \verb|bool comp = true;| -- asume $n$ es compuesto inicialmente.
+	\item \verb|for(u64 r=1 ; r<s ; r++)| -- itera los cuadrados sucesivos.
+	\item \verb|x = (u128)x * x % n;| -- eleva al cuadrado.
+	\item \verb|if(x == n - 1){ comp = false; break; }| -- si aparece $-1$, el testigo pasa.
+	\item \verb|if(comp) return false;| -- si ningun cuadrado dio $-1$, $n$ es compuesto.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Miller-Rabin primality}.
+
+\vspace{0.5em|||}

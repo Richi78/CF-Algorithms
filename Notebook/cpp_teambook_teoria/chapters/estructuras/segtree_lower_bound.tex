@@ -1,0 +1,72 @@
+\subsubsection{Segment Tree Add + lower bound index}
+
+\paragraph{Idea intuitiva.}
+Variante de Segment Tree (a menudo llamada \textit{walk on segment tree}) que responde eficientemente: ``¿cual es el primer indice $i \ge \text{bound}$ tal que $A[i] \ge v$?''. En lugar de almacenar la suma, cada nodo mantiene el \textbf{maximo} de su rango. Al realizar la consulta, se desciende recursivamente priorizando el hijo izquierdo; si el maximo del subarbol izquierdo no alcanza el valor $v$ (o queda totalmente a la izquierda de \texttt{bound}), se descarta en $O(1)$ y se explora el hijo derecho. Esto permite encontrar el primer indice en tiempo $O(\log n)$ sin necesidad de hacer busqueda binaria externa (la cual tomaria $O(\log^2 n)$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{st[node].val}: valor maximo en el rango $[l, r]$ administrado por el nodo.
+	\item \texttt{st[node].lazy}: incremento aditivo pendiente de propagar.
+	\item Monotonicidad de decision: si el maximo de un subarbol es estrictamente menor que $v$, se garantiza que ningun elemento dentro de el cumple $A[i] \ge v$, permitiendo podar la busqueda en $O(1)$.
+	\item A diferencia de la busqueda sobre sumas acumuladas (que exige elementos no negativos), el walk sobre maximos funciona con cualquier valor (positivo, negativo o cero) y admite tanto actualizaciones aditivas (\texttt{add}) como de asignacion (\texttt{set}).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Busqueda del primer indice $i \ge \text{bound}$ con valor $\ge v$ ($O(\log n)$):
+\begin{verbatim}
+int query(int node, int l, int r, int val, int bound) {
+    push(node, l, r);
+    if (r < bound || st[node].val < val) return -1;
+    if (l == r) return l;
+    int mid = l + (r - l) / 2;
+    int left = query(node * 2, l, mid, val, bound);
+    if (left != -1) return left;
+    return query(node * 2 + 1, mid + 1, r, val, bound);
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Actualizacion (\texttt{add\_range}): $O(\log n)$ en el peor caso.
+	\item Consulta (\texttt{lower\_bound\_index}): $O(\log n)$ en el peor caso.
+	\item Memoria: $O(n)$ (vector de tamano $2n$ con padding a potencia de 2, o $4n$ directo).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Ultimo indice (busqueda hacia atras)}: para encontrar el \textit{ultimo} indice $i \le \text{bound}$ con $A[i] \ge v$, invertir la prioridad: descartar si $l > \text{bound}$ o $\text{val} < v$, explorar primero el hijo derecho y si retorna $-1$, explorar el izquierdo.
+	\item \textbf{Lower bound sobre suma acumulada}: si se busca el primer indice donde la suma prefija alcance $v$, los elementos deben ser no negativos ($A[i] \ge 0$). Si $\text{st}[node*2].\text{val} \ge v$, se desciende a la izquierda; si no, se resta el valor izquierdo ($v \leftarrow v - \text{st}[node*2].\text{val}$) y se busca en la derecha.
+	\item \textbf{Condicion estricta o inversa}: para buscar el primer elemento $\le v$, almacenar el \textbf{minimo} del rango en lugar del maximo y podar cuando $\text{st}[node].\text{val} > v$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Retorno de no coincidencia}: si ningun indice cumple la condicion en $[ \text{bound}, n-1 ]$, la funcion retorna $-1$; el codigo invocador debe contemplar este caso.
+	\item \textbf{Olvidar \texttt{push} en \texttt{query}}: al descender en la consulta es imprescindible llamar a \texttt{push(node, l, r)} para que los maximos de los hijos reflejen los incrementos pendientes.
+	\item \textbf{Criterio de poda con \texttt{bound}}: la condicion \texttt{r < bound} descarta rangos situados totalmente a la izquierda de la posicion de inicio. Escribir erronamente \texttt{r > bound} o \texttt{l < bound} arruina la exploracion.
+	\item \textbf{Actualizacion aditiva en maximo}: en \texttt{push}, al sumar un lazy aditivo al maximo del nodo, la actualizacion es \texttt{st[node].val += st[node].lazy;} (sin multiplicar por la longitud del rango).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SegmentTree:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Node { int val = 0, lazy = 0; };| -- almacena el maximo del intervalo y el incremento pendiente.
+	\item \verb|SegmentTree(int size)| -- ajusta la dimension $n$ a la menor potencia de 2 mayor o igual a \texttt{size}.
+	\item \verb|void push(int node, int l, int r)| -- propaga el valor \texttt{lazy} sumandolo a \texttt{val} y transfiriendolo a los hijos si $l \ne r$.
+	\item \verb|st[node].val += st[node].lazy;| -- en maximo por rango, el incremento se anade directamente sin multiplicar por $(r - l + 1)$.
+	\item \verb|void add_range(int node, int l, int r, int ql, int qr, int val)| -- suma \texttt{val} a todos los elementos en $[ql, qr]$.
+	\item \verb|st[node].val = max(st[node*2].val, st[node*2+1].val);| -- combina los hijos recalculando el maximo.
+	\item \verb|int query(int node, int l, int r, int val, int bound)| -- busca recursivamente el primer indice $i \ge \text{bound}$ con $A[i] \ge \text{val}$.
+	\item \verb|if(r < bound || st[node].val < val) return -1;| -- descarta el nodo si queda totalmente a la izquierda de \texttt{bound} o su maximo no llega a \texttt{val}.
+	\item \verb|if(l == r) return l;| -- caso base: si es hoja y no fue podada, es el indice buscado.
+	\item \verb|int left = query(node*2, l, mid, val, bound);| -- explora recursivamente la rama izquierda primero.
+	\item \verb|if(left != -1) return left;| -- si se hallo un indice valido en la izquierda, se retorna de inmediato por minimalidad.
+	\item \verb|return query(node*2+1, mid+1, r, val, bound);| -- si no hubo solucion en la izquierda, busca en la rama derecha.
+	\item \verb|int lower_bound_index(int val, int bound)| -- funcion publica que inicia la consulta desde la raiz ($[0, n-1]$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree Add + lower bound index}.
+
+\vspace{0.5em}
+

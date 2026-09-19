@@ -1,0 +1,94 @@
+﻿\subsubsection{FFT (iterativo, complex)}
+
+\paragraph{Idea intuitiva.}
+La \textbf{Transformada Rapida de Fourier} calcula el DFT de un vector en $O(N \log N)$. La inversa tambien. La convolucion de dos polinomios $A(x) \cdot B(x)$ se obtiene como $\text{IFFT}(\text{FFT}(A) \cdot \text{FFT}(B))$ componente a componente. La version \textbf{iterativa} reordena los elementos por bit-reversal antes y aplica ``mariposas'' (combina pares en $O(1)$). La intuicion matematica: cualquier secuencia $a_0, a_1, \dots, a_{n-1}$ se puede escribir como $\sum_k c_k \omega^{jk}$ donde $\omega = e^{2\pi i / n}$ y $c_k$ son los coeficientes de Fourier; el FFT calcula $c_k$ rapidamente usando el ``divide y venceras'' sobre la paridad de los indices.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Trabaja con \texttt{complex<double>}; hay errores de redondeo que se acumulan.
+	\item Tamano $N$ debe ser potencia de 2 (se hace \texttt{n <<= 1} hasta alcanzar \texttt{a.size() + b.size()}).
+	\item Resultado se redondea con \texttt{llround}.
+	\item Parseval: $\sum |a_i|^2 = \frac{1}{N} \sum |A_k|^2$ (util para verificar).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El corazon del FFT iterativo (mariposa):
+\begin{verbatim}
+for (int len = 2; len <= n; len <<= 1) {
+    double ang = 2 * PI / len * invert;  // invert = -1 para FFT, +1 para IFFT
+    complex<double> wlen(cos(ang), sin(ang));
+    for (int i = 0; i < n; i += len) {
+        complex<double> w(1);
+        for (int j = 0; j < len/2; ++j) {
+            complex<double> u = a[i+j], v = a[i+j+len/2] * w;
+            a[i+j] = u + v;
+            a[i+j+len/2] = u - v;
+            w *= wlen;
+        }
+    }
+}
+if (invert) for (auto& x : a) x /= n;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \log N)$ con $N$ la primera potencia de 2 que cubre el resultado.
+	\item Constante $\sim 5$ para el iterative, $\sim 1$ para recursive (pero recursive tiene overhead).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Modulo arbitrario}: aniadir tres FFTs y ``FFT con tres modulos'' para reconstruir el resultado con CRT (mejor precision).
+	\item \textbf{Tamano mas pequeno}: si sabes que el resultado cabe en $K < a.size() + b.size() - 1$, podes usar $N = 2^{\lceil \log_2 K \rceil}$ para ahorrar.
+	\item \textbf{Cambiar precision}: aniadir \texttt{long double} y \texttt{acosl(-1)} para mayor precision (marginal).
+	\item \textbf{Bluestein}: para tamano no potencia de 2, bluestein permite NTT/FFT exacto.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Coeficientes \textbf{negativos}: \texttt{llround(-0.5)} da 0, no -1; aniadir \texttt{floor(x + 0.5)} si hay negativos.
+	\item Overflow al convertir a \texttt{long long} si los coeficientes son grandes ($\ge 2^{52}$).
+	\item La precision de \texttt{double} llega a $\sim 10^{-15}$; con $N = 10^5$ el error acumulado puede ser $\sim 10^{-3}$, problematico para enteros $> 10^{15}$.
+	\item Si los coeficientes son \texttt{int} ($\le 10^9$), FFT funciona; para mas, usar NTT mod primes.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{fft}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|using cd = complex<double>;| -- alias para n\'umeros complejos de doble precision.
+	\item \verb|const double PI = acos(-1);| -- define $\pi$ de forma precisa.
+	\item \verb|void fft(vector<cd>& a, bool invert)| -- aplica FFT (o IFFT si \verb|invert=true|) sobre \texttt{a} en el lugar.
+	\item \verb|int n = a.size();| -- tamano del vector (debe ser potencia de 2).
+	\item \verb|for(int i=1,j=0;i<n;i++)| -- permutacion bit-reversal: reordena para que la recursion iterativa funcione.
+	\item \verb|int bit = n >> 1;| -- arranca con el bit mas alto.
+	\item \verb|for(; j&bit; bit>>=1) j \textasciicircum= bit;| -- busca el bit a flipear.
+	\item \verb|j \textasciicircum= bit;| -- realiza el flip.
+	\item \verb|if(i < j) swap(a[i], a[j]);| -- intercambia los pares correspondientes.
+	\item \verb|for(int len=2; len<=n; len<<=1)| -- itera sobre los niveles de la mariposa (longitud de bloque).
+	\item \verb|double ang = 2 * PI / len * (invert ? -1 : 1);| -- angulo de la raiz $n$-esima correspondiente (invertido para IFFT).
+	\item \verb|cd wlen(cos(ang), sin(ang));| -- raiz $n$-esima de la unidad $w_{\text{len}}$.
+	\item \verb|for(int i=0; i<n; i+=len)| -- itera sobre cada bloque de longitud \texttt{len}.
+	\item \verb|cd w(1);| -- factor $w$ que avanza geometricamente.
+	\item \verb|for(int j=0; j<len/2; j++)| -- mitad del bloque (la otra mitad usa el conjugado).
+	\item \verb|cd u = a[i+j], v = a[i+j+len/2] * w;| -- mariposa que combina el par $(u, v \cdot w)$.
+	\item \verb|a[i+j] = u + v;| -- almacena la suma.
+	\item \verb|a[i+j+len/2] = u - v;| -- almacena la diferencia.
+	\item \verb|w *= wlen;| -- avanza $w$ por la raiz de la unidad.
+	\item \verb|for(cd& x : a) x /= n;| -- si es IFFT, divide entre $n$ para invertir la transformacion.
+\end{itemize}
+\textbf{Funcion \texttt{multiplyFFT}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());| -- copia a complejos.
+	\item \verb|while(n < (int)a.size() + (int)b.size()) n <<= 1;| -- encuentra la potencia de 2 que cubra el resultado.
+	\item \verb|fa.resize(n); fb.resize(n);| -- rellena con ceros (padding).
+	\item \verb|fft(fa, false); fft(fb, false);| -- aplica FFT directo.
+	\item \verb|for(int i=0;i<n;i++) fa[i] *= fb[i];| -- multiplica punto a punto (convolucion en el dominio de Fourier).
+	\item \verb|fft(fa, true);| -- aplica IFFT para volver al dominio del tiempo.
+	\item \verb|res[i] = (long long)llround(fa[i].real());| -- redondea al entero mas cercano (los imaginarios deben ser ~0).
+	\item \verb|cout << "\textbackslash n";| -- imprime los coeficientes del polinomio producto.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{FFT (iterativo, complex)}.
+
+\vspace{0.5em|||}

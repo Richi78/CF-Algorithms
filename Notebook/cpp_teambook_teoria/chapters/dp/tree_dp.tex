@@ -1,0 +1,61 @@
+﻿\subsubsection{Tree DP (reroot)}
+
+\paragraph{Idea intuitiva.}
+Calcular alguna propiedad asumiendo que \textbf{cada nodo es la raiz} del arbol. La tecnica clasica de \textbf{rerooting} en dos pasadas:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{DFS 1}: desde una raiz arbitraria, calcular \texttt{dp[v]} para el subarbol de $v$.
+	\item \textbf{DFS 2}: para cada hijo $u$ de $v$, calcular \texttt{up[u]} = respuesta si la raiz fuera $u$.
+\end{itemize}
+La demostracion: tras la primera DFS, cada nodo conoce ``lo que aporta su subarbol''; en la segunda, se transmite ``lo que aporta el resto del arbol''.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{dp[v]} depende solo del subarbol de $v$ (con la raiz original).
+	\item \texttt{up[u]} se calcula de manera que cuando la raiz es $u$, ``todo lo que estaba en $v$ se ajusta''.
+	\item Formula para reroot depende del problema; el snippet usa el ejemplo ``suma de distancias''.
+	\item La combinacion \texttt{dp[u] + up[u]} da la respuesta con raiz $u$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Reroot para suma de distancias:
+\begin{verbatim}
+// dfs1: dp[v] = suma de distancias desde v al subarbol
+void dfs1(int v, int p) {
+    dp[v] = 0;
+    for (int u : adj[v]) if (u != p) {
+        dfs1(u, v);
+        dp[v] += dp[u] + sz[u];  // cada hijo aporta su subarbol
+    }
+}
+// dfs2: up[u] = distancia desde el resto del arbol a u
+void dfs2(int v, int p) {
+    for (int u : adj[v]) if (u != p) {
+        up[u] = up[v] + dp[v] - dp[u] - sz[u] + (n - sz[u]);
+        dfs2(u, v);
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N)$ para ambas pasadas.
+	\item Cada arista se procesa un numero constante de veces.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar la cantidad a calcular}: modificar la operacion en \texttt{dfs1} y la formula en \texttt{dfs2}.
+	\item \textbf{Arbol con pesos}: aniadir \texttt{weights[v]} y ajustar.
+	\item \textbf{Re-root en arboles con ciclos}: requiere otra tecnica (DSU on tree).
+	\item \textbf{Rooted trees diferentes}: si la propiedad no es invariante por raiz, usar otra tecnica.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La formula de \texttt{up[u]} debe sumar y restar correctamente las contribuciones de $u$ y del resto.
+	\item Para arboles con pesos, aniadir el peso en las formulas.
+	\item Verificar con ejemplos pequenos antes de generalizar.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Tree DP (reroot)}.

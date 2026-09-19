@@ -1,0 +1,80 @@
+﻿\subsubsection{Factoriales + nCr mod p}
+
+\paragraph{Idea intuitiva.}
+Si $p$ es primo, $\binom{n}{k} \bmod p$ se puede calcular en $O(1)$ con factoriales precomputados: $\binom{n}{k} = \frac{n!}{k! (n-k)!} = n! \cdot (k!)^{-1} \cdot ((n-k)!)^{-1} \pmod p$. Las inversas se precomputan una vez con $fact^{-1}[n] = fact[n]^{p-2}$ y se propaga hacia abajo. La optimizacion clave es propagar $invFact[i-1] = invFact[i] \cdot i$ hacia abajo en vez de calcular $i^{p-2}$ para cada $i$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precompute en $O(N)$, query en $O(1)$.
+	\item Asume $p$ primo; si $p$ no es primo, la inversa modular no siempre existe.
+	\item $\binom{n}{k} = 0$ si $k > n$.
+	\item Simetria: $\binom{n}{k} = \binom{n}{n-k}$ (util para reducir $k$).
+	\item $\sum_k \binom{n}{k} = 2^n$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construir factoriales + inversas en $O(N)$:
+\begin{verbatim}
+fact[0] = 1;
+for (int i = 1; i <= N; ++i) fact[i] = (long long)fact[i-1] * i % MOD;
+invFact[N] = modpow(fact[N], MOD - 2, MOD);
+for (int i = N - 1; i >= 0; --i) invFact[i] = (long long)invFact[i+1] * (i+1) % MOD;
+
+long long nCr(int n, int k) {
+    if (k < 0 || k > n) return 0;
+    return fact[n] * invFact[k] % MOD * invFact[n-k] % MOD;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precompute $O(N)$, query $O(1)$.
+	\item Memoria $O(N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{$n$ grande con $p$ primo pequenio} ($\le 10^6$): usar Lucas theorem.
+	\item \textbf{Cambiar mod}: aniadir nuevo \texttt{MOD} y regenerar \texttt{fact}/\texttt{invFact}.
+	\item \textbf{Sumar $\binom{n}{k}$ sobre $k$}: usar DP o suma geometrica.
+	\item \textbf{Permutaciones}: $P(n, k) = \binom{n}{k} \cdot k! = fact[n] \cdot invFact[n-k]$.
+	\item \textbf{Recurrence}: $\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$ (util en DP).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{MOD = 1} no es primo, falla en \texttt{modpow(fact[n], MOD - 2)}.
+	\item \texttt{buildFact(0)} deja \texttt{fact = \{1\}}; \texttt{nCr(0, 0) = 1} OK.
+	\item Si $N > p$, el factorial crece y eventualmente $\binom{n}{k} \bmod p$ puede no ser el esperado sin Lucas.
+	\item Para $k > N$ pero $k \le n$, el resultado es $0$; chequealo en la funcion.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Preprocesamiento \texttt{buildFact}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|const long long MOD = 998244353LL;| -- define el primo para todas las operaciones.
+	\item \verb|vector<long long> fact, invFact;| -- arreglos globales para factoriales y factoriales inversos.
+	\item \verb|void buildFact(int n)| -- precomputa factoriales e inversos hasta $n$.
+	\item \verb|fact.assign(n + 1, 1);| -- inicializa \texttt{fact} con $n+1$ unos (luego se sobreescriben).
+	\item \verb|invFact.assign(n + 1, 1);| -- inicializa \texttt{invFact} de forma similar.
+	\item \verb|for(int i=1 ; i<=n ; i++) fact[i] = fact[i-1] * i % MOD;| -- calcula $i! \bmod p$ incrementalmente.
+	\item \verb|invFact[n] = modpow(fact[n], MOD - 2, MOD);| -- calcula $(n!)^{-1}$ via Fermat.
+	\item \verb|for(int i=n ; i>=1 ; i--) invFact[i-1] = invFact[i] * i % MOD;| -- propaga hacia abajo: $((i-1)!)^{-1} = (i!)^{-1} \cdot i$.
+\end{itemize}
+\textbf{Consulta \texttt{nCr}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long nCr(int n, int k)| -- retorna $\binom{n}{k} \bmod p$.
+	\item \verb|if(k < 0 || k > n) return 0;| -- valida el rango de $k$.
+	\item \verb|return fact[n] * invFact[k] % MOD * invFact[n-k] % MOD;| -- aplica $\frac{n!}{k!(n-k)!}$ con aritm\'etica modular.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|buildFact(100);| -- precomputa factoriales hasta $100$.
+	\item \verb|cout << "C(10,3) = " << nCr(10, 3) << "\textbackslash n";| -- imprime $\binom{10}{3} = 120$.
+	\item \verb|cout << "C(100,50) mod = " << nCr(100, 50) << "\textbackslash n";| -- imprime $\binom{100}{50} \bmod 998244353$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Factoriales + nCr mod p}.
+
+\vspace{0.5em|||}

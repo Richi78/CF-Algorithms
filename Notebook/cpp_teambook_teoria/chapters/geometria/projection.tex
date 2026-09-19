@@ -1,0 +1,48 @@
+﻿\subsubsection{Projection of point onto line}
+
+\paragraph{Idea intuitiva.}
+Proyeccion ortogonal de $p$ sobre la recta que pasa por $a$ y $b$. El parametro $t$ tal que la proyeccion es $a + t \cdot (b - a)$ es:
+\[ t = \frac{(p - a) \cdot (b - a)}{|b - a|^2}. \]
+La idea: descomponemos $\vec{ap}$ en una componente paralela a $\vec{ab}$ y una perpendicular; $t$ mide la posicion en la primera.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $t \in [0, 1]$, la proyeccion cae sobre el \textbf{segmento}; si no, cae sobre la extension.
+	\item Retorna \texttt{double} (puede tener precision issues).
+	\item $t < 0$: $p$ esta ``antes'' de $a$; $t > 1$: $p$ esta ``despues'' de $b$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Proyeccion ortogonal:
+\begin{verbatim}
+Point projection(Point p, Point a, Point b) {
+    Point ab = b - a, ap = p - a;
+    double t = (double)dot(ap, ab) / ab.len2();
+    return {a.x + t * ab.x, a.y + t * ab.y};
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$.
+	\item Constante minima (dos dot products y una division).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Proyeccion sobre segmento}: clipar $t$ a $[0, 1]$ antes de calcular el punto.
+	\item \textbf{Distancia al segmento via proyeccion}: combinar con el modulo anterior.
+	\item \textbf{Solo el parametro $t$}: si solo necesitas saber si esta dentro del segmento, retorna $t$ sin construir el punto.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $a = b$ ($|ab| = 0$), la proyeccion no esta definida; aniadir guard.
+	\item En doubles, aniadir tolerancia \texttt{eps} para comparar $t$ con 0 o 1.
+	\item La division por \texttt{len2} puede ser cara si las coordenadas son grandes; usar \texttt{double} o precomputar.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Projection of point onto line}.
+
+\vspace{0.5em}

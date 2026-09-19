@@ -1,0 +1,90 @@
+\subsubsection{Disjoint Sparse Table}
+
+\paragraph{Idea intuitiva.}
+Estructura de datos estatica que permite responder consultas sobre cualquier rango $[l, r]$ en tiempo $O(1)$ tras un precomputo de $O(n \log n)$, pero a diferencia de la Sparse Table clasica, \textbf{no requiere idempotencia} (funciona para cualquier operacion asociativa: suma, multiplicacion, XOR, matrices, etc.). La idea: en cada nivel $k$, el arreglo se divide en bloques de tamano $2^{k+1}$. En cada bloque con punto medio \texttt{mid}, se precomputa un sufijo hacia la izquierda desde $\text{mid}-1$ y un prefijo hacia la derecha desde \texttt{mid}. Para cualquier consulta $[l, r]$, si se toma $k = \lfloor \log_2(l \oplus r) \rfloor$ (el bit mas significativo donde $l$ y $r$ difieren), $l$ y $r$ caen en el mismo bloque pero en lados opuestos de su punto medio. Asi, el rango $[l, r]$ se descompone exactamente en dos subrangos disjuntos: $[l, \text{mid}-1]$ y $[\text{mid}, r]$, sin solapamiento alguno.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{st[k][i]}: en el nivel $k$, si $i < \text{mid}$ almacena la acumulacion en el sufijo $[i, \text{mid}-1]$; si $i \ge \text{mid}$, almacena la acumulacion en el prefijo $[\text{mid}, i]$.
+	\item Identificacion de nivel en $O(1)$: la condicion de pertenencia al mismo bloque y lados opuestos del punto medio equivale a que $l$ y $r$ difieran en el bit $k$, por lo que $k = 31 - \text{\_\_builtin\_clz}(l \oplus r)$.
+	\item La operacion debe ser \textbf{asociativa}; no requiere ser conmutativa ni idempotente (si no es conmutativa, se respeta el orden estricto: $\text{op}(\text{st}[k][l], \text{st}[k][r])$).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion y consulta $O(1)$ con Disjoint Sparse Table:
+\begin{verbatim}
+struct DisjointSparseTable {
+    int n, LOG;
+    vector<vector<int>> st;
+    DisjointSparseTable(const vector<int>& a) {
+        n = a.size();
+        LOG = (n <= 1 ? 1 : 32 - __builtin_clz(n - 1) + 1);
+        st.assign(LOG, a);
+        for (int k = 1; k < LOG; ++k) {
+            int half = 1 << k;
+            for (int mid = half; mid < n; mid += 2 * half) {
+                for (int i = mid - 2; i >= mid - half; --i)
+                    st[k][i] = min(a[i], st[k][i + 1]);
+                int lim = min(n, mid + half);
+                for (int i = mid + 1; i < lim; ++i)
+                    st[k][i] = min(st[k][i - 1], a[i]);
+            }
+        }
+    }
+    int query(int l, int r) {
+        if (l == r) return st[0][l];
+        int k = 31 - __builtin_clz(l ^ r);
+        return min(st[k][l], st[k][r]);
+    }
+};
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Construccion: $O(n \log n)$ en tiempo.
+	\item Consulta: $O(1)$ en el peor caso (una sola operacion \texttt{op} y calculo de \texttt{clz}).
+	\item Memoria: $O(n \log n)$ enteros.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cualquier operacion asociativa}: sustituir \texttt{min} por suma (\texttt{+}), multiplicacion modular, XOR (\texttt{\^{}}) o multiplicacion de matrices $O(M^3)$.
+	\item \textbf{Operaciones no conmutativas}: asegurar el orden de los argumentos: $\text{op}(\text{st}[k][l], \text{st}[k][r])$.
+	\item \textbf{Tabulacion de logaritmos}: para evitar \verb|__builtin_clz|, se puede precomputar un arreglo \texttt{lg} con $\lfloor \log_2 i \rfloor$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Caso base $l = r$}: si $l = r$, entonces $l \oplus r = 0$, para el cual \verb|__builtin_clz(0)| es comportamiento indefinido en C++. Es indispensable tratar $l = r$ por separado retornando \texttt{st[0][l]}.
+	\item \textbf{Indices 0-based}: la propiedad del bit mas significativo requiere que los indices sean 0-based ($0 \le l \le r < n$).
+	\item \textbf{Limites en el ultimo bloque}: en el bucle derecho, verificar que \texttt{lim} no supere $n$ (\texttt{min(n, mid + half)}).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura DisjointSparseTable:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct DisjointSparseTable { int n, LOG; vector<vector<int>> st; };| -- encapsula la estructura.
+	\item \verb|LOG = (n <= 1 ? 1 : 32 - __builtin_clz(n - 1) + 1);| -- calcula $\lceil \log_2 n \rceil + 1$ niveles.
+	\item \verb|st.assign(LOG, a);| -- inicializa cada nivel con los valores base del arreglo.
+	\item \verb|for(int k=1; k<LOG; ++k)| -- itera sobre cada nivel con bloques de tamano $2^{k+1}$.
+	\item \verb|int half = 1 << k;| -- la mitad del bloque actual; el punto de division es \texttt{mid}.
+	\item \verb|for(int mid = half; mid < n; mid += 2 * half)| -- recorre los puntos medios de cada bloque.
+	\item \verb|st[k][i] = min(a[i], st[k][i + 1]);| -- precalcula acumulaciones hacia la izquierda (sufijos).
+	\item \verb|st[k][i] = min(st[k][i - 1], a[i]);| -- precalcula acumulaciones hacia la derecha (prefijos).
+	\item \verb|int query(int l, int r)| -- resuelve la consulta en tiempo constante $O(1)$.
+	\item \verb|if(l == r) return st[0][l];| -- evita $l \oplus r = 0$ y retorna el elemento unico.
+	\item \verb|int k = 31 - __builtin_clz(l ^ r);| -- nivel cuyo punto medio separa a $l$ de $r$.
+	\item \verb|return min(st[k][l], st[k][r]);| -- combina el sufijo $[l, \text{mid}-1]$ y el prefijo $[\text{mid}, r]$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|DisjointSparseTable dst({3, 1, 4, 1, 5, 9, 2, 6});| -- construye la DST para el arreglo.
+	\item \verb|cout << dst.query(0, 4) << "\n";| -- consulta el rango $[0, 4]$, resultado es 1.
+	\item \verb|cout << dst.query(2, 7) << "\n";| -- consulta el rango $[2, 7]$, resultado es 1.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Disjoint Sparse Table}.
+
+\vspace{0.5em}
+

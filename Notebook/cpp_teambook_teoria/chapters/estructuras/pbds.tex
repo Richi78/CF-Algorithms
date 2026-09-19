@@ -1,0 +1,68 @@
+﻿\subsubsection{Ordered Set (pbds)}
+
+\paragraph{Idea intuitiva.}
+La \textbf{policy-based data structure} de GCC es un arbol rojo-negro (rb\_tree) con dos operaciones extra: \texttt{find\_by\_order(k)} devuelve un iterador al $k$-esimo elemento (0-indexed) en $O(\log n)$, y \texttt{order\_of\_key(x)} cuenta cuantos elementos son \textbf{menores} que $x$ en $O(\log n)$. Equivale a tener un \texttt{set} con ``rango'' y ``rango por posicion'' gratis. La estructura subyacente: cada nodo lleva un campo \texttt{prioridad} (aleatoria o fija) y el arbol mantiene la propiedad de heap por prioridad; eso da las estadisticas de orden en $O(\log n)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Solo en GCC/clang (header \texttt{ext/pb\_ds/...}); \textbf{no} en MSVC.
+	\item \texttt{less\_equal<int>} permite multiset; ojo con \texttt{erase} que ahi usa \texttt{upper\_bound}.
+	\item Tamano maximo $\sim 10^7$ elementos (limite de la libreria).
+	\item \texttt{find\_by\_order(k)} con $k \ge$ tamano devuelve \texttt{s.end()}.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Declaracion y uso tipico:
+\begin{verbatim}
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> s;
+s.insert(5);
+cout << s.order_of_key(3) << "\n";      // 0
+cout << *s.find_by_order(0) << "\n";    // 5
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log n)$ por operacion.
+	\item Memoria: $\sim 5x$ un set normal (cada nodo guarda prioridad).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Multiset}: cambiar \texttt{less<int>} por \texttt{less\_equal<int>} y borrar con \texttt{s.erase(s.upper\_bound(x))}.
+	\item \textbf{Estadisticas de orden}: \texttt{find\_by\_order(k)} da el $k$-esimo, util para mantener el $k$-esimo menor dinamicamente.
+	\item \textbf{Acceso por rango}: aniadir un wrapper que combine \texttt{lower\_bound} + \texttt{order\_of\_key}.
+	\item \textbf{Tipo custom}: aniadir hash si quieres una unordered\_map con order statistics (no funciona directo).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{find\_by\_order(n)} (con $n$ fuera de rango) es UB.
+	\item No olvidar \texttt{\#include <ext/pb\_ds/assoc\_container.hpp>} y \texttt{<ext/pb\_ds/trie\_policy.hpp>}.
+	\item El namespace \texttt{\_\_gnu\_pbds} es feo; ``using'' acelera pero contamina el scope global.
+	\item Algunos jueces online (Codeforces, AtCoder) lo soportan; otros no.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Includes y typedef:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{\#include <ext/pb\_ds/assoc\_container.hpp>} -- header de containers asociativos de pbds.
+	\item \texttt{\#include <ext/pb\_ds/trie\_policy.hpp>} -- header con la politica de order statistics.
+	\item \texttt{using namespace \_\_gnu\_pbds;} -- namespace de la extension GNU.
+	\item \texttt{typedef tree<int, null\_type, less<int>, rb\_tree\_tag, tree\_order\_statistics\_node\_update> pbds;} -- define el tipo con orden por estadistica.
+	\item Los parametros del template: tipo de clave, tipo mapeado (none), comparador, tipo de arbol (rb\_tree), y la politica de orden.
+	\item \texttt{// find\_by\_order, order\_of\_key} -- las dos operaciones extra del pbds.
+	\item \texttt{// greater<int>, less\_equal<int>} -- alternativas al comparador (multiset).
+	\item Operaciones disponibles: \texttt{insert}, \texttt{erase}, \texttt{find\_by\_order(k)}, \texttt{order\_of\_key(x)}, todas $O(\log n)$.
+	\item \texttt{find\_by\_order(k)} devuelve el k-esimo elemento (0-indexed).
+	\item \texttt{order\_of\_key(x)} cuenta cuantos elementos son menores que x.
+	\item \texttt{upper\_bound} y \texttt{lower\_bound} funcionan al reves que en \texttt{std::set}.
+	\item Para borrar en multiset usar \texttt{s.erase(s.upper\_bound(x))}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Ordered Set (pbds)}.
+
+\vspace{0.5em}

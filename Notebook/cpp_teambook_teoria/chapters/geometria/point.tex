@@ -1,0 +1,56 @@
+﻿\subsubsection{Point + cross + dot}
+
+\paragraph{Idea intuitiva.}
+La estructura \texttt{Point} representa un punto en 2D con coordenadas enteras. Las dos operaciones vectoriales clave son:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cross product} $P \times Q = P_x Q_y - P_y Q_x$. Da el ``area con signo'' del paralelogramo formado por $P$ y $Q$. Usado para orientacion.
+	\item \textbf{Dot product} $P \cdot Q = P_x Q_x + P_y Q_y$. Da el producto de las longitudes por el coseno del angulo. Usado para proyeccion.
+\end{itemize}
+La interpretacion geometrica del cross product: es el area con signo del paralelogramo; el signo indica la orientacion relativa.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{cross(a, b) > 0} si $b$ esta a la izquierda de $a$ (sistema de coordenadas usual).
+	\item \texttt{cross(a, b) = 0} si son colineales.
+	\item \texttt{dot(a, b) > 0} si el angulo es agudo.
+	\item El snippet define \texttt{cross} respecto a \texttt{this}, util para orientacion de 3 puntos.
+	\item $|cross|^2 + |dot|^2 = |P|^2 \cdot |Q|^2$ (identidad de Lagrange).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Las dos operaciones vectoriales:
+\begin{verbatim}
+long long cross(const Point& a, const Point& b) {
+    return (long long)a.x * b.y - (long long)a.y * b.x;
+}
+long long dot(const Point& a, const Point& b) {
+    return (long long)a.x * b.x + (long long)a.y * b.y;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$ por operacion.
+	\item Constante muy pequena (4 multiplicaciones + 2 sumas).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Coordenadas doubles}: cambiar \texttt{int} por \texttt{double} o \texttt{long double}. Cuidado con la precision.
+	\item \textbf{3D}: aniadir \texttt{z} y adaptar cross/dot.
+	\item \textbf{Operadores adicionales}: aniadir \texttt{operator+}, \texttt{operator-}, \texttt{operator*} (escalar).
+	\item \textbf{Distancia al cuadrado}: aniadir \texttt{len2()} que retorna $x^2 + y^2$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cross product \textbf{no es} conmutativo; $P \times Q = -Q \times P$.
+	\item Overflow con coordenadas grandes ($|x|, |y| > 10^4$) si se hace \texttt{x * y}.
+	\item El signo de cross depende del sistema de coordenadas (en computacion, usualmente CCW positivo).
+	\item Para ``igualdad'' de doubles, aniadir tolerancia \texttt{eps}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Point + cross + dot}.
+
+\vspace{0.5em}

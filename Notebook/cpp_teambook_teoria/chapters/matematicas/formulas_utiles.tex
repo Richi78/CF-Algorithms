@@ -1,0 +1,45 @@
+﻿\subsubsection{Formulas utiles}
+
+\paragraph{Idea intuitiva.}
+Mini-referencia de identidades clasicas: numero de divisores, suma de divisores, formula de Euler ($a^b \equiv a^{b \bmod \varphi(n)} \pmod n$ cuando $\gcd(a,n)=1$), e inclusion-exclusion. \textbf{No hay codigo ejecutable}; solo las formulas y, opcionalmente, comentarios sobre cuando aplicarlas. Estas identidades salen de la aritm\'etica basica: si $n = \prod p_i^{e_i}$, entonces cada divisor es $\prod p_i^{f_i}$ con $0 \le f_i \le e_i$, asi que el conteo se multiplica independientemente por cada primo.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Numero de divisores: si $n = \prod p_i^{e_i}$, entonces $d(n) = \prod (e_i + 1)$.
+	\item Suma de divisores: $\sigma(n) = \prod \frac{p_i^{e_i+1} - 1}{p_i - 1}$.
+	\item Producto de divisores: $n^{d(n)/2}$ (cada divisor $d$ se empareja con $n/d$).
+	\item Inclusion-exclusion: $|\bigcup A_i| = \sum_{\emptyset \ne I} (-1)^{|I|+1} |\bigcap_{i \in I} A_i|$.
+	\item $\sum_{d \mid n} d \cdot \varphi(n/d) = \sum_{d \mid n} \mu(d) \cdot \sigma(n/d)$ (identidades utiles).
+\end{itemize}
+
+\paragraph{Complejidad.}
+No aplica para este modulo (es solo referencia de formulas).
+
+\paragraph{Donde tocar para modificar.}
+Este modulo \textbf{no tiene codigo}; es una seccion de formulas. Si queres aniadir una formula nueva (por ejemplo, suma de primos hasta $n$ via criba), agregar el \texttt{\textbackslash subsubsection} correspondiente en otra parte del notebook.
+
+\paragraph{Ejemplo de uso.}
+Para contar primos relativos a $n$ en $[1, n]$: $\varphi(n)$. Para calcular $\sum_{i=1}^{n} \gcd(i, n)$: factorizar $n$, luego $\sum_{d \mid n} d \cdot \varphi(n/d)$. Para $\sum_{d \mid n} \mu(d) = [n=1]$ (delta de Kronecker).
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La suma de primos no tiene formula cerrada simple; necesita criba.
+	\item $\varphi(n)$ solo simplifica el exponente cuando $\gcd(a, n) = 1$; en caso contrario, hay que factorizar a mano.
+	\item En inclusion-exclusion, el orden de los terminos no importa, pero si $|I| > 20$ el numero de terminos explota.
+	\item $d(n) = 2$ si y solo si $n$ es primo.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+Este modulo no contiene codigo ejecutable; las formulas estan escritas en LaTeX directamente:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Numero de divisores $d(n)$}: formula $$d(n) = (e_1+1)(e_2+1)\cdots(e_k+1)$$ para $n = p_1^{e_1}\cdots p_k^{e_k}$.
+	\item \textbf{Suma de divisores $\sigma(n)$}: formula $$\sigma(n) = \prod_{i=1}^{k} \frac{p_i^{e_i+1}-1}{p_i-1}$$ -- suma geometrica para cada primo.
+	\item \textbf{Producto de divisores $P(n)$}: formula $$P(n) = n^{d(n)/2}$$ -- cada divisor $d$ se empareja con $n/d$.
+	\item \textbf{Euler}: formula $$a^b \equiv a^{\,b \bmod \varphi(n)} \pmod{n}$$ valida cuando $\gcd(a,n)=1$.
+	\item \textbf{Inclusion-Exclusion}: formula $$\left|\bigcup A_i\right| = \sum_{\emptyset \ne I} (-1)^{|I|+1} \left|\bigcap_{i \in I} A_i\right|$$ -- expansion de PIE sobre todos los subconjuntos no vacios.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Formulas utiles}.
+
+\vspace{0.5em}

@@ -1,0 +1,72 @@
+﻿\subsubsection{Catalan (formula)}
+
+\paragraph{Idea intuitiva.}
+Los numeros de Catalan cuentan una gran variedad de estructuras (arboles binarios, parentesis balanceados, triangulaciones de poligono). La formula es $C_n = \frac{1}{n+1}\binom{2n}{n}$. La version recursiva es $C_n = \sum_{i=0}^{n-1} C_i C_{n-1-i}$, que da una DP en $O(n^2)$. La conexion con $\binom{2n}{n}$ viene del \textbf{lattice path counting}: $C_n$ es el numero de caminos de $(0,0)$ a $(n,n)$ que no cruzan la diagonal, y los caminos sin esa restriccion son $\binom{2n}{n}$ (elegir cuando subir).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $C_0 = C_1 = 1$.
+	\item $C_n$ crece rapidamente; $C_{19}$ ya pasa el millon.
+	\item La formula cerrada evita la DP pero requiere multiplicacion que \textbf{siempre} es exacta (la division por $i+2$ no deja residuo).
+	\item Funcion generadora: $C(x) = \sum_{n \ge 0} C_n x^n$ satisface $C(x) = 1 + x C(x)^2$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Formula iterativa (sin division intermedia):
+\begin{verbatim}
+long long catalanLL(int n) {
+    long long c = 1;
+    for (int i = 0; i < n; ++i) {
+        c = c * 2 * (2*i + 1) / (i + 2);  // division siempre exacta
+    }
+    return c;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item DP: $O(N^2)$ tiempo, $O(N)$ memoria.
+	\item Formula cerrada (iterativa): $O(N)$ tiempo, $O(1)$ memoria.
+	\item Para un solo $C_n$: $O(n)$ (no $O(n^2)$ con DP).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Catalan mod p}: aniadir \texttt{MOD} y hacer \texttt{\% MOD} en cada multiplicacion. La division \texttt{/(i+2)} no se puede hacer mod $p$ directamente; conviene usar el inverso modular: \texttt{ans = ans * 2 * (2*i+1) \% MOD * inv[i+2] \% MOD;}.
+	\item \textbf{Catalan con doble precision}: \texttt{catalanLL} retorna \texttt{long long}; para $n \ge 35$ desborda.
+	\item \textbf{Catalan via binomial}: usar el snippet de factoriales: $C_n = \binom{2n}{n} - \binom{2n}{n+1}$ (numericamente estable mod primo).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La division entera \texttt{(i+2)} en \texttt{catalanLL} es exacta solo porque matematicamente el cociente es entero. Si cambia el orden de operaciones (por ejemplo, modular primero), la division falla.
+	\item Para Catalan mod $p$ NO primo, no se puede usar la recurrencia con division; usar DP pura.
+	\item $C_{35}$ ya excede $2^{63}$; usar BigInt si lo necesitas.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Version DP $O(n^2)$:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> dp;| -- vector que almacena $C_0, C_1, \dots, C_n$; cada posicion guarda el numero de Catalan correspondiente.
+	\item \verb|const int MOD=998244353;| -- primo usado para todas las operaciones modulo (tipico en contests).
+	\item \verb|void catalan(int n)| -- funcion que llena el vector \texttt{dp} con $C_0, \dots, C_n$.
+	\item \verb|dp.resize(n+1);| -- ajusta el tamano del vector a $n+1$ para indexar hasta $n$.
+	\item \verb|dp[0]=dp[1]=1;| -- casos base: $C_0 = C_1 = 1$.
+	\item \verb|for(int i=2 ; i<=n ; i++)| -- itera $n$ desde $2$ hasta $n$ aplicando la recurrencia.
+	\item \verb|for(int j=0 ; j<i ; j++)| -- elige el tamano del subarbol izquierdo ($j$) entre $0$ y $i-1$.
+	\item \verb|dp[i]=(dp[i]+(dp[j]*dp[i-j-1])%MOD)%MOD;| -- acumula $C_j \cdot C_{i-1-j}$ en $C_i$ (recurrencia clasica de Catalan).
+\end{itemize}
+\textbf{Version formula cerrada $O(n)$:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int catalan(int n)| -- calcula $C_n$ en $O(n)$ sin division intermedia riesgosa.
+	\item \verb|int ans=1;| -- inicializa el acumulador en $C_0 = 1$.
+	\item \verb|for(int i=0 ; i<n ; i++)| -- itera $n$ veces para obtener $C_n$ desde $C_0$.
+	\item \verb|ans=ans*2*(2*i+1)/(i+2);| -- aplica la recurrencia $C_{i+1} = C_i \cdot 2(2i+1)/(i+2)$; la division es exacta.
+	\item \verb|return ans;| -- retorna $C_n$.
+	\item \verb|cout << "catalan(10) = " << catalan(10) << "\textbackslash n";| -- imprime $C_{10} = 16796$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Catalan (formula)}.
+
+\vspace{0.5em|||}

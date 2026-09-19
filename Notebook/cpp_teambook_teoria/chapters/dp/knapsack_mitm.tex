@@ -1,0 +1,54 @@
+﻿\subsubsection{Knapsack meet-in-the-middle}
+
+\paragraph{Idea intuitiva.}
+Para $N \le 40$ y $W$ moderado, no se puede hacer $O(NW)$ directamente. Partir en dos mitades, enumerar todos los $2^{N/2}$ subconjuntos de cada mitad, y combinar. Para cada subconjunto de la segunda mitad con peso $sw_2$, encontrar el maximo valor de la primera mitad con peso $\le W - sw_2$. La idea: ``divide y venceras'' sobre el tamano de la entrada; cada mitad tiene mitad del espacio, asi que la combinacion es geometrica en lugar de multiplicativa.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Hay $2^{N/2}$ subconjuntos por mitad; total $O(2^{N/2})$.
+	\item \texttt{sums} guarda los valores de subconjuntos de la primera mitad ordenados (o preprocesados).
+	\item Para cada subconjunto de la segunda mitad, busqueda lineal o binaria en \texttt{sums}.
+	\item La mitad mas grande (con $N/2 + 1$ items para $N$ impar) tiene $2^{N/2+1}$ subconjuntos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Enumerar subconjuntos de la primera mitad:
+\begin{verbatim}
+int n1 = N / 2, n2 = N - n1;
+vector<pair<long long, long long>> sums1;
+for (int mask = 0; mask < (1 << n1); ++mask) {
+    long long peso = 0, valor = 0;
+    for (int i = 0; i < n1; ++i) if (mask & (1 << i)) {
+        peso += w[i]; valor += v[i];
+    }
+    sums1.push_back({peso, valor});
+}
+sort(sums1.begin(), sums1.end());  // por peso
+// eliminar duplicados dominados
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(2^{N/2})$ tiempo y memoria (mejor que $O(NW)$ cuando $W > 2^{N/2}$).
+	\item Para $N = 40$: $\sim 2 \cdot 10^6$ subconjuntos, factible.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Tamano mayor}: si $N$ es mayor pero $W$ es chico, conviene iterar por peso, no por subconjuntos.
+	\item \textbf{Varias mochilas}: adaptar para multiples $W$.
+	\item \textbf{Optimizar el ``combinado''}: usar \texttt{upper\_bound} para encontrar el maximo valor con peso $\le \text{rem}$.
+	\item \textbf{Eliminar pares dominados}: si un par (peso, valor) tiene otro con menos peso y mas valor, eliminarlo.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $N$ impar: una mitad tiene $N/2 + 1$ items.
+	\item Overflow al sumar pesos/valores en \texttt{long long}.
+	\item Sin deduplicacion, el algoritmo es correcto pero mas lento.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Knapsack meet-in-the-middle}.
+
+\vspace{0.5em}

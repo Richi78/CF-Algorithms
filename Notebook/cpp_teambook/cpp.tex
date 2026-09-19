@@ -7,6 +7,9 @@
 %--------------------------
 \usepackage{listings} %para dar formato segun lenguaje
 \usepackage{xcolor} % para poner color al codigo
+\usepackage{amsmath, amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, calc}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue!60!black}
 
@@ -49,9 +52,8 @@
 \begin{document}
 
 	% ===== Indice (Table of Contents automatico) =====
-	\onecolumn
 	\tableofcontents
-	\twocolumn
+	\clearpage
 
 	% ============================================================
 	\section{Plantillas y utilidades}
@@ -222,6 +224,7 @@
 	\section{Geometria}
 	% ============================================================
 	\subsection{Puntos y segmentos}
+	\input{chapters/geometria/conceptos}
 	\input{chapters/geometria/point}
 	\input{chapters/geometria/intersect}
 	\input{chapters/geometria/contains}

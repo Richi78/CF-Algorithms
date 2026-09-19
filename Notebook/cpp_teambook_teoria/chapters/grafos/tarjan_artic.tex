@@ -1,0 +1,58 @@
+﻿\subsubsection{Tarjan (puntos de articulacion)}
+
+\paragraph{Idea intuitiva.}
+Encuentra los \textbf{puntos de articulacion} (cut vertices): vertices cuya remocion \textbf{desconecta} el grafo. Mismo setup que para bridges: \texttt{tin[v]}, \texttt{low[v]}. Un nodo $v$ (no raiz) es de articulacion si existe un hijo $u$ con $low[u] \ge tin[v]$. La \textbf{raiz} es de articulacion si tiene $\ge 2$ hijos en el DFS tree. La razon: para $v$ no raiz, la condicion $\ge$ indica que el subarbol de $u$ depende de $v$; quitar $v$ los desconecta. Para la raiz, perder $\ge 2$ hijos parte el DFS en $\ge 2$ componentes.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $low[u] \ge tin[v]$ significa que el subarbol de $u$ no tiene back-edge ``por encima'' de $v$.
+	\item La raiz es caso especial: tiene que perder mas de un hijo para que el grafo se parta.
+	\item Cada nodo se evalua una sola vez.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La condicion de articulacion:
+\begin{verbatim}
+void dfs(int v, int p) {
+    used[v] = true;
+    tin[v] = low[v] = timer++;
+    int children = 0;
+    for (int u : adj[v]) {
+        if (u == p) continue;
+        if (used[u]) low[v] = min(low[v], tin[u]);
+        else {
+            dfs(u, v);
+            low[v] = min(low[v], low[u]);
+            if (low[u] >= tin[v] && p != -1)  // no raiz
+                isArt[v] = true;
+            ++children;
+        }
+    }
+    if (p == -1 && children > 1) isArt[v] = true;  // raiz especial
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Una sola pasada de DFS.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Block-cut tree}: estructura bipartita con BCCs (2-vertex-connected components) y articulation points.
+	\item \textbf{Verificar biconectividad}: chequear que no hay puntos de articulacion.
+	\item \textbf{Componentes biconnected}: extender Tarjan para enumerar BCCs.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item No olvidar el caso especial de la raiz.
+	\item La condicion usa \texttt{>=}, no \texttt{>}; un hijo con \texttt{low[u] == tin[v]} tambien cuenta.
+	\item Multigrafos pueden tener ``falsos'' articulation points; verificar caso a caso.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Tarjan (puntos de articulacion)}.
+
+\vspace{0.5em}

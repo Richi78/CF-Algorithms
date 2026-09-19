@@ -1,0 +1,67 @@
+﻿\subsubsection{Stern-Brocot (best fraction in interval)}
+
+\paragraph{Idea intuitiva.}
+Stern-Brocot es un arbol binario de fracciones irreducibles. Cada nodo es el \textbf{mediantes} de sus ``padres'' en el arbol: si tienes $a/b$ y $c/d$, el mediantes es $(a+c)/(b+d)$. Para encontrar la fraccion irreducible con denominador acotado mas cercana a un valor $x$, se navega el arbol decidiendo ir a izquierda o derecha segun si $x$ es menor o mayor. La fraccion mas simple en un intervalo $(a/b, c/d)$ se obtiene iterando mediantes y quedandose con el \textbf{maximo $k$} tal que el mediantes sigue dentro del intervalo. La propiedad clave: las fracciones irreducibles con denominador acotado estan \textbf{todas} en el arbol.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada par de fracciones irreducibles consecutivas en Stern-Brocot tiene diferencia $1/(bd)$ en valor.
+	\item Permite generar todas las fracciones irreducibles con un denominador acotado.
+	\item El mediantes $m/n$ de $a/b$ y $c/d$ satisface $b \cdot m - a \cdot n = 1$ (cruz = 1).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La busqueda en Stern-Brocot (izquierda/derecha segun comparacion):
+\begin{verbatim}
+long long findBest(long long x, long long a, long long b, long long c, long long d) {
+    long long p = a + c, q = b + d;  // mediantes
+    if (q > Q) return ...;  // denominador excede
+    if (p/q > x) return find(x, a, b, p, q);  // izquierda
+    else         return find(x, p, q, c, d);  // derecha
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log(\max(a,b)))$ por query.
+	\item Generar todas las fracciones con denominador $\le Q$: $O(Q^2)$ (hay $\sim 3Q^2/\pi^2$ irreducibles).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Acotar denominador}: aniadir un parametro \texttt{Q} (denominador maximo) y ajustar \texttt{k = min(k, Q/...)}.
+	\item \textbf{Devolver la fraccion irreducible (no reducida)}: aniadir division por $\gcd(p, q)$ al final.
+	\item \textbf{Buscar fraccion mas cercana}: aniadir comparacion entre $\text{actual}$ y $\text{candidato}$ al estilo del BS.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet tiene una aproximacion cruda; un mejor implementation debe iterar \textbf{exactamente} el maximo $k$ permitido.
+	\item Cuidado con overflow en \texttt{(p - a) / b} si los numeros son grandes.
+	\item El mediantes es irreducible sii $\gcd(a+c, b+d) = 1$; en el arbol de Stern-Brocot se preserva.
+	\item La raiz del arbol es $1/1$; los hijos son $1/2$ y $2/1$.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura \texttt{Frac}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Frac { long long p, q; };| -- encapsula numerador y denominador.
+\end{itemize}
+\textbf{Funcion \texttt{bestInInterval}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|Frac bestInInterval(long long a, long long b, long long c, long long d)| -- encuentra la fraccion irreducible mas simple en $(a/b, c/d)$.
+	\item \verb|long long p = a + c, q = b + d;| -- mediantes inicial: $(a+c)/(b+d)$.
+	\item \verb|while(true)| -- itera hasta encontrar el limite.
+	\item \verb|long long k = max((p - a) / b, (p - c) / d);| -- maximo $k$ tal que el mediantes sigue en el intervalo.
+	\item \verb|if(k <= 1) break;| -- si $k \le 1$, ya estamos en el limite.
+	\item \verb|p = a + k * c; q = b + k * d;| -- salta al mediantes mas lejano permitido.
+	\item \verb|return {p, q};| -- retorna la fraccion encontrada.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|auto f = bestInInterval(0, 1, 1, 1);| -- busca la fraccion mas simple en $(0/1, 1/1)$.
+	\item \verb|cout << f.p << "/" << f.q << "\textbackslash n";| -- imprime $1/2$ (la mas simple en ese intervalo).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{...}.

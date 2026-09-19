@@ -1,0 +1,81 @@
+\subsubsection{KMP + LPS}
+
+\paragraph{Idea intuitiva.}
+El algoritmo \textbf{Knuth-Morris-Pratt (KMP)} busca todas las apariciones de un patron $P$ de longitud $m$ dentro de un texto $T$ de longitud $n$ en tiempo lineal $O(n + m)$. 
+
+La clave teorica reside en la tabla \textbf{LPS} (Longest Proper Prefix which is Suffix), donde $\text{lps}[i]$ almacena la longitud del prefijo propio mas largo de $P[0 \dots i]$ que coincide exactamente con un sufijo propio de dicho subsegmento. Cuando ocurre una discrepancia (*mismatch*) entre el texto y el patron en la posicion $j$, no es necesario retroceder el puntero del texto $i$; el conocimiento de la tabla LPS permite saltar el puntero del patron directamente a $j = \text{lps}[j-1]$, conservando los caracteres coincidentes previos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{lps[i]}: longitud del prefijo mas largo de $P$ que es a la vez sufijo propio de $P[0 \dots i]$.
+	\item El puntero $i$ en el texto nunca retrocede: solo avanza o permanece en su lugar mientras $j$ retrocede, garantizando $O(n + m)$.
+	\item Periodo minimo: si $n \pmod{n - \text{lps}[n-1]} == 0$, entonces la subcadena de longitud $n - \text{lps}[n-1]$ es el periodo minimo repetido de la cadena completa.
+	\item Autómata KMP: $\text{lps}[j-1]$ representa el estado de falla del autómata finito determinista para coincidencia de cadenas.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion de la tabla LPS y busqueda en el texto:
+\begin{verbatim}
+vector<int> create_lps(string &needle) {
+    int n = needle.size(), i = 1, prevLPS = 0;
+    vector<int> lps(n, 0);
+    while (i < n) {
+        if (needle[i] == needle[prevLPS]) {
+            lps[i++] = ++prevLPS;
+        } else if (prevLPS == 0) {
+            lps[i++] = 0;
+        } else {
+            prevLPS = lps[prevLPS - 1];
+        }
+    }
+    return lps;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion LPS}: $O(m)$ en tiempo y memoria, donde $m = |P|$.
+	\item \textbf{Busqueda}: $O(n)$ en tiempo, donde $n = |T|$.
+	\item \textbf{Total}: $O(n + m)$ en tiempo y $O(m)$ en memoria adicional para la tabla LPS.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Guardar posiciones}: en \verb|j == sz_pattern|, el match inicia en \verb|i - sz_pattern|; se registra con \verb|ans.push_back(i - sz_pattern)|.
+	\item \textbf{Contar ocurrencias de cada prefijo}: calculando la frecuencia de cada valor en LPS y propagando de derecha a izquierda: \verb|ans[lps[i]-1] += ans[i]|.
+	\item \textbf{Compresion de cadena / Periodo}: el periodo mas corto de un string $S$ de longitud $n$ es $p = n - \text{lps}[n-1]$. Si $n \% p == 0$, la cadena es periodica con $n/p$ repeticiones.
+	\item \textbf{DP sobre automatas}: para problemas que piden contar cadenas que no contienen a $P$, se precomputan las transiciones del automata: \verb|aut[state][c]| para cada caracter.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Acceso en \texttt{j == 0}}: al ocurrir un mismatch, verificar siempre si $j == 0$ antes de indexar \verb|lps[j - 1]| para no causar lecturas fuera de rango.
+	\item \textbf{Continuar tras un match}: al hallar \verb|j == sz_pattern|, no reiniciar $j = 0$; hacer \verb|j = lps[j - 1]| para detectar ocurrencias solapadas (ej. ``ana'' en ``anana'').
+	\item \textbf{Caso base en $i=0$}: por definicion de sufijo \textbf{propio}, $\text{lps}[0] = 0$. El bucle de construccion de LPS siempre inicia en $i = 1$.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion create\_lps:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> create_lps(string &needle)| -- construye la tabla de prefijos-sufijos del patron \verb|needle|.
+	\item \verb|int n = needle.size(); vector<int> lps(n);| -- dimensiona el vector con ceros; \verb|lps[0] = 0|.
+	\item \verb|int i = 1, prevLPS = 0;| -- \verb|i| recorre el patron desde el segundo caracter; \verb|prevLPS| guarda el largo del prefijo coincidente previo.
+	\item \verb|if(needle[i] == needle[prevLPS])| -- si el caracter actual extiende el prefijo previo coincidente.
+	\item \verb|lps[i] = prevLPS + 1; i++; prevLPS++;| -- guarda el nuevo largo e incrementa ambos punteros.
+	\item \verb|else if(prevLPS == 0) { lps[i] = 0; i++; }| -- no hay coincidencia previa: el prefijo-sufijo de longitud maxima es 0.
+	\item \verb|else prevLPS = lps[prevLPS - 1];| -- intenta emparejar con un prefijo-sufijo mas corto ya precomputado sin avanzar \verb|i|.
+\end{itemize}
+\textbf{Funcion solve (busqueda en texto):}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> lps = create_lps(p);| -- precalcula la tabla para el patron $p$.
+	\item \verb|int i = 0, j = 0;| -- \verb|i| indexa el texto $s$; \verb|j| indexa el patron $p$.
+	\item \verb|if(s[i] == p[j]) { i++; j++; }| -- caracteres coinciden: avanza ambos punteros.
+	\item \verb|else if(j == 0) i++;| -- mismatch al inicio del patron: avanza unicamente en el texto.
+	\item \verb|else j = lps[j - 1];| -- mismatch parcial: retrocede el patron al mayor prefijo comun previo sin retroceder en el texto.
+	\item \verb|if(j == sz_pattern) { cnt++; j = lps[j - 1]; }| -- patron completamente encontrado: cuenta la ocurrencia y retrocede $j$ para admitir solapamientos.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{KMP + LPS}.
+
+\vspace{0.5em}

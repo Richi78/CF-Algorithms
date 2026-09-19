@@ -1,0 +1,90 @@
+\subsubsection{sqrt-decomposition generico}
+
+\paragraph{Idea intuitiva.}
+Dividir un arreglo de $n$ elementos en \textbf{bloques} disjuntos contiguos de tamano $B \approx \sqrt{n}$. Para cada bloque se mantiene una variable agregada con el resumen de sus elementos (suma, minimo, maximo, etc.). 
+
+Las consultas en rango $[l, r]$ se descomponen en tres partes:
+\begin{enumerate}\setlength\itemsep{0pt}
+	\item La cola del bloque izquierdo (elementos sueltos desde $l$ hasta el fin de su bloque).
+	\item Los bloques intermedios completos, cuyo valor precalculado se acumula en $O(1)$ por bloque.
+	\item La cabeza del bloque derecho (elementos sueltos desde el inicio de su bloque hasta $r$).
+\end{enumerate}
+Si $l$ y $r$ pertenecen al mismo bloque, se itera directamente entre ellos. Con $B \approx \sqrt{n}$, tanto la cantidad de bloques como el tamano de cada bloque es $O(\sqrt{n})$, garantizando que cualquier consulta o actualizacion tome tiempo $O(\sqrt{n})$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tamano de bloque: $B = \lfloor \sqrt{n} \rfloor + 1$, lo que garantiza $B^2 > n$.
+	\item Cantidad de bloques: $\lceil n / B \rceil \le B$.
+	\item El elemento en indice $i$ pertenece al bloque con indice $\lfloor i / B \rfloor$.
+	\item \texttt{bucket[b]}: resumen acumulado de todos los elementos pertenecientes al bloque $b$.
+	\item Toda consulta sobre $[l, r]$ inspecciona a lo sumo dos bloques parciales ($\le 2B$ elementos) y $O(n/B)$ bloques completos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Consulta por rango combinando bloques completos y elementos individuales:
+\begin{verbatim}
+T rangeSum(int l, int r) {
+    T res = 0;
+    int bl = l / B, br = r / B;
+    if (bl == br) {
+        for (int i = l; i <= r; ++i) res += a[i];
+    } else {
+        for (int i = l; i < (bl + 1) * B; ++i) res += a[i];
+        for (int i = bl + 1; i < br; ++i)     res += bucket[i];
+        for (int i = br * B; i <= r; ++i)     res += a[i];
+    }
+    return res;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n)$ calculando el resumen de cada bloque en una sola pasada.
+	\item \textbf{Actualizacion puntual}: $O(1)$ actualizando el elemento $a[p]$ y ajustando \verb|bucket[p / B]|.
+	\item \textbf{Consulta de rango}: $O(\sqrt{n})$ en el peor caso ($< 2B + n/B$ operaciones).
+	\item \textbf{Memoria}: $O(n)$ para el arreglo base y $O(\sqrt{n})$ para el arreglo de bloques.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Minimo / Maximo (RMQ)}: cambiar la operacion aditiva por \verb|std::min| o \verb|std::max|. Para actualizaciones puntuales en RMQ, si un valor se incrementa/reduce en contra del extremo, puede ser necesario recomputar el bloque completo en $O(B) = O(\sqrt{n})$.
+	\item \textbf{Actualizaciones en rango}: anadir un arreglo \verb|lazy[b]|. Los bloques completos hacen \verb|lazy[b] += val| en $O(1)$; los parciales se actualizan en $O(B)$.
+	\item \textbf{Balance de complejidad}: si hay muchas mas consultas que actualizaciones (o viceversa), fijar $B$ distinto de $\sqrt{n}$ para balancear los costos totales.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Mismo bloque}: olvidar el caso especial \verb|bl == br| provoca que los bucles de los extremos se solapen o que se acceda a rangos invertidos.
+	\item \textbf{Dimension del vector \texttt{bucket}}: reservar espacio para $\lceil n / B \rceil$ bloques (en GCC/C++: \verb|(n + B - 1) / B| o \verb|n / B + 1|). Con $B = \lfloor \sqrt{n} \rfloor + 1$, dimensionar en $B$ es suficiente pues $B^2 > n$, pero cambiar $B$ sin ajustar la dimension causara accesos fuera de rango (*Out of Bounds*).
+	\item \textbf{Limite superior del ultimo bloque}: en \verb|i < (bl + 1) * B|, si $(bl + 1) * B > n$ en el ultimo bloque parcial, asegurarse de no acceder a indices fuera de $[0, n - 1]$ (en consultas con $r < n$ la condicion $bl \ne br$ previene esto, pero ante rangos mal acotados puede ocurrir).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SqrtDecomp:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|template<class T> struct SqrtDecomp { ... };| -- estructura generica parametrizada por el tipo de dato.
+	\item \verb|int n, B;| -- tamano del arreglo y tamano elegido para cada bloque.
+	\item \verb|vector<T> a, bucket;| -- copia del arreglo original y arreglo de agregados por bloque.
+	\item \verb|SqrtDecomp(const vector<T>& v): a(v)| -- constructor: almacena el arreglo $v$.
+	\item \verb|B = (int)sqrt(n) + 1;| -- fija el tamano de bloque garantizando $B^2 > n$.
+	\item \verb|bucket.assign(B, 0);| -- inicializa los agregados de cada bloque en 0.
+	\item \verb|for(int i = 0; i < n; i++) bucket[i / B] += v[i];| -- precarga las sumas de cada bloque.
+	\item \verb|void pointUpdate(int p, T val)| -- actualiza puntualmente en $O(1)$: resta el valor viejo y suma el nuevo a su bloque.
+	\item \verb|T rangeSum(int l, int r)| -- responde la suma en el rango $[l, r]$ en tiempo $O(\sqrt{n})$.
+	\item \verb|if(bl == br)| -- si ambos extremos estan en el mismo bloque, recorre linealmente el subrango.
+	\item \verb|for(int i = l; i < (bl+1)*B; i++) res += a[i];| -- acumula los elementos sueltos del bloque izquierdo.
+	\item \verb|for(int i = bl + 1; i < br; i++) res += bucket[i];| -- suma los bloques completos intermedios de forma directa en $O(1)$ cada uno.
+	\item \verb|for(int i = br * B; i <= r; i++) res += a[i];| -- acumula los elementos sueltos del bloque derecho.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|SqrtDecomp<int> sd({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});| -- crea la estructura para un arreglo de 10 enteros.
+	\item \verb|sd.rangeSum(2, 7);| -- consulta la suma entre indices 2 y 7 inclusive (resultado 33).
+	\item \verb|sd.pointUpdate(4, 100);| -- cambia el elemento en posicion 4 a 100.
+	\item \verb|sd.rangeSum(2, 7);| -- recalcula la suma reflejando el cambio (resultado 128).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{sqrt-decomposition generico}.
+
+\vspace{0.5em}

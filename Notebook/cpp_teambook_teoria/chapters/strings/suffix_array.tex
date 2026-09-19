@@ -1,0 +1,86 @@
+\subsubsection{Suffix Array}
+
+\paragraph{Idea intuitiva.}
+El \textbf{Suffix Array} (Arreglo de Sufijos) $p$ de una cadena $S$ de longitud $n$ contiene los indices de inicio de todos los sufijos de $S$ ordenados lexicograficamente:
+\[
+S[p[0] \dots n-1] < S[p[1] \dots n-1] < \dots < S[p[n-1] \dots n-1]
+\]
+La tecnica de \textbf{doubling} (duplicacion de prefijos) construye el arreglo en $O(n \log n)$: en la iteracion $k$, los sufijos estan clasificados segun sus primeros $2^k$ caracteres. Para pasar a $2^{k+1}$, cada sufijo de longitud $2^{k+1}$ se interpreta como un par de clases de equivalencia de longitud $2^k$:
+\[
+\text{par}(i) = \left( c[i], \, c[(i + 2^k) \pmod n] \right)
+\]
+Como la segunda mitad ya esta ordenada en la permutacion previa, restar $2^k$ y aplicar un \textbf{counting sort} estable sobre la primera mitad ordena los pares completos en $O(n)$ por paso, repitiendo $\lceil \log_2 n \rceil$ veces.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{p[i]}: indice de inicio en $S$ del $i$-esimo sufijo en orden lexicografico.
+	\item \texttt{c[i]}: clase de equivalencia (rango normalizado) del sufijo que inicia en la posicion $i$. Si dos sufijos comparten los primeros $2^k$ caracteres, tienen el mismo valor $c$.
+	\item Busqueda binaria sobre el SA: cualquier subcadena $P$ aparece como prefijo de un rango contiguo $[first, last)$ en el arreglo de sufijos. Puede localizarse en $O(|P| \log n)$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Transicion de doubling $k \to k+1$ con ordenamiento por conteo:
+\begin{verbatim}
+while ((1 << k) < n) {
+    for (int i = 0; i < n; ++i)
+        p[i] = (p[i] - (1 << k) + n) % n;
+    count_sort(p, c);
+    vector<int> c_new(n);
+    c_new[p[0]] = 0;
+    for (int i = 1; i < n; ++i) {
+        pair<int, int> prev = {c[p[i - 1]], c[(p[i - 1] + (1 << k)) % n]};
+        pair<int, int> now  = {c[p[i]],     c[(p[i]     + (1 << k)) % n]};
+        c_new[p[i]] = c_new[p[i - 1]] + (now != prev);
+    }
+    c = c_new;
+    k++;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n \log n)$ en tiempo ($O(\log n)$ etapas con counting sort $O(n)$).
+	\item \textbf{Memoria}: $O(n)$ enteros para los arreglos $p$, $c$ y auxiliares.
+	\item \textbf{Busqueda de patron}: $O(|P| \log n)$ por busqueda binaria en el SA.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Multiples cadenas (Generalized Suffix Array)}: concatenar las cadenas separadas por caracteres delimitadores unicos y menores que cualquier caracter del alfabeto (ej. $S_1 + \text{'\$'} + S_2 + \text{'\#'}$).
+	\item \textbf{Contar subcadenas distintas}: complementado con el arreglo LCP (ver seccion LCP), la cantidad de subcadenas distintas es $\frac{n(n+1)}{2} - \sum \text{LCP}[i]$.
+	\item \textbf{$k$-esima subcadena lexicografica}: acumular las longitudes de los sufijos descontando los LCP adyacentes para saltar al bloque que contiene la $k$-esima subcadena.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Modulo circular \texttt{\% n}}: el algoritmo trata las cadenas como ciclicas para simplificar los limites; asegurar que el caracter delimitador final (si se agrega \verb|'$'|) sea lexicograficamente menor que todo el alfabeto para que los sufijos reales no se solapen con prefijos circulares.
+	\item \textbf{Counting sort estable}: el counting sort DEBE ser estable para preservar el orden de la segunda componente obtenido con la resta modular.
+	\item \textbf{Tamanos de alfabetos grandes}: en la etapa base ($k=0$), ordenar con \verb|std::sort| maneja cualquier valor ASCII sin necesidad de predimensionar un vector de frecuencias enorme.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SuffArr:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> p, c;| -- \verb|p| es el arreglo de sufijos (posiciones); \verb|c| son las clases de equivalencia.
+	\item \verb|SuffArr(string &a)| -- constructor: guarda la cadena, dimensiona vectores e invoca \verb|build()|.
+	\item \verb|void count_sort(vector<int> &p, vector<int> &c)| -- ordena los elementos de \verb|p| en $O(n)$ segun sus clases de equivalencia \verb|c| usando un arreglo de frecuencias y posiciones acumuladas.
+	\item \verb|vector<pair<int,int>> tmp(n);| -- etapa base ($k=0$): asocia cada caracter individual con su posicion original.
+	\item \verb|sort(all(tmp));| -- ordena los caracteres iniciales lexicograficamente.
+	\item \verb|c[p[i]] = c[p[i-1]] + (tmp[i].F != tmp[i-1].F);| -- asigna clases iniciales de 1 caracter.
+	\item \verb|p[i] = (p[i] - (1<<k) + n) % n;| -- desplaza cada indice hacia atras por $2^k$, quedando preordenados por su segunda mitad.
+	\item \verb|count_sort(p, c);| -- aplica ordenamiento por conteo sobre la primera mitad, completando el ordenamiento lexicografico de longitud $2^{k+1}$.
+	\item \verb|pair<int,int> now = {c[p[i]], c[(p[i]+(1<<k))%n]};| -- extrae el par de clases que define el bloque de tamano $2^{k+1}$.
+	\item \verb|c_new[p[i]] = c_new[p[i-1]] + (now != prev);| -- incrementa la clase de equivalencia si el par difiere del sufijo previo.
+\end{itemize}
+\textbf{Uso en main (Pattern Matching):}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|sa.s.compare(suf, p.size(), p) < 0;| -- comparador que contrasta el prefijo del sufijo contra el patron.
+	\item \verb|while(lo < hi) { ... }| -- primera busqueda binaria para hallar el extremo inferior del rango en el SA.
+	\item \verb|string pNext = p + "{";| -- anade un caracter lexicograficamente mayor que todo el alfabeto para encontrar el extremo superior en una segunda busqueda binaria.
+	\item \verb|int last - first;| -- cantidad exacta de apariciones del patron en el texto.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Suffix Array}.
+
+\vspace{0.5em}

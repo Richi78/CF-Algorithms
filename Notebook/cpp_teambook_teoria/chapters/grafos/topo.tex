@@ -1,0 +1,58 @@
+﻿\subsubsection{Topological sort (Kahn + DFS)}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{orden topologico} de un DAG es una permutacion de los vertices tal que toda arista $u \to v$ tiene $u$ antes que $v$. Dos algoritmos clasicos:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Kahn}: BFS sobre nodos con \texttt{indeg == 0}; al ``consumir'' un nodo, decrementar el indeg de sus vecinos; los que lleguen a 0 se encolan.
+	\item \textbf{DFS}: hacer DFS; al terminar un nodo (estado = 2), aniadirlo al final; el orden es el reverso.
+\end{itemize}
+La demostracion: en un DAG siempre hay al menos un nodo con indeg 0; quitarlo mantiene el DAG; por induccion, se obtiene el orden.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Existe sii el grafo es un DAG.
+	\item Si al final \texttt{order.size() < V}, hay un ciclo.
+	\item Kahn da el orden ``natural'' (los que pueden ir primero); DFS da el orden ``al reves'' (los que pueden ir al final primero).
+	\item La cantidad de ordenes topologicos puede ser exponencial.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Kahn con priority queue (orden lexicografico):
+\begin{verbatim}
+priority_queue<int, vector<int>, greater<int>> pq;
+for (int v = 0; v < n; ++v) if (indeg[v] == 0) pq.push(v);
+while (!pq.empty()) {
+    int v = pq.top(); pq.pop();
+    order.push_back(v);
+    for (int u : adj[v]) {
+        if (--indeg[u] == 0) pq.push(u);
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$ ambos.
+	\item Con priority queue, $O((V + E) \log V)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Detectar ciclos}: comparar \texttt{order.size()} con \texttt{V}.
+	\item \textbf{Orden lexicografico minimo}: usar priority queue en Kahn.
+	\item \textbf{Topological sort con pesos}: combinar con shortest path en DAG (un solo pase en orden topologico).
+	\item \textbf{Encontrar todos los ordenes}: DP sobre subsets (solo para $V$ pequeno).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item En el snippet, Kahn retorna orden vacio si hay ciclo (util para detectar).
+	\item En DFS, no olvidar \texttt{reverse(order)}.
+	\item Confundir indeg con outdeg; el orden Kahn quita primero los nodos ``fuente''.
+	\item Para grafos no DAG, el algoritmo termina con \texttt{order.size() < V}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Topological sort (Kahn + DFS)}.
+
+\vspace{0.5em}

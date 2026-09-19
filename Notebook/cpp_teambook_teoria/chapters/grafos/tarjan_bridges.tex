@@ -1,0 +1,56 @@
+﻿\subsubsection{Tarjan (puentes)}
+
+\paragraph{Idea intuitiva.}
+Encuentra los \textbf{puentes} (bridges): aristas cuya remocion \textbf{desconecta} el grafo. Usa un solo DFS manteniendo \texttt{tin[v]} (tiempo de descubrimiento) y \texttt{low[v]} (el menor \texttt{tin} alcanzable desde $v$ via back-edges). Una arista $v - u$ es puente si $low[u] > tin[v]$. La demostracion: si $low[u] > tin[v]$, entonces $u$ (y su subarbol) no pueden ``escapar'' de $v$; quitar la arista $v - u$ parte el grafo.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{low[v] = min(tin[v], tin[w])} para todo back-edge $(v, w)$, y \texttt{min(low[u])} para hijos en el DFS.
+	\item Solo se consideran las aristas del \textbf{arbol DFS} (no back-edges) para \texttt{low}.
+	\item Cada nodo tiene exactamente un \texttt{tin}; cada back-edge se procesa una vez.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El DFS de Tarjan para bridges:
+\begin{verbatim}
+void dfs(int v, int pEdge) {
+    used[v] = true;
+    tin[v] = low[v] = timer++;
+    for (auto [u, id] : adj[v]) {
+        if (id == pEdge) continue;  // no contar el edge al padre
+        if (used[u]) {
+            low[v] = min(low[v], tin[u]);  // back-edge
+        } else {
+            dfs(u, id);
+            low[v] = min(low[v], low[u]);
+            if (low[u] > tin[v]) bridges.push_back(id);  // es puente
+        }
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Una sola pasada de DFS.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Bridge tree}: contractar cada 2-edge-connected component a un nodo; el resultado es un arbol.
+	\item \textbf{Articulation points}: variante con condicion diferente (ver el siguiente modulo).
+	\item \textbf{Grafo no dirigido}: solo funciona en no dirigidos; en dirigidos hay conceptos analogos (strong bridges, dominator tree).
+	\item \textbf{Reconstruir componentes 2-edge-connected}: BFS desde cada nodo excluyendo bridges.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item No confundir el parent con un back-edge al padre; chequear \texttt{if (adjN == parent) continue;} y contar solo las veces que se ``visita'' como hijo.
+	\item Para multigrafos, los edges deben tener IDs unicos para distinguirlos.
+	\item Si el grafo no es conexo, aniadir loop externo sobre todos los nodos.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Tarjan (puentes)}.
+
+\vspace{0.5em}

@@ -1,0 +1,84 @@
+\subsubsection{Lyndon factorization (Duval)}
+
+\paragraph{Idea intuitiva.}
+Una palabra o cadena de \textbf{Lyndon} es una cadena no vacia que es estrictamente menor lexicograficamente que todos sus sufijos propios (lo que equivale a ser estrictamente menor que todas sus rotaciones no triviales).
+
+El \textbf{Teorema de Chen-Fox-Lyndon} establece que toda cadena $S$ admite una \textbf{factorizacion unica} como concatenacion de palabras de Lyndon no crecientes:
+\[
+S = w_1 w_2 \dots w_k \quad \text{con } w_1 \ge w_2 \ge \dots \ge w_k \text{ en orden lexicografico}
+\]
+El algoritmo de \textbf{Duval} encuentra esta factorizacion en tiempo lineal $O(n)$ y memoria auxiliar $O(1)$ manteniendo tres punteros: $i$ (inicio de la factorizacion pendiente), $j$ (puntero de coincidencia periodica) y $k$ (explorador hacia adelante). Mantiene la invariante de que la subcadena $S[i \dots k-1]$ es pre-Lyndon (de la forma $u^p v$ donde $u$ es una palabra de Lyndon y $v$ es un prefijo propio de $u$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Unicidad: la descomposicion en palabras de Lyndon no crecientes existe y es unica para cualquier cadena.
+	\item La subcadena $S[i \dots k-1]$ se mantiene como $u^p v$:
+	\begin{itemize}\setlength\itemsep{0pt}
+		\item Si $S[k] == S[j]$: el periodo se extiende; se incrementa $j$ y $k$.
+		\item Si $S[k] > S[j]$: la periodicidad se rompe favorablemente, fusionando todo en una palabra de Lyndon mas larga; se reinicia $j = i$.
+		\item Si $S[k] < S[j]$ o fin de cadena ($k == n$): se extraen $p$ copias completas de la palabra de Lyndon $u$ de longitud $\text{len} = k - j$, avanzando $i$.
+	\end{itemize}
+	\item Rotacion minima lexicografica: ejecutando Duval sobre $S + S$, el inicio del factor de Lyndon que sobrepasa o alcanza la posicion $n$ senala el punto de partida de la \textbf{menor rotacion ciclica} de $S$ en $O(n)$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Algoritmo de Duval para extraer los cortes de la factorizacion:
+\begin{verbatim}
+vector<int> cuts;
+int i = 0;
+while (i < n) {
+    int j = i, k = i + 1;
+    while (k < n && s[j] <= s[k]) {
+        if (s[j] < s[k]) j = i;
+        else j++;
+        k++;
+    }
+    int len = k - j;
+    while (i <= j) {
+        cuts.push_back(i + len - 1);
+        i += len;
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Tiempo}: $O(n)$ estricto (cada caracter se inspecciona como maximo dos veces: una durante la extension y otra al avanzar $i$).
+	\item \textbf{Memoria}: $O(1)$ auxiliar (ademas del vector de cortes de retorno).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Minima rotacion ciclica}: ejecutar Duval sobre $T = S + S$. El indice $i$ al inicio del factor que cruza $n$ corresponde al punto de partida de la rotacion minima en $O(n)$.
+	\item \textbf{Obtener los factores explicitos}: en lugar de almacenar unicamente el indice final (\verb|i + len - 1|), extraer la subcadena con \verb|s.substr(i, len)|.
+	\item \textbf{Maxima rotacion ciclica}: invertir el comparador de orden lexicografico ($s[j] \ge s[k]$).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Condicion de corte \texttt{i <= j}}: el bucle de confirmacion de factores debe iterar mientras $i \le j$ y avanzar $i \mathrel{+}= \text{len}$, extrayendo todos los periodos completos $u$ antes de reanudar el analisis con el resto $v$.
+	\item \textbf{Longitud del periodo}: el periodo de la palabra pre-Lyndon se calcula como $\text{len} = k - j$ (la distancia entre el explorador y el seguidor del prefijo).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion lyndonFactorization:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int n = s.size(); vector<int> cuts;| -- almacena los indices finales de cada factor de Lyndon.
+	\item \verb|int i = 0;| -- \verb|i| marca el inicio del proximo sufijo aun no descompuesto.
+	\item \verb|int j = i, k = i + 1;| -- \verb|j| recorre el prefijo de referencia y \verb|k| explora caracteres hacia adelante.
+	\item \verb|while(k < n && s[j] <= s[k])| -- mientras la cadena se mantenga no decreciente periodicamente.
+	\item \verb|if(s[j] < s[k]) j = i;| -- caracter mayor que el periodo: fusiona todo en un nuevo y mas largo factor de Lyndon, reiniciando la referencia a $i$.
+	\item \verb|else j++;| -- caracter identico: extiende la periodicidad de la palabra pre-Lyndon.
+	\item \verb|k++;| -- avanza el puntero explorador.
+	\item \verb|int len = k - j;| -- calcula la longitud del factor irreducible $u$.
+	\item \verb|while(i <= j) { cuts.push_back(i + len - 1); i += len; }| -- extrae cada repeticion completa del factor $u$ y actualiza $i$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|auto cuts = lyndonFactorization("ababa");| -- para ``ababa'', los factores son ``ab'', ``ab'', ``a'', guardando los cortes en 0, 2 y 4 (o en sus extremos correspondientes).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Lyndon factorization (Duval)}.
+
+\vspace{0.5em}

@@ -1,0 +1,104 @@
+\subsubsection{Suffix Automaton}
+
+\paragraph{Idea intuitiva.}
+El \textbf{Autómata de Sufijos} (Suffix Automaton o SAM) es el autómata determinista finito (DFA) mínimo que reconoce todas las subcadenas (y en particular todos los sufijos) de una cadena $S$ de longitud $n$. Posee la propiedad excepcional de requerir a lo sumo $2n - 1$ estados y a lo sumo $3n - 4$ transiciones para $n \ge 2$.
+
+Cada estado del SAM representa una clase de equivalencia de subcadenas que comparten exactamente el mismo conjunto de posiciones finales de aparicion (\textbf{endpos}). Para cada estado $v$:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Las subcadenas de la clase tienen longitudes contiguas en el intervalo $(\text{len}[\text{link}[v]], \, \text{len}[v]]$.
+	\item La cantidad de subcadenas distintas representadas por el estado $v$ es exactamente $\text{len}[v] - \text{len}[\text{link}[v]]$.
+	\item El \textbf{suffix link} (\verb|link[v]|) apunta al estado que contiene el sufijo propio mas largo que pertenece a un conjunto estrictamente mayor de posiciones finales. Los suffix links forman un arbol (*link tree*) correspondiente al arbol de sufijos de la cadena invertida.
+\end{itemize}
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{len[v]}: longitud de la subcadena mas larga que llega al estado $v$.
+	\item \texttt{link[v]}: enlace de sufijo hacia la clase con el conjunto \textit{endpos} inmediatamente mas amplio.
+	\item \texttt{occ[v]}: cantidad de veces que aparecen las subcadenas de esta clase en el texto original.
+	\item Al anadir un caracter mediante \verb|extend(c)|, se anade a lo sumo 1 estado original y a lo sumo 1 estado clon, preservando la cota lineal $O(n)$ en tiempo y espacio.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Paso de extension incremental del autómata:
+\begin{verbatim}
+void extend(char c) {
+    int k = c - 'a', cur = st.size(), p = last;
+    st.push_back(State());
+    st[cur].len = st[last].len + 1;
+    st[cur].occ = 1;
+    while (p != -1 && st[p].next[k] == -1) {
+        st[p].next[k] = cur;
+        p = st[p].link;
+    }
+    if (p == -1) {
+        st[cur].link = 0;
+    } else {
+        int q = st[p].next[k];
+        if (st[p].len + 1 == st[q].len) {
+            st[cur].link = q;
+        } else {
+            int clone = st.size();
+            st.push_back(st[q]);
+            st[clone].len = st[p].len + 1;
+            st[clone].occ = 0;
+            while (p != -1 && st[p].next[k] == q) {
+                st[p].next[k] = clone;
+                p = st[p].link;
+            }
+            st[q].link = st[cur].link = clone;
+        }
+    }
+    last = cur;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n \cdot \Sigma)$ en tiempo con transiciones en arreglo fijo de tamano $\Sigma = 26$.
+	\item \textbf{Memoria}: $O(n \cdot \Sigma)$ ya que hay a lo sumo $2n$ estados.
+	\item \textbf{Consultas}: $O(|P|)$ para verificar si un patron $P$ es subcadena y contar sus apariciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Contar subcadenas distintas}: sumar $\text{len}[v] - \text{len}[\text{link}[v]]$ para todos los estados $v > 0$.
+	\item \textbf{Frecuencia de aparicion de un patron}: recorrer el autómata con los caracteres de $P$; si se alcanza un estado $v$, la respuesta es $\text{occ}[v]$ (precalculada propagando por orden decreciente de longitud).
+	\item \textbf{Subcadena comun mas larga de dos cadenas (LCS)}: procesar la segunda cadena manteniendo el estado actual y la longitud coincidente, retrocediendo por \verb|link| cuando no haya transicion.
+	\item \textbf{$k$-esima subcadena lexicografica}: calcular con DP en el DAG el numero de caminos desde cada nodo y hacer un recorrido greedy.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Capacidad reservada}: dimensionar el vector de estados con \verb|st.reserve(2 * maxLen)|; subestimar la memoria provocara realocaciones costosas.
+	\item \textbf{Ocurrencias del clon}: el estado \verb|clone| solo divide clases de equivalencia, por lo que inicia con \verb|st[clone].occ = 0|. Asignarle 1 sobrecontara apariciones.
+	\item \textbf{Orden topologico}: para propagar \verb|occ| o resolver DP, se puede ordenar los estados por \verb|len| decreciente (o usar counting sort en $O(V)$) en lugar de un DFS topologico general.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura State:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int next[26]; int link, len; long long occ;| -- almacena las 26 transiciones, el enlace de sufijo, la longitud maxima y el conteo de apariciones del estado.
+	\item \verb|fill(begin(next), end(next), -1); link = -1; len = 0; occ = 0;| -- inicializa el estado como nodo aislado.
+\end{itemize}
+\textbf{Metodo extend:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|st[cur].len = st[last].len + 1; st[cur].occ = 1;| -- crea el nuevo estado para el prefijo extendido con longitud incrementada.
+	\item \verb|while(p != -1 && st[p].next[k] == -1) { st[p].next[k] = cur; p = st[p].link; }| -- redirige todos los sufijos que no tenian transicion por $c$ hacia el nuevo estado.
+	\item \verb|if(p == -1) st[cur].link = 0;| -- si ningun sufijo tenia transicion por $c$, el enlace de sufijo apunta a la raiz (0).
+	\item \verb|if(st[p].len + 1 == st[q].len) st[cur].link = q;| -- transicion continua: la clase de $q$ no necesita dividirse.
+	\item \verb|int clone = st.size(); st.push_back(st[q]);| -- transicion discontinua: clona $q$ para separar las subcadenas que extienden a $p$.
+	\item \verb|st[clone].len = st[p].len + 1; st[clone].occ = 0;| -- el clon asume longitud ajustada y conteo 0.
+	\item \verb|while(p != -1 && st[p].next[k] == q) ...| -- redirige hacia el clon las transiciones que antes apuntaban a $q$.
+	\item \verb|st[q].link = st[cur].link = clone;| -- tanto $q$ como el nuevo estado $cur$ enlazan al estado clonado.
+\end{itemize}
+\textbf{Metodos build, countDistinct y longestCommonSubstring:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|sort(order.begin(), order.end(), ...)| -- ordena estados por longitud descendente para propagar ocurrencias de hijos a padres en el arbol de links.
+	\item \verb|ans += st[i].len - st[st[i].link].len;| -- suma las longitudes de subcadenas unicas generadas por cada estado.
+	\item \verb|while(v != 0 && st[v].next[k] == -1) { v = st[v].link; l = st[v].len; }| -- en caso de discordancia al buscar LCS, retrocede por el link ajustando la longitud coincidente.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Suffix Automaton}.
+
+\vspace{0.5em}

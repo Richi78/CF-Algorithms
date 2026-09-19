@@ -1,0 +1,62 @@
+﻿\subsubsection{Interseccion de segmentos}
+
+\paragraph{Idea intuitiva.}
+Dados dos segmentos $[a, b]$ y $[c, d]$, determinar si se intersectan. La idea clasica:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Verificar orientaciones: $a, b, c$ y $a, b, d$ deben estar en lados opuestos de la recta $ab$; igual para $cd$ y $ab$.
+	\item Caso colineal: si las rectas son paralelas (\texttt{cross} $= 0$) y los segmentos son colineales, verificar que los bounding boxes se intersectan.
+\end{itemize}
+La demostracion: dos segmentos se intersectan sii cada segmento ``cruza'' la linea que contiene al otro (estricto) o ambos son colineales con solapamiento.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Funciona con segmentos en cualquier orientacion.
+	\item Caso colineal: requiere check adicional de bounding box.
+	\item Para intersectar en un \textbf{punto} especifico: aniadir division con cuidado de precision.
+	\item Funciona con segmentos verticales/horizontales sin casos especiales.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Test clasico de interseccion:
+\begin{verbatim}
+int sign(long long x) { return (x > 0) - (x < 0); }
+bool intersect(Point a, Point b, Point c, Point d) {
+    long long o1 = cross(b - a, c - a);
+    long long o2 = cross(b - a, d - a);
+    long long o3 = cross(d - c, a - c);
+    long long o4 = cross(d - c, b - c);
+    if (sign(o1) != sign(o2) && sign(o3) != sign(o4)) return true;
+    // casos colineales
+    if (o1 == 0 && onSegment(a, b, c)) return true;
+    if (o2 == 0 && onSegment(a, b, d)) return true;
+    if (o3 == 0 && onSegment(c, d, a)) return true;
+    if (o4 == 0 && onSegment(c, d, b)) return true;
+    return false;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$.
+	\item Constante pequena.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Interseccion con punto}: aniadir la division despues de verificar orientacion.
+	\item \textbf{Interseccion rayo-segmento}: ajustar la primera condicion.
+	\item \textbf{Poligonos convexos}: usar separacion de ejes (SAT).
+	\item \textbf{Multiples queries}: precomputar bounding boxes o usar segment tree.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los segmentos tocan solo en un extremo, el snippet lo considera interseccion (algunos problemas quieren estricto). Ajustar segun el problema.
+	\item El caso colineal es comun; olvidar el check adicional de bounding box da falsos negativos.
+	\item En problemas con muchos segmentos, considerar sweep line para $O(n \log n)$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Interseccion de segmentos}.
+
+\vspace{0.5em}

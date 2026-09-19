@@ -1,0 +1,75 @@
+﻿\subsubsection{Criba lineal}
+
+\paragraph{Idea intuitiva.}
+La criba de Eratostenes marca cada compuesto varias veces (por ejemplo $12$ se marca por $2$, por $3$ y por $4$). La criba lineal asegura que \textbf{cada compuesto se marca exactamente una vez}, lo cual da $O(N)$ total. La idea: para cada $i$, iterar sobre los primos $p$ en orden creciente y poner $lp[i \cdot p] = p$, \textbf{cortando} el bucle cuando $p = lp[i]$ (asi $i \cdot p$ queda con su factor primo mas chico como $p$). La prueba de $O(N)$: el bucle interno suma trabajo proporcional al numero de primos que \textbf{no} cortan, y solo se corta cuando $p \mid i$; la suma total sobre todos los $i$ es exactamente $N$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{lp[i]} = menor factor primo de $i$ (con \texttt{lp[0] = lp[1] = 0}).
+	\item Cada $i$ tiene asignado exactamente un primo que ``lo cierra''.
+	\item Recorriendo $i$ en orden creciente, cuando entramos a $i$, todos sus primos menores ya estan en \texttt{primes}.
+	\item La condicion de corte \texttt{p == lp[i]} garantiza que $i \cdot p$ tiene \texttt{lp} minimo.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La criba lineal en su forma esencial:
+\begin{verbatim}
+vector<int> lp(n + 1), primes;
+for (int i = 2; i <= n; ++i) {
+    if (!lp[i]) { lp[i] = i; primes.push_back(i); }
+    for (int p : primes) {
+        if (p > lp[i] || (long long)i * p > n) break;
+        lp[i * p] = p;
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tiempo $O(N)$ exacto, memoria $O(N)$.
+	\item En la practica, $\sim$2x mas rapido que la criba clasica para $N \ge 10^6$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Factorizacion de un numero $n$}: usando \texttt{lp}, iterar \texttt{while (n > 1) \{ p = lp[n]; ...; n /= p; \}} en $O(\log n)$.
+	\item \textbf{Cantidad de divisores para todos los $i \le N$}: aniadir \texttt{cntDiv[i] = cntDiv[i/lp[i]] + 1} durante la criba.
+	\item \textbf{Suma de divisores o totient por $i$}: igual, precomputar en el mismo pase.
+	\item \textbf{Aniadir mobius}: \texttt{mu[1] = 1; mu[i*p] = (p == lp[i]) ? 0 : -mu[i];}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La condicion \texttt{if (p == lp[i]) break;} es \textbf{crucial}; sin ella la criba vuelve a ser $O(N \log \log N)$.
+	\item Overflow: chequear \texttt{1LL * i * p > n} antes de asignar.
+	\item Si \texttt{lp[i] == 0} (i es primo), la condicion \texttt{p > lp[i]} es \texttt{p > i}, lo que tambien detiene el bucle correctamente.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{linearSieve}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> lp;| -- arreglo global del menor factor primo (\textit{lowest prime}) de cada $i$.
+	\item \verb|vector<int> primes;| -- lista de primos encontrados en orden creciente.
+	\item \verb|void linearSieve(int n)| -- llena \verb|lp[i]| y \texttt{primes} para todo $i \le n$.
+	\item \verb|lp.assign(n + 1, 0);| -- inicializa todos los menores primos en $0$.
+	\item \verb|primes.clear();| -- vacia la lista de primos.
+	\item \verb|for(int i=2 ; i<=n ; i++)| -- itera sobre cada entero desde $2$.
+	\item \verb|if(lp[i] == 0)| -- si $i$ no fue marcado, es primo.
+	\item \verb|lp[i] = i; primes.push_back(i);| -- registra el primo en ambas estructuras.
+	\item \verb|for(int p : primes)| -- bucle interno sobre primos conocidos.
+	\item \verb|long long v = 1LL * i * p;| -- calcula el producto $i \cdot p$ en \verb|long long| para evitar overflow.
+	\item \verb|if(v > n) break;| -- si excede $n$, no procesamos mas.
+	\item \verb|lp[v] = p;| -- marca el menor primo de $i \cdot p$ como $p$.
+	\item \verb|if(p == lp[i]) break;| -- condicion crucial: detiene cuando $p$ divide a $i$, garantizando $O(N)$ total.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|linearSieve(100);| -- precomputa hasta $n=100$.
+	\item \verb|cout << "lp[12] = " << lp[12] << "\textbackslash n";| -- imprime el menor primo de $12 = 2$.
+	\item \verb|cout << "#primes <= 100: " << primes.size() << "\textbackslash n";| -- imprime el conteo de primos ($\le 100$ son $25$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Criba lineal}.
+
+\vspace{0.5em|||}

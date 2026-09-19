@@ -1,0 +1,51 @@
+﻿\subsubsection{Bellman-Ford}
+
+\paragraph{Idea intuitiva.}
+Encuentra shortest path desde $s$ incluso con \textbf{pesos negativos} en $O(VE)$. La idea: relajar todas las aristas $V - 1$ veces. Cada relajacion propaga la mejor distancia a ``un paso mas''. Despues de $V - 1$ pasadas, si alguna arista aun se puede relajar, hay un \textbf{ciclo negativo} alcanzable. La demostracion: el camino mas corto tiene a lo sumo $V - 1$ aristas (sin ciclos); tras $V - 1$ relajaciones todas las distancias estan en su valor optimo.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Funciona con pesos negativos (sin ciclos negativos).
+	\item Tras $V - 1$ relajaciones, las distancias son definitivas (si no hay ciclo negativo).
+	\item Una relajacion adicional detecta ciclos negativos: si \texttt{dist[u] + w < dist[v]}, hay ciclo negativo alcanzable desde $s$.
+	\item Cada relajacion solo mejora distancias, asi que termina (no oscila).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El doble bucle de relajacion:
+\begin{verbatim}
+for (int i = 0; i < n - 1; ++i)
+    for (auto [u, v, w] : edges)
+        if (dist[u] + w < dist[v])
+            dist[v] = dist[u] + w;
+// Detectar ciclo negativo
+for (auto [u, v, w] : edges)
+    if (dist[u] + w < dist[v]) { /* ciclo negativo */ }
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(VE)$.
+	\item SPFA (con cola) en promedio es mucho mas rapido, peor caso igual.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{SPFA}: optimizacion que relaja solo nodos cuya distancia cambio; en el peor caso sigue siendo $O(VE)$.
+	\item \textbf{Detectar ciclo negativo global}: ejecutar Bellman-Ford desde un super-origen conectado a todos.
+	\item \textbf{Camino mas corto con K aristas exactas}: $K$ iteraciones de Bellman-Ford.
+	\item \textbf{Johnson's}: reescalar pesos con potentials para usar Dijkstra.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Overflow si los pesos son $\ge 2^{52}$; usar \texttt{long long} y \texttt{\_\_int128} si hace falta.
+	\item Si el grafo es denso ($E \approx V^2$), $O(VE)$ es prohibitivo.
+	\item El chequeo de ciclo negativo debe hacerse tras las $V - 1$ iteraciones, no durante.
+	\item Distancias no inicializadas a \texttt{INF}; el primer nodo (source) tiene distancia 0.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Bellman-Ford}.
+
+\vspace{0.5em}

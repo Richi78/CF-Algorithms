@@ -1,0 +1,90 @@
+﻿\subsubsection{DSU con rollback}
+
+\paragraph{Idea intuitiva.}
+Variante del DSU donde cada \texttt{unite} \textbf{se puede deshacer} en orden LIFO. La idea: en vez de path compression (que es irreversible), solo se usa union by size. Cada \texttt{unite} guarda un par \texttt{(parent\_changed, old\_size)} en una pila. \texttt{rollback()} desapila hasta el ultimo ``snapshot'' (marcador) restaurando los valores. La razon: path compression modifica la estructura de multiples nodos, no solo uno, asi que es dificil de deshacer; union by size solo modifica dos nodos (el padre del menor y su tamano), asi que es trivial deshacer.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Sin path compression}: cada \texttt{find} es $O(\log n)$ (peor caso del union by size) en el peor caso, pero amortizado $O(\log n)$.
+	\item \textbf{Snapshots}: \texttt{snapshot()} marca un punto; \texttt{rollback()} deshace hasta ahi.
+	\item Cada \texttt{unite} exitoso apila \textbf{dos} pares (uno por cada cambio).
+	\item La pila de historial crece monotona; \texttt{rollback} la reduce.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El unite con guardado de historial:
+\begin{verbatim}
+void unite(int a, int b) {
+    a = find(a); b = find(b);
+    if (a == b) { history.push({-1, -1}); return; }
+    if (size[a] < size[b]) swap(a, b);
+    history.push({b, size[a]});
+    parent[b] = a;
+    size[a] += size[b];
+    components--;
+}
+void rollback() {
+    auto [b, sz] = history.top(); history.pop();
+    if (b == -1) return;
+    size[parent[b]] = sz;
+    parent[b] = b;
+    components++;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log n)$ por \texttt{unite}/\texttt{find}, $O(1)$ por rollback de una operacion.
+	\item Sin path compression: peor caso $O(\log n)$ por find.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Rollback parcial} (no todo): implementar snapshots parciales guardando el tamano del historial.
+	\item \textbf{Mas informacion por conjunto}: aniadir mas campos al struct y guardarlos en \texttt{history}.
+	\item \textbf{Persistente}: aniadir versionado completo (clonar el struct en cada cambio).
+	\item \textbf{DSU de Arpa}: variante con $O(\log n)$ amortizado y rollback en $O(1)$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet guarda dos pares por \texttt{unite}; al rollback \textbf{desapilar en orden correcto} (no invertir).
+	\item Olvidar el \texttt{components--} en \texttt{unite} o el \texttt{components++} en rollback deja el contador mal.
+	\item El sentinela \texttt{\{-1, -1\}} indica un unite trivial; importante para mantener consistencia.
+	\item \texttt{find} puede ser $O(\log n)$ peor caso sin path compression; verificar que es OK para el problema.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura DSUrb:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct DSUrb{}| -- DSU con rollback.
+	\item \verb|vector<int> parent, sz;\}| -- padre y tamano.
+	\item \texttt{vector<pair<int,int>> history;} -- pila de operaciones: (nodo modificado, valor anterior).
+	\item \texttt{int components;} -- contador de componentes conexas.
+	\item \texttt{DSUrb(int n){...}} -- constructor: \texttt{n} elementos, cada uno su propio set.
+	\item \texttt{iota(parent.begin(), parent.end(), 0);} -- llena \texttt{parent} con $0, 1, \dots, n-1$.
+	\item \texttt{int find(int v){ while(v != parent[v]) v = parent[v]; return v; }} -- find sin path compression (para rollback).
+	\item \texttt{bool unite(int a, int b){...}} -- une \texttt{a} y \texttt{b}.
+	\item \texttt{a = find(a); b = find(b);} -- encuentra raices.
+	\item \texttt{if(a == b) return false;} -- ya estan unidos.
+	\item \texttt{if(sz[a] > sz[b]) swap(a, b);} -- asegura \texttt{sz[a] <= sz[b]}.
+	\item \texttt{history.push\_back({a, sz[a]}); history.push\_back({b, sz[b]});} -- guarda estado anterior.
+	\item \texttt{parent[a] = b; sz[b] += sz[a]; components--;} -- une y decrementa contador.
+	\item \texttt{return true;} -- indica que se unieron.
+	\item \texttt{void snapshot(){ history.push\_back({-1, -1}); }} -- marca un punto de rollback.
+	\item \texttt{void rollback(){...}} -- deshace hasta el ultimo snapshot.
+	\item \texttt{while(history.back().first != -1){...}} -- procesa entradas hasta el marcador.
+	\item \texttt{parent[v] = v; sz[w] = sO; components++;} -- restaura los valores.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{DSUrb d(5);} -- DSU con 5 elementos.
+	\item \texttt{d.unite(0,1); d.unite(1,2);} -- une 0,1,2.
+	\item \texttt{cout << d.components << "\textbackslash n";} -- imprime 3 (quedan {0,1,2}, {3}, {4}).
+	\item \texttt{d.rollback();} -- deshace las uniones.
+	\item \texttt{cout << d.components << "\textbackslash n";} -- imprime 5 (estado original).
+\end{itemize}
+|\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{DSU con rollback}.
+
+\vspace{0.5em|||}

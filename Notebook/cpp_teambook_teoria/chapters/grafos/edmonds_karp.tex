@@ -1,0 +1,53 @@
+﻿\subsubsection{Edmonds-Karp (max flow)}
+
+\paragraph{Idea intuitiva.}
+Implementacion BFS del algoritmo de \textbf{Ford-Fulkerson}. En cada iteracion, hacer BFS desde $s$ hasta $t$ siguiendo aristas con capacidad residual $> 0$; si se llega a $t$, se encontro un \textbf{camino de aumento}. Enviar el minimo de las capacidades en el camino; actualizar capacidades residuales. La demostracion de $O(VE^2)$: cada BFS encuentra el augmenting path mas corto, y la longitud minima crece monotona; como hay $\le E$ longitudes posibles, hay $\le E$ fases.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item BFS garantiza caminos de aumento mas cortos.
+	\item Capacidad residual: forward edge baja, backward edge sube.
+	\item Complejidad $O(VE^2)$.
+	\item El flujo maximo respeta la conservacion en nodos (in = out salvo $s, t$).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+BFS + augmenting path:
+\begin{verbatim}
+while (bfs(s, t, parent)) {  // bfs encuentra camino o retorna false
+    int pathFlow = INF;
+    for (int v = t; v != s; v = parent[v])
+        pathFlow = min(pathFlow, capacity[parent[v]][v]);
+    for (int v = t; v != s; v = parent[v]) {
+        capacity[parent[v]][v] -= pathFlow;
+        capacity[v][parent[v]] += pathFlow;
+    }
+    maxFlow += pathFlow;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(VE^2)$.
+	\item En la practica, mas lento que Dinic para grafos grandes.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Grafo bipartito}: $O(\sqrt{V} E)$ (equivalente a Hopcroft-Karp).
+	\item \textbf{Dinic} es preferible en la mayoria de los casos.
+	\item \textbf{Capacidades doubles}: usar tolerancia para comparacion.
+	\item \textbf{Min-cost flow}: aniadir costo por arista y modificar el algoritmo.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Las capacidades deben ser $> 0$ para entrar a la cola (no $>= 0$); sino, ciclos infinitos.
+	\item Para grafos bipartitos, Dinic o Hopcroft-Karp son mejores.
+	\item Si el flujo maximo es muy grande, los \texttt{int} pueden overflow; usar \texttt{long long}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Edmonds-Karp (max flow)}.
+
+\vspace{0.5em}

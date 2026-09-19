@@ -1,0 +1,39 @@
+﻿\subsubsection{Closest pair of points}
+
+\paragraph{Idea intuitiva.}
+Encuentra el par de puntos mas cercano en $O(n \log n)$ con \textbf{divide y venceras}. Algoritmo:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Sort por $x$.
+	\item Dividir en mitades; recursivo.
+	\item Combinar: dado el minimo $d$ de las dos mitades, strip = puntos en $[midX - d, midX + d]$; ordenar por $y$; cada punto solo se compara con los siguientes hasta $y$ difiera en $< d$ (maximo 7).
+\end{itemize}
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Requiere ordenar por $y$ despues (en el snippet se hace durante el merge).
+	\item Strip tiene a lo sumo $O(n)$ puntos en total, pero la comparacion es $O(1)$ amortizada por punto.
+	\item Resultado en \texttt{double}.
+\end{itemize}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n \log n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir el par}: aniadir indices en la recursion.
+	\item \textbf{Distancia maxima}: cambiar \texttt{min} por \texttt{max} (mas facil; no requiere D\&C).
+	\item \textbf{Puntos duplicados}: aniadir check especial (distancia 0).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El merge requiere ordenar por $y$; el snippet lo hace in-place con un \texttt{tmp}.
+	\item Si se hace en cada recursion, es $O(n \log n)$ extra.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Closest pair of points}.
+
+\vspace{0.5em}

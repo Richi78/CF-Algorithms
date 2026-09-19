@@ -1,0 +1,72 @@
+﻿\subsubsection{Sprague-Grundy template}
+
+\paragraph{Idea intuitiva.}
+Para juegos \textbf{imparciales} (ambos jugadores tienen los mismos movimientos), el teorema de Sprague-Grundy dice que cada posicion tiene un numero (el \textbf{Grundy} o \textbf{mex}) y la posicion es \textbf{ganadora} para el jugador actual sii el XOR de los Grundy de los componentes es no cero. El \textbf{mex} (``minimum excludant'') es el menor entero no negativo que no esta en el conjunto de Grundy de las posiciones alcanzables. La demostracion: para cada posicion, hay un movimiento a cada Grundy menor; la posicion perdedora es exactamente Grundy = 0.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Posiciones terminales (sin movimientos) tienen Grundy = 0.
+	\item La composicion XOR de Grundys da el Grundy del juego disjunto.
+	\item \textbf{Caso base}: si \texttt{state} no tiene transiciones, Grundy = 0.
+	\item Si Grundy $\ne 0$, hay un movimiento a una posicion con Grundy $0$ (estrategia ganadora).
+	\item Si Grundy $= 0$, todos los movimientos van a Grundy $\ne 0$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Memoizacion clasica:
+\begin{verbatim}
+unordered_map<long long, long long> memo;
+long long grundy(long long state) {
+    if (memo.count(state)) return memo[state];
+    set<long long> reachable;
+    // populate 'reachable' with Grundy of all moves
+    long long g = 0;
+    while (reachable.count(g)) ++g;
+    return memo[state] = g;
+}
+// Ganador: grundy(start) != 0
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Depende del juego: $O(\text{estados} \cdot \text{transiciones})$ con memoization.
+	\item Para Nim con $N$ heaps: $O(N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Adaptar al juego concreto}: reemplazar el comentario \texttt{// populate 'reachable' ...} con la logica del juego (ej. para Nim: aniadir todos los heap sizes reducidos).
+	\item \textbf{Memoization con map}: usar \texttt{unordered\_map<long long, long long>} si el estado es grande.
+	\item \textbf{Computar Grundy de varios estados independientes}: para Nim, es el XOR de los heap sizes; para Kayles, hay tabla precomputada.
+	\item \textbf{Encontrar movimiento ganador}: aniadir busqueda del Grundy $0$ accesible.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar memoizar: el algoritmo sin cache es exponencial.
+	\item Considerar \texttt{unordered\_map} vs \texttt{map} segun el tamano del espacio de estados.
+	\item Si dos juegos tienen el mismo Grundy, no necesariamente son ``iguales'' (mex lo captura).
+	\item \texttt{mex} sobre un set vacio es 0 (caso base).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{grundy}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|unordered_map<long long, long long> sgMemo;| -- cache memoizado: estado $\to$ Grundy.
+	\item \verb|long long grundy(long long state)| -- calcula el Grundy (mex) del estado.
+	\item \verb|if(sgMemo.count(state)) return sgMemo[state];| -- si ya calculado, retorna directo.
+	\item \verb|set<long long> reachable;| -- conjunto de Grundys alcanzables (los ``moves'').
+	\item \verb|long long mex = 0;| -- inicia la busqueda del mex.
+	\item \verb|while(reachable.count(mex)) mex++;| -- incrementa hasta encontrar un entero no presente.
+	\item \verb|return sgMemo[state] = mex;| -- memoiza y retorna.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int g = grundy(1) \^{} grundy(2) \^{} grundy(3);| -- XOR de los Grundys de las 3 pilas.
+	\item \verb|cout << (g ? "first player wins" : "second player wins") << "\textbackslash n";| -- decide el ganador por el XOR total.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Sprague-Grundy template}.
+
+\vspace{0.5em|||}

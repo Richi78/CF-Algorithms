@@ -1,0 +1,79 @@
+\subsubsection{Rabin-Karp (single hash)}
+
+\paragraph{Idea intuitiva.}
+El algoritmo de \textbf{Rabin-Karp} busca ocurrencias de un patron $P$ de longitud $m$ dentro de un texto $T$ de longitud $n$ deslizando una ventana de tamano fijo $m$ y manteniendo el valor de su hash polinomial. 
+
+Al avanzar la ventana un caracter hacia la derecha, el nuevo hash se calcula en $O(1)$ removiendo el caracter saliente $T[i]$ (multiplicado por $\text{BASE}^{m-1}$) y anadiendo el nuevo caracter entrante $T[i+m]$:
+\[
+H_{\text{sig}} = \left( (H_{\text{act}} - T[i] \cdot \text{BASE}^{m-1}) \cdot \text{BASE} + T[i+m] \right) \pmod M
+\]
+Cuando el hash de la ventana coincide con el hash del patron ($tHash == pHash$), se realiza una verificacion caracter por caracter para garantizar que no se trata de una colision. Dado un modulo primo $M \sim 10^9$, la probabilidad de colision aleatoria es insignificante ($1/M$), alcanzando una complejidad lineal esperada $O(n + m)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los hashes son distintos, las cadenas son garantizadamente distintas.
+	\item Si los hashes coinciden, se verifica la igualdad exacta para evitar falsos positivos.
+	\item Factor multiplicativo $h = \text{BASE}^{m-1} \pmod M$: pondera el caracter mas significativo de la ventana de longitud $m$.
+	\item Desplazamiento en $O(1)$: mantener la ventana no requiere rehacer la suma polinomial completa.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Desplazamiento del hash de la ventana y verificacion:
+\begin{verbatim}
+for (int i = 0; i <= n - m; ++i) {
+    if (pHash == tHash) {
+        bool match = true;
+        for (int j = 0; j < m; ++j)
+            if (text[i + j] != pattern[j]) { match = false; break; }
+        if (match) occ.push_back(i);
+    }
+    if (i < n - m) {
+        tHash = ((tHash - text[i] * h % MOD + MOD) * BASE + text[i + m]) % MOD;
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Tiempo esperado}: $O(n + m)$ (la verificacion $O(m)$ se ejecuta casi exclusivamente cuando hay una coincidencia real).
+	\item \textbf{Peor caso}: $O(n \cdot m)$ si los datos de entrada generan colisiones constantes (por ejemplo cadenas con caracteres todos iguales bajo un modulo vulnerable).
+	\item \textbf{Memoria}: $O(1)$ adicional (mas el vector de posiciones de salida).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Doble hash o base aleatoria}: para evitar casos maliciosos (*anti-hash test cases*), generar \verb|BASE| aleatoriamente o usar dos modulos independientes sin verificacion manual posterior.
+	\item \textbf{Busqueda de multiples patrones de igual longitud}: almacenar los hashes de los patrones en un \verb|unordered_set<long long>| para buscarlos todos simultaneamente en una sola pasada $O(n)$.
+	\item \textbf{Matching en 2D (matrices)}: calcular hashes por filas y luego por columnas con ventanas de tamano fijo $R \times C$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Negativos en el operador \texttt{\%}}: al restar \verb|text[i] * h|, el valor puede ser negativo. Se debe sumar \verb|+ MOD| antes de multiplicar por \verb|BASE| y aplicar modulo.
+	\item \textbf{Desbordamiento de 64 bits}: la expresion \verb|(tHash - ...) * BASE| puede desbordar si no se aplica modulo intermedio. Usar \verb|long long| para todas las variables involucradas.
+	\item \textbf{Caso $|P| > |T|$}: si $m > n$, el bucle no debe ejecutarse; se debe retornar vacio inmediatamente al inicio de la funcion.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion rabinKarp:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|const long long BASE = 91138233LL, MOD = 1000000007LL;| -- base prima elegida para dispersion uniforme y modulo primo grande de 32 bits.
+	\item \verb|if(m > n) return {};| -- descarta trivialmente cuando el patron es mas largo que el texto.
+	\item \verb|for(int i = 0; i < m - 1; i++) h = h * BASE % MOD;| -- calcula $h = \text{BASE}^{m-1} \pmod{\text{MOD}}$, el coeficiente del caracter inicial de la ventana.
+	\item \verb|pHash = (pHash * BASE + pattern[i]) % MOD;| -- evalua el hash del patron completo.
+	\item \verb|tHash = (tHash * BASE + text[i]) % MOD;| -- evalua el hash de la primera ventana de longitud $m$ en el texto.
+	\item \verb|if(pHash == tHash)| -- detecta posible coincidencia entre la ventana actual y el patron.
+	\item \verb|for(int j = 0; j < m; j++) if(text[i+j] != pattern[j]) ...| -- verificacion caracter a caracter para garantizar ausencia de falsos positivos por colision.
+	\item \verb|if(match) occ.push_back(i);| -- registra el indice de inicio de la ocurrencia confirmada.
+	\item \verb|tHash = ((tHash - text[i] * h % MOD + MOD) * BASE + text[i+m]) % MOD;| -- actualiza el hash de la ventana en $O(1)$: elimina $T[i]$ a la izquierda y anade $T[i+m]$ a la derecha.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|auto occ = rabinKarp("hello world", "world");| -- busca el patron ``world'' dentro de ``hello world''.
+	\item \verb|cout << "found at " << pos;| -- imprime la posicion encontrada (indice 6).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Rabin-Karp (single hash)}.
+
+\vspace{0.5em}

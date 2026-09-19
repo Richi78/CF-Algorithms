@@ -1,0 +1,80 @@
+\subsubsection{Segment Tree iterativo}
+
+\paragraph{Idea intuitiva.}
+Variante no recursiva del segment tree: usa un arreglo de tamano $2n$ (donde $n$ es potencia de 2). Las hojas estan en $[n, 2n)$; los nodos internos en $[1, n)$. El build llena las hojas y luego construye hacia arriba. Updates: ir a la hoja y propagar hacia arriba. Queries: usar el patron de ``dos punteros'' que suben/expanden segun la paridad. La ventaja: $\sim 2x$ mas rapido en la practica por el menor overhead de recursion.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{t[i]} para $i \ge n$ son hojas (valores originales).
+	\item \texttt{t[i]} para $i < n$ son nodos internos (sumas de sus hijos).
+	\item Update: ir a hoja, modificar, subir hasta la raiz.
+	\item Query: expansion binaria de los rangos cubiertos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El loop de query iterativo:
+\begin{verbatim}
+long long query(int l, int r) {
+    long long res = 0;
+    for (l += n, r += n+1; l < r; l >>= 1, r >>= 1) {
+        if (l & 1) res += t[l++];
+        if (r & 1) res += t[--r];
+    }
+    return res;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Build $O(n)$, update y query $O(\log n)$.
+	\item Memoria $O(2n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Otra operacion}: cambiar el `+` por la operacion (max, min, xor).
+	\item \textbf{Lazy propagation}: aniadir un arreglo \texttt{lz} y aplicar en updates/queries.
+	\item \textbf{Resize dinamico}: aniadir capacidad de crecer si llega un update fuera de rango.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Para \texttt{a = \{1,2,3,4,5\}}: \texttt{query(1,3)} = 2+3+4 = 9. Tras \texttt{set(2, 10)}: \texttt{query(1,3)} = 2+10+4 = 16.
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El loop usa \texttt{r += n+1} (no \texttt{r += n}) porque \texttt{query} es inclusivo y queremos que el bucle salga correctamente.
+	\item Si $n$ no es potencia de 2, ajustar el tamano a la potencia siguiente.
+		\item El \texttt{build} copia el arreglo sin verificar tamano; aniadir bounds check.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SegTreeIter:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct SegTreeIter\{ int n;\}| -- tamano (potencia de 2).
+	\item \texttt{vector<long long> t;} -- arreglo interno de tamano $2n$.
+	\item \texttt{SegTreeIter(int n){ this->n = n; t.assign(2*n, 0); }} -- inicializa con ceros.
+	\item \texttt{void build(const vector<long long>\& a){...}} -- construye desde un arreglo.
+	\item \texttt{for(int i=0;i<(int)a.size();i++) t[n+i] = a[i];} -- copia el arreglo a las hojas.
+	\item \texttt{for(int i=n-1;i>=1;i--) t[i] = t[2*i] + t[2*i+1];} -- construye hacia arriba.
+	\item \texttt{void set(int p, long long val){...}} -- point update.
+	\item \texttt{p += n; t[p] = val;} -- va a la hoja y asigna.
+	\item \texttt{for(p >>= 1; p >= 1; p >>= 1) t[p] = t[2*p] + t[2*p+1];} -- recalcula hacia arriba.
+	\item \texttt{long long query(int l, int r){...}} -- query por rango.
+	\item \texttt{long long res = 0;} -- acumulador.
+	\item \texttt{for(l += n, r += n+1; l < r; l >>= 1, r >>= 1){...}} -- loop principal.
+	\item \texttt{if(l \& 1) res += t[l++];} -- si \texttt{l} es hijo derecho, aniadir y avanzar.
+	\item \texttt{if(r \& 1) res += t[--r];} -- si \texttt{r} es hijo derecho (vistio desde atras), aniadir y retroceder.
+	\item \texttt{return res;} -- retorna el resultado.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{SegTreeIter st(5);} -- crea segtree para 5 elementos.
+	\item \texttt{st.build({1, 2, 3, 4, 5});} -- construye.
+	\item \texttt{cout << st.query(1, 3) << "\textbackslash n";} -- imprime 9.
+	\item \texttt{st.set(2, 10);} -- cambia \texttt{a[2]} a 10.
+	\item \texttt{cout << st.query(1, 3) << "\textbackslash n";} -- imprime 16.
+\end{itemize}
+|\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree iterativo}.
+
+\vspace{0.5em|||}

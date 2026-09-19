@@ -1,0 +1,73 @@
+﻿\subsubsection{Basis (XOR basis)}
+
+\paragraph{Idea intuitiva.}
+Una \textbf{base de XOR} mantiene un conjunto de mascaras (numeros) tal que cualquier XOR de un subconjunto del input se puede expresar como XOR de un subconjunto de la base. La idea es similar a la base de un espacio vectorial sobre $\mathbb{F}_2$. Construir: insertar cada mascara $m$ recorriendo los bits de mayor a menor; si el bit $i$ de $m$ esta ``libre'' en la base, se aniade; sino, se hace $m \oplus basis[i]$ y se continua. La estructura formal: el conjunto de XORs posibles es un subespacio vectorial sobre $\mathbb{F}_2$, y la base lo describe con $\le \log_2(\text{max value})$ elementos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tamano maximo de la base: $\le 64$ (bits) o $\le \log_2(\text{max value})$.
+	\item Base \textbf{minimal}: la construccion garantiza que cada vector tiene un unico bit alto distinto.
+	\item El subespacio generado es invariante.
+	\item Numero de elementos en la base = dimension del subespacio generado.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Algoritmo de insercion (Gaussian elimination sobre $\mathbb{F}_2$):
+\begin{verbatim}
+void insert(long long x) {
+    for (int i = MAXB; i >= 0; --i) {
+        if (!(x & (1LL << i))) continue;
+        if (!basis[i]) { basis[i] = x; return; }
+        x ^= basis[i];
+    }
+    // x es combinacion lineal de los basis actuales
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Insertar una mascara: $O(\text{bits})$. Construir la base completa: $O(N \cdot \text{bits})$.
+	\item Query (maximo XOR): $O(\text{bits})$ si la base esta ordenada.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Obtener el maximo XOR de un subconjunto}: ordenar la base por bit alto descendente y aplicar XOR si aumenta.
+	\item \textbf{Obtener el minimo XOR positivo}: el minimo distinto de 0 es el minimo \texttt{basis[i]} no cero.
+	\item \textbf{Cuantos subconjuntos dan XOR $k$}: con la base, reducir $k$ y contar grados de libertad.
+	\item \textbf{XOR basis en 32 bits}: cambiar \texttt{int d = 64} a \texttt{int d = 32}.
+	\item \textbf{K-esimo XOR}: ordenar la base y contar las combinaciones $\le k$ (aplicacion clasica).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los numeros son \texttt{long long}, usar \texttt{1LL << i}.
+	\item Si se quiere la base \textbf{reducible} (que no necesariamente tenga vectores con unico bit alto), usar otra variante.
+	\item Insertar en orden descendente de bits asegura la propiedad ``unico bit alto''.
+	\item Si dos mascaras tienen el mismo bit alto, una se descarta; la informacion se preserva en el XOR.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura Basis:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Basis\{ int d=64;\}| -- XOR basis con $d = 64$ bits (long long).
+	\item \texttt{vector<int> basis;} -- \texttt{basis[i]} = elemento con bit alto en la posicion $i$.
+	\item \texttt{int sz=0;} -- contador de elementos no cero de la base.
+	\item \texttt{Basis(){ basis.resize(d); }} -- inicializa todos los slots en 0.
+	\item \texttt{void insertVector(int mask){...}} -- inserta una mascara en la base.
+	\item \texttt{for(int i=d-1 ; i>=0 ; i--){ if( (mask \& (1LL<<i)) == 0 ) continue; }} -- itera de mayor a menor bit.
+	\item \texttt{if( !basis[i] ){ basis[i]=mask; ++sz; return; }||||} -- si el slot esta libre, aniade.
+	\item \texttt{mask \^{}= basis[i];} -- si no, cancela el bit $i$ y continua.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{vector<int> nums = {1, 2, 3, 5};} -- numeros a procesar.
+	\item \texttt{Basis b; for(int x : nums) b.insertVector(x);} -- construye la base.
+	\item \texttt{int ans = 0;} -- respuesta.
+	\item \texttt{for(int i=b.d-1 ; i>=0 ; i--) ans = max(ans, ans \^{} b.basis[i]);} -- greedy: aplica XOR si aumenta.
+	\item \texttt{// ans = maximo xor de un subconjunto de nums} -- comentario: la respuesta es el maximo XOR alcanzable.
+\end{itemize}
+|\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Basis (XOR basis)}.
+
+\vspace{0.5em}

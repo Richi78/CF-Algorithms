@@ -1,0 +1,92 @@
+﻿\subsubsection{Trie}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{trie} (o prefix tree) almacena strings donde cada nodo tiene hijos por cada caracter posible (tipicamente 26 letras). Permite insercion, busqueda exacta y busqueda por prefijo en $O(|word|)$. La estructura formal: cada nodo representa un prefijo; las aristas son los caracteres; el flag \texttt{isEnd} indica si ese prefijo completo es una palabra valida. La ventaja sobre un set de strings: encontrar todos los strings con un prefijo dado en tiempo proporcional al prefijo + output.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada nodo tiene \texttt{links[26]} (punteros a hijos) y un flag \texttt{isEnd}.
+	\item Memoria: $O(\text{total chars})$; cada nodo cuesta $\sim 26$ punteros (puede comprimirse con \texttt{map<char, Node*>} si el alfabeto es disperso).
+	\item Las busquedas descienden siguiendo caracteres; si algun enlace es nulo, falla.
+	\item El camino de la raiz a un nodo es exactamente el prefijo que el nodo representa.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Insercion y busqueda:
+\begin{verbatim}
+void insert(const string& s) {
+    Node* v = root;
+    for (char c : s) {
+        int k = c - 'a';
+        if (!v->links[k]) v->links[k] = new Node();
+        v = v->links[k];
+    }
+    v->isEnd = true;
+}
+bool search(const string& s) {
+    Node* v = root;
+    for (char c : s) {
+        int k = c - 'a';
+        if (!v->links[k]) return false;
+        v = v->links[k];
+    }
+    return v->isEnd;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Insercion y busqueda: $O(|s|)$ donde $|s|$ es el largo del string.
+	\item Memoria total: $O(\sum |s_i|)$ nodos para $N$ strings.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Alfabeto mas grande}: cambiar \texttt{links[26]} por \texttt{links[256]} y eliminar \texttt{ch - 'a'}.
+	\item \textbf{Trie de bits}: para problemas con mascaras, usar \texttt{links[2]} y trabajar con bits en vez de caracteres.
+	\item \textbf{Trie persistente}: aniadir \texttt{vector<Node*> versions;} y clonar nodos en cada insercion (como el persistent segtree).
+	\item \textbf{Delete}: implementar recursion que borre nodos sin hijos; cuidado con nodos compartidos por varias palabras.
+	\item \textbf{Prefijos con peso}: aniadir \texttt{sumWeight} en cada nodo para queries de suma por prefijo.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item En este snippet los nodos se crean con \texttt{new} y nunca se liberan; en contests esta bien, pero en produccion aniadir destructor.
+	\item El alfabeto tiene que estar acotado; sino, el trie explota en memoria.
+	\item Si los strings son de tamano $\le 10^6$, el trie tendra nodos por cada caracter, no solo por palabra.
+	\item \texttt{search(s)} vs \texttt{startsWith(s)}: el primero requiere \texttt{isEnd}, el segundo no.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura Node y clase Trie:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Node\{ Node *links[26]; bool flag=false;\}| -- nodo con 26 punteros a hijos y flag de fin de palabra.
+	\item \texttt{bool containsKey(char ch){ return links[ch-'a'] != NULL; }} -- verifica si existe el enlace.
+	\item \texttt{void put(char ch, Node* node){ links[ch-'a'] = node; }} -- crea el enlace al hijo.
+	\item \texttt{Node* get(char ch){ return links[ch-'a']; }} -- obtiene el hijo.
+	\item \texttt{void setEnd(){ flag=true; }} -- marca el nodo como fin de palabra.
+	\item \texttt{bool isEnd(){ return flag; }} -- verifica si es fin de palabra.
+	\item \verb|class Trie{ private: Node *root; public: Trie(){ root = new Node(); }| -- clase Trie con raiz.
+	\item \texttt{void insert(string word){...}} -- inserta una palabra.
+	\item \texttt{Node* node = root;} -- empieza en la raiz.
+	\item \texttt{if(!node->containsKey(word[i])){ node->put(word[i], new Node()); }} -- crea hijo si no existe.
+	\item \texttt{node = node->get(word[i]);} -- avanza al siguiente nodo.
+	\item \texttt{node->setEnd();} -- al final, marca como fin de palabra.
+	\item \texttt{bool search(string word){...}} -- busqueda exacta.
+	\item \texttt{if(!node->containsKey(word[i])) return false;} -- si no existe el enlace, falla.
+	\item \texttt{return node->isEnd();} -- al final, debe estar marcado como fin.
+	\item \texttt{bool startsWith(string prefix){...}} -- busqueda por prefijo.
+	\item \texttt{return true;} -- al final del prefijo, retorna true (no requiere \texttt{isEnd}).
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{Trie trie;} -- instancia.
+	\item \texttt{trie.insert("hello"); trie.insert("world");} -- inserta dos palabras.
+	\item \texttt{cout << trie.search("hello") << endl;} -- imprime 1 (existe exacto).
+	\item \texttt{cout << trie.search("hell") << endl;} -- imprime 0 (no es palabra completa).
+	\item \texttt{cout << trie.startsWith("hell") << endl;} -- imprime 1 (prefijo existe).
+	\item \texttt{cout << trie.startsWith("wor") << endl;} -- imprime 1 (prefijo existe).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Trie}.

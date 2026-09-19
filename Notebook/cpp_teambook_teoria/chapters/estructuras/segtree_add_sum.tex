@@ -1,0 +1,97 @@
+\subsubsection{Segment Tree Add + Sum}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{Segment Tree} es un arbol binario donde cada nodo cubre un rango del arreglo. La raiz cubre $[0, n-1]$; cada nodo interno $[l, r]$ se divide en dos hijos: $[l, m]$ y $[m+1, r]$ con $m = \lfloor (l + r) / 2 \rfloor$. Para mantener la \textbf{suma} de un rango y soportar \textbf{suma en rango} eficientemente en $O(\log n)$, se utiliza \textbf{lazy propagation}: cuando un rango de actualizacion cubre por completo el segmento $[l, r]$ de un nodo, se acumula el valor en su campo \texttt{lazy} y se posterga la propagacion a los hijos hasta que sea estrictamente necesario consultar o modificar dicho subarbol.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{st[node].val}: suma acumulada del rango $[l, r]$ gestionado por el nodo.
+	\item \texttt{st[node].lazy}: valor pendiente de propagar hacia los hijos del nodo.
+	\item La funcion \texttt{push(node, l, r)}: aplica el \texttt{lazy} acumulado a \texttt{val} sumando $(r - l + 1) \times \texttt{lazy}$, transfiere el valor pendiente a los hijos si no es hoja ($l \ne r$), y restablece \texttt{lazy} a $0$.
+	\item Si $n$ se redondea a la siguiente potencia de 2, un arreglo de tamano $2n$ es suficiente; para un $n$ arbitrario sin redondear, se requieren hasta $4n$ nodos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Propagacion perezosa (lazy propagation) y actualizacion en rango:
+\begin{verbatim}
+void push(int node, int l, int r) {
+    if (st[node].lazy == 0) return;
+    st[node].val += (r - l + 1) * st[node].lazy;
+    if (l != r) {
+        st[node * 2].lazy += st[node].lazy;
+        st[node * 2 + 1].lazy += st[node].lazy;
+    }
+    st[node].lazy = 0;
+}
+
+void add_range(int node, int l, int r, int ql, int qr, int val) {
+    push(node, l, r);
+    if (ql <= l && r <= qr) {
+        st[node].lazy += val;
+        push(node, l, r);
+        return;
+    }
+    if (r < ql || qr < l) return;
+    int mid = l + (r - l) / 2;
+    add_range(node * 2, l, mid, ql, qr, val);
+    add_range(node * 2 + 1, mid + 1, r, ql, qr, val);
+    st[node].val = st[node * 2].val + st[node * 2 + 1].val;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Construccion: $O(n)$ en tiempo.
+	\item Actualizacion y consulta: $O(\log n)$ en el peor caso (no amortizado).
+	\item Memoria: $O(n)$ (vector de tamano $2^{\lceil \log_2 n \rceil + 1} \le 4n$).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar suma por min/max con add}: al combinar hijos usar \texttt{min} o \texttt{max}. \textbf{Atencion}: en \texttt{push}, el nodo se actualiza como \texttt{st[node].val += st[node].lazy;} (sin multiplicar por $(r - l + 1)$).
+	\item \textbf{Asignacion en rango (set range)}: el \texttt{lazy} debe ser el nuevo valor fijado y se requiere un valor centinela (o bandera booleana) para distinguir cuando no hay operacion pendiente (ya que $0$ puede ser un valor a asignar).
+	\item \textbf{Tamano a potencia de 2}: para redondear correctamente, iniciar en $n = \text{size}$ (\texttt{while(\_\_builtin\_popcount(n) != 1) n++;}) o usar \texttt{while(n < size) n <<= 1;}.
+	\item \textbf{Soporte para 64 bits}: si los valores o la suma total superan $2 \cdot 10^9$, cambiar \texttt{int} por \texttt{long long} tanto en \texttt{val} como en \texttt{lazy}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Condicion de hoja}: en \texttt{push}, verificar siempre \texttt{if (l != r)} antes de propagar a \texttt{node*2} y \texttt{node*2+1}; de lo contrario, las hojas accederan fuera de los limites del vector.
+	\item \textbf{Llamar a \texttt{push} al inicio}: siempre llamar a \texttt{push(node, l, r)} al inicio tanto de \texttt{add\_range} como de \texttt{query}, incluso antes de evaluar las condiciones de corte.
+	\item \textbf{Multiplicar por la longitud}: en suma por rango, olvidar el factor $(r - l + 1)$ al aplicar el lazy al nodo produce sumas erroneas.
+	\item \textbf{Overflow}: la suma de un rango entero de $10^5$ elementos con valores hasta $10^9$ excede con creces el rango de \texttt{int32}; usar \texttt{long long}.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SegmentTree:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Node { int val = 0, lazy = 0; };| -- nodo con la suma del rango y valor pendiente de suma.
+	\item \verb|SegmentTree(int size)| -- ajusta $n$ a una potencia de 2 mayor o igual a \texttt{size} y reserva $2n$ nodos.
+	\item \verb|void push(int node, int l, int r)| -- si hay lazy acumulado, actualiza \texttt{val}, transfiere a los hijos si $l \ne r$, y limpia \texttt{lazy}.
+	\item \verb|st[node].val += (r-l+1) * st[node].lazy;| -- aplica el valor pendiente sumandolo por cada elemento del rango.
+	\item \verb|if(l != r)| -- asegura no propagar fuera de rango si el nodo actual es una hoja.
+	\item \verb|st[node*2].lazy += st[node].lazy;| -- suma el delta al hijo izquierdo.
+	\item \verb|st[node*2+1].lazy += st[node].lazy;| -- suma el delta al hijo derecho.
+	\item \verb|st[node].lazy = 0;| -- marca como propagado el nodo actual.
+	\item \verb|void add_range(int node, int l, int r, int ql, int qr, int val)| -- actualizacion recursiva en rango $[ql, qr]$.
+	\item \verb|if(ql <= l && r <= qr)| -- si el rango del nodo esta totalmente contenido en la consulta, actualiza su lazy y aplica push.
+	\item \verb|if(r < ql || qr < l) return;| -- si el nodo es totalmente disjunto del rango de consulta, retorna sin cambios.
+	\item \verb|st[node].val = st[node*2].val + st[node*2+1].val;| -- combina los valores actualizados de ambos hijos.
+	\item \verb|int query(int node, int l, int r, int ql, int qr)| -- consulta de suma en rango; hace push y suma recursivamente los hijos relevantes.
+	\item \verb|void add(int l, int r, int val)| -- interfaz publica para sumar en rango sobre la raiz ($[0, n-1]$).
+	\item \verb|int sum(int l, int r)| -- interfaz publica para consultar suma en rango.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|SegmentTree st(5);| -- crea el Segment Tree para 5 elementos (redondeado a $n = 8$).
+	\item \verb|st.add(0, 4, 1);| -- suma 1 al rango $[0, 4]$ (arreglo: $[1, 1, 1, 1, 1]$).
+	\item \verb|st.add(1, 3, 2);| -- suma 2 al rango $[1, 3]$ (arreglo: $[1, 3, 3, 3, 1]$).
+	\item \verb|cout << st.sum(0, 4) << endl;| -- consulta la suma total ($1 + 3 + 3 + 3 + 1 = 11$).
+	\item \verb|st.add(0, 4, -1);| -- resta 1 al rango $[0, 4]$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree Add + Sum}.
+
+\vspace{0.5em}
+

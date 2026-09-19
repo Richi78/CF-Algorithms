@@ -1,0 +1,84 @@
+\subsubsection{Mo con updates}
+
+\paragraph{Idea intuitiva.}
+Extension del algoritmo de Mo clasico para queries offline que intercalan \textbf{updates puntuales}. Cada query se caracteriza por un triple $(L, R, T)$ donde $T$ es el numero de updates ocurridos antes de responderla. Las queries se ordenan por $(L / B, R / B, T)$ con $B = n^{2/3}$, de modo que los punteros $L$, $R$ y $T$ se mueven un total de $O((n + q) \cdot n^{2/3})$ pasos.
+
+La clave es que los updates deben ser \textbf{invertibles}: \verb|applyUpdate| y \verb|revertUpdate| son inversos exactos, permitiendo avanzar y retroceder el tiempo arbitrariamente.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tres punteros: \verb|curL|, \verb|curR| (rango activo) y \verb|curT| (tiempo activo).
+	\item \verb|addPos(x)| y \verb|removePos(x)| son inversos exactos: agregar y luego quitar $x$ debe dejar el estado invariante.
+	\item \verb|applyUpdate(u)| y \verb|revertUpdate(u)| son inversos exactos.
+	\item Tamano de bloque optimo: $B = \lceil n^{2/3} \rceil$. Con $Q$ queries y $U$ updates, la complejidad es $O((n + Q) \cdot n^{2/3})$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Comparador de ordenamiento con tres coordenadas:
+\begin{verbatim}
+int blockSize = (int)pow(n, 2.0/3.0);
+sort(queries.begin(), queries.end(),
+     [&](const Query& A, const Query& B) {
+    int bA = A.l / blockSize, bB = B.l / blockSize;
+    if (bA != bB) return bA < bB;
+    int bAr = A.r / blockSize, bBr = B.r / blockSize;
+    if (bAr != bBr) return bAr < bBr;
+    return A.t < B.t;
+});
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Total}: $O((n + Q) \cdot n^{2/3})$ con bloque optimo $B = n^{2/3}$.
+	\item \textbf{Movimientos de $L$ y $R$}: dentro de un bloque fijo de $L$, $R$ puede recorrer $O(n)$; hay $O(n^{1/3})$ bloques de $R$, y hay $O(n^{1/3})$ bloques de $L$ $\Rightarrow$ $O(n \cdot n^{1/3} \cdot n^{1/3}) = O(n^{5/3})$ pasos de $L$ y $R$.
+	\item \textbf{Movimientos de $T$}: dentro de un bloque de $L$ y de $R$, $T$ es monotono $\Rightarrow$ a lo sumo $Q$ pasos por par de bloques; hay $O(n^{2/3})$ pares de bloques $\Rightarrow$ $O(Q \cdot n^{2/3})$ pasos de $T$.
+	\item Funciona bien en la practica hasta $n, Q \sim 10^5$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Logica del problema}: implementar \verb|addPos|, \verb|removePos|, \verb|applyUpdate|, \verb|revertUpdate| segun el enunciado (ej. contar elementos distintos, sumas de frecuencias, etc.).
+	\item \textbf{Update que afecta el rango activo}: en \verb|applyUpdate| y \verb|revertUpdate|, verificar si \verb|u.pos| esta dentro de \verb|[curL, curR]| para actualizar \verb|curAns| adecuadamente.
+	\item \textbf{Orden de movimiento de punteros}: mover $L$ y $R$ \textbf{antes} que $T$ es importante para mantener la consistencia del estado al aplicar o revertir updates.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{No implementar \texttt{revertUpdate}}: es el error mas comun. \verb|revertUpdate| debe ser el inverso \textbf{exacto} de \verb|applyUpdate|; no basta con re-aplicar la operacion si esta no es su propia inversa.
+	\item \textbf{Orden de los punteros}: en el bucle principal, primero se mueven $L$ y $R$, luego $T$. Mover $T$ antes puede generar estados inconsistentes donde un update se aplica al rango equivocado.
+	\item \textbf{Inicializacion}: \verb|curL = 0, curR = -1, curT = -1| asegura que el rango inicial este vacio y el tiempo sea anterior a cualquier update.
+	\item \textbf{Bloque muy pequeno}: si $B \ll n^{2/3}$, los movimientos de $T$ dominan; si $B \gg n^{2/3}$, los movimientos de $L$ y $R$ dominan. El optimo es exactamente $n^{2/3}$.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura MoWithUpdates:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct MoWithUpdates { ... };| -- estructura que encapsula Mo con updates.
+	\item \verb|struct Query { int l, r, t, idx; };| -- query con extremo izquierdo, derecho, tiempo y su indice original.
+	\item \verb|struct Update { int pos, val; };| -- update puntual con posicion y nuevo valor.
+	\item \verb|vector<int> a;| -- arreglo base sobre el que se aplican los updates.
+	\item \verb|long long curAns = 0;| -- respuesta acumulada del estado actual del rango $[\text{curL}, \text{curR}]$.
+	\item \verb|void addPos(int x)| -- agrega la posicion $x$ al rango activo; debe actualizar \verb|curAns|.
+	\item \verb|void removePos(int x)| -- quita la posicion $x$ del rango activo; inverso exacto de \verb|addPos|.
+	\item \verb|void applyUpdate(const Update& u)| -- avanza el tiempo aplicando el update $u$; si \verb|u.pos| esta en el rango, actualiza \verb|curAns|.
+	\item \verb|void revertUpdate(const Update& u)| -- retrocede el tiempo revirtiendo el update $u$; inverso exacto de \verb|applyUpdate|.
+	\item \verb|int blockSize = pow(n, 2.0/3.0);| -- tamano optimo de bloque para la complejidad $O((n+Q) \cdot n^{2/3})$.
+	\item \verb|int curL = 0, curR = -1, curT = -1;| -- punteros iniciales: rango vacio, tiempo previo a todo update.
+	\item \verb|while(curL > qry.l) addPos(--curL);| -- expande el rango hacia la izquierda.
+	\item \verb|while(curR < qry.r) addPos(++curR);| -- expande el rango hacia la derecha.
+	\item \verb|while(curL < qry.l) removePos(curL++);| -- contrae el rango por la izquierda.
+	\item \verb|while(curR > qry.r) removePos(curR--);| -- contrae el rango por la derecha.
+	\item \verb|while(curT < qry.t) applyUpdate(updates[++curT]);| -- avanza el tiempo aplicando updates.
+	\item \verb|while(curT > qry.t) revertUpdate(updates[curT--]);| -- retrocede el tiempo revirtiendo updates.
+	\item \verb|ans[qry.idx] = curAns;| -- guarda la respuesta en la posicion original de la query.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|MoWithUpdates mwu;| -- instancia el esqueleto.
+	\item Las cuatro funciones \verb|addPos|, \verb|removePos|, \verb|applyUpdate|, \verb|revertUpdate| deben implementarse segun el problema especifico antes de llamar a \verb|mwu.solve()|.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Mo con updates}.
+
+\vspace{0.5em}

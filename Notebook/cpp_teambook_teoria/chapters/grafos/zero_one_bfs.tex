@@ -1,0 +1,53 @@
+﻿\subsubsection{0-1 BFS}
+
+\paragraph{Idea intuitiva.}
+Variante de BFS para grafos con \textbf{pesos 0 o 1}. Usa un \texttt{deque}: aristas de peso 0 se encolan al frente (\texttt{push\_front}), aristas de peso 1 al final (\texttt{push\_back}). Asi, la primera vez que se extrae un nodo, su distancia es la definitiva, igual que en Dijkstra pero en $O(V + E)$. La intuicion: el deque mantiene los nodos ordenados por distancia; las aristas de peso 0 no cambian la distancia (entran al frente), las de peso 1 la incrementan (entran al final).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Asume pesos \textbf{solo} 0 o 1.
+	\item Mejor caso que Dijkstra (sin factor $\log V$).
+	\item No funciona con pesos $\ge 2$.
+	\item La cola mantiene los nodos ordenados por distancia no decreciente.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El deque doble:
+\begin{verbatim}
+deque<int> q;
+q.push_front(source);
+dist[source] = 0;
+while (!q.empty()) {
+    int v = q.front(); q.pop_front();
+    for (auto [w, u] : adj[v]) {
+        if (dist[v] + w < dist[u]) {
+            dist[u] = dist[v] + w;
+            if (w == 0) q.push_front(u);
+            else q.push_back(u);
+        }
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Cada nodo se inserta a lo sumo $O(1)$ veces (con check de distancia).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Pesos en $[0, k]$ small}: usar small k-ary BFS o Dijkstra.
+	\item \textbf{Reconstruir camino}: aniadir \texttt{parent[]}.
+	\item \textbf{Pesos negativos}: no funciona, usar Bellman-Ford.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los pesos son otro rango, el algoritmo da respuestas incorrectas. Verificar que las aristas son solo 0/1.
+	\item El chequeo \texttt{dist[v] + w < dist[u]} es crucial; sino, el algoritmo procesa nodos multiples veces.
+	\item Si una arista tiene peso $\ge 2$, aniadir verificaciones o cambiar a Dijkstra.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{0-1 BFS}.

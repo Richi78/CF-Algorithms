@@ -1,0 +1,73 @@
+﻿\subsubsection{Criba de Eratostenes}
+
+\paragraph{Idea intuitiva.}
+Para encontrar todos los primos hasta $N$, marcaremos como compuestos los multiplos de cada primo a partir de $p^2$. Como el primo mas pequeno es $2$, empezar en $4$ evita marcar de mas. Es $O(N \log \log N)$ porque la cantidad de primos hasta $N$ es $\sim N / \ln N$ y la mayoria tiene pocos multiplos pequenos. La cota asintotica precisa es $N \sum_{p \le N} 1/p \approx N \ln \ln N$ por el teorema de Mertens; la constante es pequena ($\sim 1$) en la practica.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{is\_composite[i]} es \texttt{true} sii $i$ no es primo (o $i \le 1$).
+	\item \texttt{primes} contiene todos los primos en orden ascendente.
+	\item Se itera solo hasta $\sqrt{N}$ en el bucle exterior porque cualquier compuesto $c \le N$ tiene un factor primo $\le \sqrt{N}$.
+	\item Cada primo $p$ marca $\lfloor N/p \rfloor - p + 1$ multiplos a partir de $p^2$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El nucleo de la criba:
+\begin{verbatim}
+vector<bool> comp(N + 1, false);
+for (int i = 2; (long long)i * i <= N; ++i)
+    if (!comp[i])
+        for (int j = i * i; j <= N; j += i)
+            comp[j] = true;
+vector<int> primes;
+for (int i = 2; i <= N; ++i)
+    if (!comp[i]) primes.push_back(i);
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tiempo $O(N \log \log N)$, memoria $O(N)$.
+	\item Con $N = 10^7$: $\sim$0.3 segundos en hardware moderno.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Obtener factorizacion de cada numero}: aniadir un array \texttt{lp[i]} (lowest prime factor) que se llena junto al sieve. Es $O(N)$ si se hace en orden creciente de $i$.
+	\item \textbf{Criba hasta $N = 10^7$}: este snippet con \texttt{vector<bool>} (que es bitset-packed) alcanza. Para $N = 10^8$ o mas, conviene criba segmentada (no incluida).
+	\item \textbf{Sumar primos}: aniadir \texttt{long long sumPrimes;} que acumule en el bucle final.
+	\item \textbf{Primos en $[L, R]$}: criba segmentada, donde $R - L$ es chico pero $L$ es grande.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{vector<bool>} es proxy; si necesitas pasarlo a C-style API, copiar a \texttt{vector<char>}.
+	\item \texttt{is\_composite[0]} e \texttt{is\_composite[1]} deben inicializarse a \texttt{true}.
+	\item El bucle interno empieza en \texttt{i*i}, no en \texttt{2*i}; si arrancas en \texttt{2*i} marcas el doble y pierdes tiempo pero el resultado es el mismo.
+	\item Overflow si \texttt{i*i > INT\_MAX}: usar \texttt{(long long)i * i <= N}.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{sieve}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> primes;| -- lista global de primos encontrados.
+	\item \verb|vector<bool> is_composite;| -- marca de compuesto (bitset-packed).
+	\item \verb|void sieve(int n)| -- llena \texttt{primes} e \texttt{is\_composite} hasta $n$.
+	\item \verb|is_composite.assign(n + 1, false);| -- inicializa todos en \texttt{false}.
+	\item \verb|is_composite[0] = is_composite[1] = true;| -- $0$ y $1$ no son primos.
+	\item \verb|for(int i=2 ; i*i<=n ; i++)| -- itera solo hasta $\sqrt{n}$ (los primos $> \sqrt{n}$ no marcan nada nuevo).
+	\item \verb|if(!is_composite[i])| -- si $i$ no fue marcado, es primo.
+	\item \verb|for(int j=i*i;j<=n;j+=i) is_composite[j] = true;| -- marca multiplos desde $i^2$ (los menores ya fueron marcados).
+	\item \verb|primes.clear();| -- vacia la lista antes de repoblar.
+	\item \verb|for(int i=2;i<=n;i++) if(!is_composite[i]) primes.push_back(i);| -- recolecta los primos.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|sieve(100);| -- ejecuta la criba hasta $100$.
+	\item \verb|for(int p : primes) cout << p << " ";| -- imprime los $25$ primos hasta $100$.
+	\item \verb|cout << "#primes <= 100: " << primes.size() << "\textbackslash n";| -- muestra el conteo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Criba de Eratostenes}.
+
+\vspace{0.5em|||}

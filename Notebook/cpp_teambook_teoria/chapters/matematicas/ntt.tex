@@ -1,0 +1,92 @@
+﻿\subsubsection{NTT (mod 998244353)}
+
+\paragraph{Idea intuitiva.}
+La \textbf{Number Theoretic Transform} es la version entera de FFT. En vez de raices de unidad complejas, usa raices modulo un primo $p$ con $p - 1$ divisible por una potencia grande de 2. El primo $998244353 = 119 \cdot 2^{23} + 1$ sirve para NTT hasta $2^{23} = 8 \cdot 10^6$. La existencia de tales primos se basa en buscar $p$ con $p - 1$ altamente divisible por 2, lo cual requiere que $p$ sea grande.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Exacto} modulo $p$ (sin redondeo).
+	\item Raiz primitiva $g = 3$.
+	\item Misma estructura que FFT (bit-reversal + mariposas).
+	\item $\omega_n = g^{(p-1)/n}$ es una raiz $n$-esima de la unidad en $\mathbb{F}_p$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+NTT iterativo (la mariposa es analoga a FFT, con multiplicacion modular):
+\begin{verbatim}
+for (int len = 2; len <= n; len <<= 1) {
+    long long wlen = modpow(ROOT, (MOD - 1) / len, MOD);
+    if (invert) wlen = modpow(wlen, MOD - 2, MOD);
+    for (int i = 0; i < n; i += len) {
+        long long w = 1;
+        for (int j = 0; j < len / 2; ++j) {
+            long long u = a[i+j], v = a[i+j+len/2] * w % MOD;
+            a[i+j] = (u + v) % MOD;
+            a[i+j+len/2] = (u - v + MOD) % MOD;
+            w = w * wlen % MOD;
+        }
+    }
+}
+if (invert) {
+    long long n_inv = modpow(n, MOD - 2, MOD);
+    for (auto& x : a) x = x * n_inv % MOD;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \log N)$.
+	\item Para 998244353 y $N \le 2^{23}$: un par de milisegundos.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Otro primo}: $985661441 = 235 \cdot 2^{22} + 1$, raiz $3$; $754974721 = 45 \cdot 2^{24} + 1$, raiz $11$. Ajustar \texttt{MOD} y \texttt{PRIMITIVE\_ROOT}.
+	\item \textbf{Multiplicacion de varias cosas}: NTT es lineal; aniadir cache si llamas con los mismos vectores.
+	\item \textbf{Poly inv (Newton)}: ver el modulo de polynomial utilities.
+	\item \textbf{Tres NTTs + CRT}: si necesitas modulo $10^9 + 7$ con coeficientes grandes, hacer NTT con tres primos y reconstruir.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El ``exponente magico'' \texttt{(MOD - 1) / len} requiere que \texttt{MOD - 1} sea divisible por \texttt{len}; para 998244353, \texttt{len} debe ser potencia de 2 hasta $2^{23}$.
+	\item Si \texttt{len} no divide \texttt{MOD - 1}, el algoritmo da basura.
+	\item Confundir la raiz primitiva $g$ con la raiz $n$-esima $g^{(p-1)/n}$; esta ultima depende del nivel.
+	\item En el inverse, olvidar el factor $1/n$ da basura escalada.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{ntt}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|const long long PRIMITIVE_ROOT = 3LL;| -- raiz primitiva modulo $998244353$ (genera todo el grupo).
+	\item \verb|void ntt(vector<long long>& a, bool invert)| -- aplica NTT o INTT (inversa) sobre \texttt{a}.
+	\item \verb|int n = a.size();| -- tamano (potencia de 2, requisito del algoritmo).
+	\item \verb|for(int i=1,j=0;i<n;i++)| -- permutacion bit-reversal para colocar elementos en orden.
+	\item \verb|int bit = n >> 1;| -- empieza con el bit mas significativo.
+	\item \verb|for(; j&bit; bit>>=1) j \textasciicircum= bit;| -- busca el bit a flipear.
+	\item \verb|j \textasciicircum= bit; if(i < j) swap(a[i], a[j]);| -- flip y swap condicional.
+	\item \verb|for(int len=2; len<=n; len<<=1)| -- niveles de mariposa (longitud doblada).
+	\item \verb|long long wlen = modpow(PRIMITIVE_ROOT, (MOD - 1) / len, MOD);| -- raiz $n$-esima: $g^{(p-1)/\text{len}}$.
+	\item \verb|if(invert) wlen = modpow(wlen, MOD - 2, MOD);| -- invierte la raiz para INTT.
+	\item \verb|for(int i=0; i<n; i+=len)| -- itera sobre bloques.
+	\item \verb|long long w = 1;| -- acumulador de potencias $w^j$.
+	\item \verb|long long u = a[i+j], v = a[i+j+len/2] * w % MOD;| -- elementos de la mariposa.
+	\item \verb|a[i+j] = (u + v) % MOD;| -- suma de mariposa.
+	\item \verb|a[i+j+len/2] = (u - v + MOD) % MOD;| -- diferencia de mariposa (ajustada a positivo).
+	\item \verb|w = w * wlen % MOD;| -- avanza $w$ multiplicando por la raiz.
+	\item \verb|if(invert) { for(auto& x : a) x = x * n_inv % MOD; }| -- divide entre $n$ para invertir NTT.
+\end{itemize}
+\textbf{Funcion \texttt{multiplyNTT}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<long long> fa, fb;| -- copias en formato NTT.
+	\item \verb|while(n < (int)a.size() + (int)b.size()) n <<= 1;| -- potencia de 2 que cubra el resultado.
+	\item \verb|fa.resize(n); fb.resize(n);| -- rellena con ceros (padding).
+	\item \verb|ntt(fa, false); ntt(fb, false);| -- aplica NTT directo.
+	\item \verb|fa[i] = fa[i] * fb[i] % MOD;| -- multiplicacion punto a punto.
+	\item \verb|ntt(fa, true);| -- INTT para volver al dominio del polinomio.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{NTT (mod 998244353)}.
+
+\vspace{0.5em|||}

@@ -1,0 +1,47 @@
+﻿\subsubsection{Floyd-Warshall}
+
+\paragraph{Idea intuitiva.}
+Shortest path entre \textbf{todos los pares} de vertices en $O(V^3)$. DP: $d[i][j]$ = shortest path usando solo nodos intermedios en $\{0, \dots, k\}$. Transicion: $d_{k+1}[i][j] = \min(d_k[i][j], d_k[i][k+1] + d_k[k+1][j])$. La demostracion: tras $k$ iteraciones, $d[i][j]$ es el shortest path con intermedios en $\{0, \dots, k-1\}$; aniadir el nodo $k$ da la recurrencia clasica.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Detecta ciclos negativos: tras el algoritmo, $d[i][i] < 0$ indica ciclo negativo alcanzable desde $i$.
+	\item Funciona con pesos negativos (sin ciclos negativos).
+	\item Memoria $O(V^2)$; con $V \le 400$ es OK, con mas conviene Dijkstra $V$ veces.
+	\item Es la unica opcion cuando se quieren shortest paths entre todos los pares y el grafo es denso.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El triple bucle clasico:
+\begin{verbatim}
+for (int k = 0; k < n; ++k)
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < n; ++j)
+            d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+// detectar ciclo negativo
+for (int i = 0; i < n; ++i) if (d[i][i] < 0) tiene_ciclo_negativo = true;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V^3)$ tiempo, $O(V^2)$ memoria.
+	\item Para $V \le 400$: $\sim 6.4 \cdot 10^7$ operaciones (factible).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir camino}: aniadir \texttt{next[i][j]} y backtrack.
+	\item \textbf{Transitividad}: el algoritmo tambien calcula transitividad (\texttt{d[i][j] != INF} significa alcanzable).
+	\item \textbf{Pesos doubles}: aniadir tolerancia (\texttt{d[i][j] > d[i][k] + d[k][j] - eps}).
+	\item \textbf{Grafo no denso}: usar Dijkstra $V$ veces en vez de Floyd.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Para detectar ciclo negativo correctamente, aniadir un chequeo \texttt{if (ans[i][i] < 0)} tras el triple bucle.
+	\item El orden de los bucles \texttt{k, i, j} es importante; invertir da resultados diferentes.
+	\item Con \texttt{double}, usar tolerancia \texttt{< eps} en vez de \texttt{<} para evitar loops infinitos.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Floyd-Warshall}.

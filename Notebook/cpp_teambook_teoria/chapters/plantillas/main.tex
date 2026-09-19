@@ -1,0 +1,70 @@
+﻿\subsubsection{Plantilla main + fast I/O}
+
+\paragraph{Idea intuitiva.}
+Por defecto \texttt{cin}/\texttt{cout} de C++ sincroniza con la libreria C (\texttt{stdio}) para que \texttt{printf} y \texttt{cin} puedan mezclarse. Esa sincronizacion hace que cada operacion de I/O pase por un lock y vuelque buffers, lo cual es \textbf{muy lento} cuando se leen miles de numeros. Desactivar la sincronizacion con \texttt{ios\_base::sync\_with\_stdio(false)} y desatar \texttt{cin} de \texttt{cout} con \texttt{cin.tie(0)} deja a \texttt{cin} usando su propio buffer, dando una velocidad comparable (y a veces mejor) que \texttt{scanf} pero con la comodidad de los operadores \texttt{>>}/\texttt{<<}. El \texttt{\textbackslash n} se prefiere sobre \texttt{endl} porque este ultimo ademas hace flush del buffer, anulando parte de la ganancia. La razon matematica de la lentitud es que cada llamada a \texttt{<<} sin desactivar sincronizacion hace una llamada a \texttt{fwrite} que copia el dato y consulta flags: con $10^6$ enteros esto pasa de milisegundos a segundos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Tras \texttt{sync\_with\_stdio(false)}, \textbf{no mezclar} \texttt{cin}/\texttt{cout} con \texttt{printf}/\texttt{scanf}: el orden de salida queda indefinido.
+	\item Tras \texttt{cin.tie(0)}, cada \texttt{cout << x} no fuerza un flush automatico previo del buffer de \texttt{cin} (util cuando se hace \texttt{cout << "resultado: " << ans << "\textbackslash n";} justo despues de leer con \texttt{cin}).
+	\item El \texttt{cin.tie(nullptr)} es equivalente a \texttt{cin.tie(0)} en C++11+ y deja claro que es un puntero.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Las dos lineas que hacen toda la magia (siempre \textbf{antes} del primer \texttt{cin}/\texttt{cout}):
+\begin{verbatim}
+ios_base::sync_with_stdio(false);
+cin.tie(nullptr);
+\end{verbatim}
+Estructura tipica de \texttt{main}:
+\begin{verbatim}
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n; cin >> n;
+    vector<int> a(n);
+    for (auto& x : a) cin >> x;
+    // ... logica ...
+    cout << ans << "\n";
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Sin fast I/O: $\sim$10x mas lento en problemas con $10^5$ o mas entradas.
+	\item Con fast I/O: tiempo lineal en el tamano de la entrada, suficiente para casi todos los contests.
+	\item Para $10^7$ enteros, se baja de $\sim$8s a $\sim$0.6s.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si el problema lee strings con espacios, cambiar \texttt{cin >> s} por \texttt{getline(cin, s)} (y recordar consumir el \texttt{\textbackslash n} residual con \texttt{cin.ignore()} si se mezcla con \texttt{cin >>}).
+	\item Si los numeros no entran en \texttt{int} (por ejemplo $N \le 10^{18}$), cambiar el tipo de \texttt{n}, \texttt{x} y de los contenedores a \texttt{long long}.
+	\item Si necesitas \textbf{imprimir con precision fija} (decimales), agregar al inicio: \texttt{cout << fixed << setprecision(10);} (incluir \texttt{<iomanip>}).
+	\item Si hay TLE aun con fast I/O, aniadir lectura por bloques con \texttt{fread} (custom scanner); suele ser 3-5x mas rapido que \texttt{cin} rapido.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Para $n = 10^6$ enteros y suma acumulada:
+\begin{verbatim}
+long long s = 0;
+for (int i = 0; i < n; ++i) {
+    int x; cin >> x;
+    s += x;
+}
+cout << s << "\n";
+\end{verbatim}
+Sin fast I/O esto tarda $\sim$4s en Codeforces; con fast I/O $\sim$0.4s.
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Mezclar \texttt{scanf} y \texttt{cin} despues de \texttt{sync\_with\_stdio(false)} produce salidas raras; usar solo uno.
+	\item Usar \texttt{endl} en lugar de \texttt{"\textbackslash n"} puede ser $\sim$5x mas lento si se imprime muchas lineas.
+	\item En problemas interactivos, a veces es necesario \textbf{volver a atar} \texttt{cin} y forzar flush; usar \texttt{cout << flush;} o \texttt{endl} solo ahi.
+	\item Si una funcion que NO es \texttt{main} imprime, no olvides que las dos lineas deben estar en \texttt{main} (o una sola vez al inicio global en un \texttt{struct FastIO} con constructor).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Plantilla main + fast I/O}.
+
+\vspace{0.5em}

@@ -1,0 +1,96 @@
+\subsubsection{Segment Tree Lazy Assign + Sum}
+
+\paragraph{Idea intuitiva.}
+Estructura analoga al Segment Tree con suma, pero la operacion en rango es \textbf{asignacion} (fijar todos los elementos del intervalo $[ql, qr]$ a un mismo valor $v$). La asignacion sobreescribe por completo el estado previo del rango: si existian actualizaciones pendientes en ese nodo, quedan invalidadas por el nuevo valor base. Para propagar de forma perezosa en $O(\log n)$, se mantiene un valor centinela en \texttt{lazy} (o una bandera de control) que indica cuando un nodo no tiene asignaciones pendientes.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{st[node].val}: suma total de los elementos en el rango $[l, r]$.
+	\item \texttt{st[node].lazy}: valor a asignar a todos los elementos del subarbol. Un valor centinela (\texttt{LLONG\_MAX} o \texttt{INF}) denota que no hay asignacion pendiente.
+	\item La funcion \texttt{push(node, l, r)}: si hay asignacion pendiente, actualiza la suma del nodo con $(r - l + 1) \times \texttt{lazy}$, transfiere la asignacion a los hijos si no es hoja ($l \ne r$), y restablece el \texttt{lazy} al centinela.
+	\item Un arreglo de tamano $2n$ es suficiente si $n$ se redondea a potencia de 2; se requieren hasta $4n$ nodos para un $n$ arbitrario sin redondear.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Propagacion perezosa y asignacion en rango:
+\begin{verbatim}
+void push(int node, int l, int r) {
+    if (st[node].lazy == LLONG_MAX) return;
+    st[node].val = (r - l + 1) * st[node].lazy;
+    if (l != r) {
+        st[node * 2].lazy = st[node].lazy;
+        st[node * 2 + 1].lazy = st[node].lazy;
+    }
+    st[node].lazy = LLONG_MAX;
+}
+
+void assign_range(int node, int l, int r, int ql, int qr, long long val) {
+    push(node, l, r);
+    if (ql <= l && r <= qr) {
+        st[node].lazy = val;
+        push(node, l, r);
+        return;
+    }
+    if (r < ql || qr < l) return;
+    int mid = l + (r - l) / 2;
+    assign_range(node * 2, l, mid, ql, qr, val);
+    assign_range(node * 2 + 1, mid + 1, r, ql, qr, val);
+    st[node].val = st[node * 2].val + st[node * 2 + 1].val;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Construccion: $O(n)$ en tiempo.
+	\item Actualizacion y consulta: $O(\log n)$ en el peor caso (no amortizado).
+	\item Memoria: $O(n)$ (vector de tamano $2^{\lceil \log_2 n \rceil + 1} \le 4n$).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar suma por min/max con assign}: al combinar hijos tomar \texttt{min} o \texttt{max}. En \texttt{push}, el nuevo valor es simplemente \texttt{st[node].val = st[node].lazy;} (sin multiplicar por la longitud).
+	\item \textbf{Mezclar assign y add}: requiere dos campos \texttt{lazy\_set} y \texttt{lazy\_add}. Al recibir un \texttt{set}, se borra el \texttt{lazy\_add}; al recibir un \texttt{add}, se suma sobre el \texttt{lazy\_set} pendiente si existe, o se acumula en \texttt{lazy\_add}.
+	\item \textbf{Tipo de datos y centinela}: si los valores a asignar son enteros de 64 bits o pueden tomar valores arbitrarios, definir los campos como \texttt{long long} y verificar que el centinela no colisione con entradas legitimas del problema (o usar un \texttt{bool has\_lazy}).
+	\item \textbf{Tamano a potencia de 2}: iniciar en $n = \text{size}$ con \verb|n = size; while(__builtin_popcount(n) != 1) n++;| o \verb|while(n < size) n <<= 1;|.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Colision o desbordamiento del centinela}: usar \texttt{LLONG\_MAX} cuando los campos son de tipo \texttt{int} causa desbordamiento y conversion implicita. Usar \texttt{INT\_MAX} para enteros o migrar los tipos a \texttt{long long}.
+	\item \textbf{Condicion de hoja en \texttt{push}}: verificar siempre \texttt{if (l != r)} antes de propagar a \texttt{node*2} y \texttt{node*2+1} para evitar accesos fuera de rango.
+	\item \textbf{Multiplicar por la longitud}: en suma de rango, olvidar el factor $(r - l + 1)$ al aplicar la asignacion en \texttt{push} resulta en calculos de suma invalidos.
+	\item \textbf{Limpieza de lazy}: olvidar restablecer \texttt{st[node].lazy = LLONG\_MAX;} tras propagar aplicara repetidamente la asignacion en consultas posteriores.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SegmentTree:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Node { long long val = 0, lazy = LLONG_MAX; };| -- nodo con suma y lazy de asignacion inicializado en el centinela neutro.
+	\item \verb|SegmentTree(int size)| -- ajusta $n$ a una potencia de 2 y reserva $2n$ nodos.
+	\item \verb|void push(int node, int l, int r)| -- si hay asignacion pendiente, actualiza el nodo multiplicando por $(r - l + 1)$, propaga a hijos si $l \ne r$, y limpia \texttt{lazy}.
+	\item \verb|if(l != r)| -- evita acceder a hijos inexistentes en nodos hoja.
+	\item \verb|st[node*2].lazy = st[node].lazy;| -- sobreescribe la asignacion pendiente en el hijo izquierdo.
+	\item \verb|st[node*2+1].lazy = st[node].lazy;| -- sobreescribe la asignacion pendiente en el hijo derecho.
+	\item \verb|st[node].lazy = LLONG_MAX;| -- restablece el estado sin asignacion pendiente en el nodo actual.
+	\item \verb|void assign_range(int node, int l, int r, int ql, int qr, long long val)| -- asignacion en rango recursiva.
+	\item \verb|if(ql <= l && r <= qr)| -- rango totalmente cubierto: fija el lazy y aplica push de inmediato.
+	\item \verb|if(r < ql || qr < l) return;| -- rango disjunto: retorna sin modificar.
+	\item \verb|st[node].val = st[node*2].val + st[node*2+1].val;| -- actualiza la suma combinando ambos hijos.
+	\item \verb|long long query(int node, int l, int r, int ql, int qr)| -- consulta de suma en rango con push en cada nivel.
+	\item \verb|void assign(int l, int r, long long val)| -- funcion publica para invocar asignacion en rango.
+	\item \verb|long long sum(int l, int r)| -- funcion publica para invocar consulta de suma en rango.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|SegmentTree st(5);| -- inicializa el arbol para 5 elementos.
+	\item \verb|st.assign(0, 4, 1);| -- asigna 1 a todo el rango (arreglo: $[1, 1, 1, 1, 1]$).
+	\item \verb|st.assign(1, 3, 2);| -- asigna 2 al rango $[1, 3]$ (arreglo: $[1, 2, 2, 2, 1]$).
+	\item \verb|cout << st.sum(0, 4) << endl;| -- imprime suma total ($1 + 2 + 2 + 2 + 1 = 8$).
+	\item \verb|st.assign(0, 4, 5);| -- asigna 5 a todos los elementos (suma: $5 \times 5 = 25$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree Lazy Assign + Sum}.
+
+\vspace{0.5em}
+

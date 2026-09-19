@@ -1,0 +1,99 @@
+﻿\subsubsection{Segment Tree Lazy Add + Set + Sum}
+
+\paragraph{Idea intuitiva.}
+La variante mas completa: combina \textbf{add} y \textbf{set} en el mismo nodo. Prioridad: el \texttt{set} ``mata'' cualquier \texttt{add} previo (porque asignar implica ``este es el nuevo valor base''). El \texttt{add} se acumula sobre el \texttt{set}. El orden importa: \texttt{set} primero, \texttt{add} despues. La razon algebraica: si representamos el valor final como $\text{base} + \text{delta}$, entonces \texttt{set} redefine el \texttt{base} y \texttt{add} redefine el \texttt{delta}; ambos son necesarios para una representacion completa.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Dos lazies: \texttt{lazy\_set} (sobrescribe) y \texttt{lazy\_add} (acumula).
+	\item En \texttt{push}: primero aplicar \texttt{set} (que borra \texttt{add} en hijos), despues \texttt{add} (que acumula).
+	\item Si \texttt{lazy\_set} esta activo, ignora \texttt{lazy\_add} previo.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Push con dos operaciones:
+\begin{verbatim}
+void push(int node, int l, int r) {
+    if (l == r) return;
+    int m = (l + r) / 2;
+    for (int c : {node*2, node*2+1}) {
+        if (st[node].hasSet) {
+            st[c].val = (c == node*2 ? m-l+1 : r-m) * st[node].lazySet;
+            st[c].lazySet = st[node].lazySet;
+            st[c].hasSet = true;
+            st[c].lazyAdd = 0;  // resetear
+        }
+        if (st[node].lazyAdd != 0) {
+            st[c].val += (c == node*2 ? m-l+1 : r-m) * st[node].lazyAdd;
+            st[c].lazyAdd += st[node].lazyAdd;
+        }
+    }
+    st[node].hasSet = false; st[node].lazyAdd = 0;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log n)$.
+	\item Memoria $O(4n)$ pero con campos extra por nodo.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir otro tipo de operacion}: aniadir un nuevo campo y su manejo en \texttt{push}.
+	\item \textbf{Build desde un arreglo}: ya implementado en el constructor.
+	\item \textbf{Chained operations}: aniadir \texttt{min}, \texttt{max} con sus semanticas.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar resetear \texttt{lazy\_add} cuando se aplica \texttt{set} a un hijo.
+	\item Aplicar \texttt{add} antes de \texttt{set} da valores incorrectos.
+	\item El orden de las operaciones en un update mixto debe estar bien definido.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SegmentTree:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{struct Node} -- nodo con tres campos: valor, lazy de suma, lazy de asignacion.
+	\item \texttt{int val = 0, lazy\_add = 0;} -- valor inicial y acumulador.
+	\item \texttt{int lazy\_set = LLONG\_MAX;} -- centinela: indica ``sin asignacion pendiente''.
+	\item \texttt{Node(int x=0)} -- constructor del nodo con valor \texttt{x}.
+	\item \texttt{val = x; lazy\_add = 0; lazy\_set = LLONG\_MAX;} -- inicializa los tres campos.
+	\item \texttt{SegmentTree(const vector<int>\& a)} -- constructor que ajusta \texttt{n} a potencia de 2.
+	\item \texttt{while(\_\_builtin\_popcount(n) != 1) n++;} -- fuerza potencia de 2.
+	\item \texttt{st.resize(2*n);} -- redimensiona a $2n$ elementos.
+	\item \texttt{st[n+i] = Node(a[i]);} -- copia el arreglo a las hojas.
+	\item \texttt{for(int i=n-1; i>=1; i--) st[i] = merge(st[2*i], st[2*i+1]);} -- construye los nodos internos bottom-up.
+	\item \texttt{Node merge(Node \&left, Node \&right)} -- combina dos nodos hijos.
+	\item \texttt{ans.val = left.val + right.val; return ans;} -- suma los valores.
+	\item \texttt{void push(int node, int l, int r)} -- propaga lazies al nodo actual y a sus hijos.
+	\item \texttt{if(st[node].lazy\_set != LLONG\_MAX)\{...\}} -- si hay set pendiente.
+	\item \texttt{st[node].val = st[node].lazy\_set * (r-l+1);} -- aplica el set multiplicado por el tamano.
+	\item \texttt{if(l != r)\{ st[node*2].lazy\_set = st[node].lazy\_set; st[node*2].lazy\_add = 0; \}} -- propaga set, resetea add en hijos.
+	\item \texttt{st[node].lazy\_set = LLONG\_MAX;} -- limpia el set del nodo actual.
+	\item \texttt{if(st[node].lazy\_add != 0)\{...\}} -- si hay add pendiente.
+	\item \texttt{st[node].val += st[node].lazy\_add * (r-l+1);} -- aplica add al nodo.
+	\item \texttt{st[node*2].lazy\_add += st[node].lazy\_add;} -- propaga add a hijos.
+	\item \texttt{void update(int node, int l, int r, int ql, int qr, int val, int type)} -- actualiza un rango.
+	\item \texttt{push(node, l, r);} -- primero aplica lazy pendiente.
+	\item \texttt{if(ql <= l \&\& r <= qr)\{...\}} -- caso cubierto totalmente.
+	\item \texttt{if(type == 1) st[node].lazy\_add += val; else st[node].lazy\_set = val;} -- elige add o set segun tipo.
+	\item \texttt{if(r < ql || qr < l) return;} -- caso fuera del rango.
+	\item \texttt{int mid = l + (r-l)/2;} -- punto medio.
+	\item \texttt{update(node*2, l, mid, ql, qr, val, type);} -- recursion al hijo izquierdo.
+	\item \texttt{update(node*2+1, mid+1, r, ql, qr, val, type);} -- recursion al hijo derecho.
+	\item \texttt{st[node].val = st[node*2].val + st[node*2+1].val;} -- recalcula valor del padre.
+	\item \texttt{int query(int node, int l, int r, int ql, int qr)} -- query en un rango.
+	\item \texttt{if(ql <= l \&\& r <= qr) return st[node].val;} -- caso contenido, retorna suma.
+	\item \texttt{if(r < ql || qr < l) return 0;} -- caso fuera del rango.
+	\item \texttt{return query(node*2, l, mid, ql, qr) + query(node*2+1, mid+1, r, ql, qr);} -- suma de ambos hijos.
+	\item \texttt{void add\_range(int l, int r, int val)\{ update(1, 0, n-1, l, r, val, 1); \}} -- helper publico para add.
+	\item \texttt{void set\_range(int l, int r, int val)\{ update(1, 0, n-1, l, r, val, 2); \}} -- helper publico para set.
+	\item \texttt{int sum(int l, int r)\{ return query(1, 0, n-1, l, r); \}} -- helper publico para query.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree Lazy Add + Set + Sum}.
+
+\vspace{0.5em}

@@ -1,0 +1,70 @@
+\subsubsection{BIT range add + point query}
+
+\paragraph{Idea intuitiva.}
+Truco de \textbf{diferencias}: para sumar $d$ a $[l, r]$, aniadir $d$ en $l$ y $-d$ en $r+1$. Asi, el valor en $i$ es la suma de los prefijos hasta $i$, lo que se calcula con un BIT normal. La idea algebraica: si mantenemos un arreglo de diferencias $\Delta$ donde $a_i = \sum_{j \le i} \Delta_j$, entonces aniadir $d$ a $a[l..r]$ equivale a $\Delta_l \mathrel{+}= d$ y $\Delta_{r+1} \mathrel{-}= d$, y reconstruir $a$ es un prefix sum.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Internamente es un BIT 5.1 con la convencion de diferencias.
+	\item \texttt{rangeAdd(l, r, delta)} cuesta $O(\log n)$ (dos \texttt{add}).
+	\item \texttt{pointQuery(i)} cuesta $O(\log n)$.
+	\item Si $r+1 > n$, no se aniade el $-d$ (fuera del rango).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El truco de diferencias:
+\begin{verbatim}
+void rangeAdd(int l, int r, long long d) {
+    add(l, d);
+    if (r + 1 <= n) add(r + 1, -d);
+}
+long long pointQuery(int i) { return sum(i); }
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log n)$ por operacion.
+	\item Memoria $O(n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Persistencia}: aniadir versionado (cada update crea una nueva ``copia'' del estado; en BIT no es trivial, mejor usar persistent segtree).
+	\item \textbf{Coordenada compression}: si $n$ es grande pero los updates son pocos, comprimir.
+	\item \textbf{2D range add + point query}: aniadir una dimension con la misma tecnica.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $r+1 > n$, \textbf{no} aniadir \texttt{-delta} (no hay efecto fuera del rango); el snippet ya lo chequea.
+	\item Para reconstruir el array original tras $k$ range adds, hacer $k$ point queries (no hay shortcut).
+	\item Confundir ``suma de diferencias'' con ``suma acumulada''; son cosas distintas.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura BITRangeAdd:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct BITRangeAdd { int n; vector<long long> t; };| -- encapsula el Fenwick Tree para range add y point query.
+	\item \verb|BITRangeAdd(int n): n(n), t(n+1, 0) {}| -- inicializa el vector con $n+1$ ceros (1-based).
+	\item \verb|void add(int i, long long delta)| -- suma \texttt{delta} a la posicion $i$.
+	\item \verb|for(; i <= n; i += i & -i) t[i] += delta;| -- propaga la diferencia por los lowbits.
+	\item \verb|void rangeAdd(int l, int r, long long delta)| -- suma \texttt{delta} al rango $[l, r]$.
+	\item \verb|add(l, delta);| -- inicia el efecto sumando en la posicion $l$.
+	\item \verb|if(r + 1 <= n) add(r + 1, -delta);| -- finaliza el efecto restando en $r + 1$.
+	\item \verb|long long pointQuery(int i)| -- consulta el valor actual en la celda $i$.
+	\item \verb|for(; i > 0; i -= i & -i) r += t[i];| -- acumula las diferencias prefijas hasta $i$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|BITRangeAdd bit(10);| -- crea BIT para 10 elementos.
+	\item \verb|bit.rangeAdd(2, 5, 3);| -- suma 3 al rango $[2, 5]$.
+	\item \verb|cout << bit.pointQuery(1) << "\n";| -- antes del rango: 0.
+	\item \verb|cout << bit.pointQuery(3) << "\n";| -- dentro del rango: 3.
+	\item \verb|cout << bit.pointQuery(6) << "\n";| -- despues del rango: 0.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{BIT range add + point query}.
+
+\vspace{0.5em}
+

@@ -1,0 +1,57 @@
+﻿\subsubsection{Tarjan SCC}
+
+\paragraph{Idea intuitiva.}
+Variante del SCC que usa \textbf{un solo DFS} con una pila explicita. Mantiene \texttt{disc[v]}, \texttt{low[v]}, y una pila de nodos ``en la SCC actual''. Cuando \texttt{low[v] == disc[v]}, $v$ es la raiz de una SCC; popear hasta $v$ inclusive. La demostracion: $low[v] == disc[v]$ indica que $v$ no tiene back-edges a ancestros; entonces $v$ y los nodos en la pila hasta $v$ forman una SCC maximal.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Mas eficiente que Kosaraju (un solo DFS).
+	\item \texttt{low[v] = min(low[u], disc[w])} para back-edges o recursion.
+	\item La pila asegura que solo los nodos en la SCC actual se popean.
+	\item Cada nodo se pushea y popea a lo sumo una vez.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El DFS de Tarjan SCC:
+\begin{verbatim}
+void dfs(int v) {
+    disc[v] = low[v] = timer++;
+    st.push(v); inStack[v] = true;
+    for (int u : g[v]) {
+        if (disc[u] == -1) { dfs(u); low[v] = min(low[v], low[u]); }
+        else if (inStack[u]) low[v] = min(low[v], disc[u]);
+    }
+    if (low[v] == disc[v]) {
+        // popear hasta v
+        while (true) {
+            int u = st.top(); st.pop(); inStack[u] = false;
+            comp[u] = current_scc;
+            if (u == v) break;
+        }
+        ++current_scc;
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Constante similar a Kosaraju pero sin construir $G^T$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Tamano de cada SCC}: aniadir contador durante el pop.
+	\item \textbf{Grafo condensation}: aniadir aristas entre SCCs en el DAG resultante.
+	\item \textbf{2-SAT}: aniadir la construccion del grafo de implicaciones.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{inStack[u]} debe chequearse antes de usar \texttt{low[v] = min(low[v], disc[u])} en back-edges.
+	\item La pila global es importante; sin ella no se puede extraer la SCC.
+	\item Si el grafo es muy grande, recursion puede overflow; aniadir version iterativa.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Tarjan SCC}.

@@ -1,0 +1,52 @@
+﻿\subsubsection{SOS DP}
+
+\paragraph{Idea intuitiva.}
+Para calcular, para cada \texttt{mask}, la suma de $f(\text{submask})$ sobre todos los $\text{submask} \subseteq \text{mask}$:
+\[ dp[mask] = \sum_{\text{sub} \subseteq mask} f(\text{sub}). \]
+Se computa en $O(N \cdot 2^N)$ mediante un loop por bit: para cada $i$, sumar a $dp[mask]$ la contribucion de $dp[mask \oplus (1 << i)]$ cuando $mask$ tiene el bit $i$. La idea: cada subconjunto $s \subseteq m$ se obtiene quitando bits uno a uno; asi, sumar incrementalmente captura todos los subconjuntos en $O(N \cdot 2^N)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Inicializar $dp = f$.
+	\item Para cada bit $i$: \texttt{if (mask \& (1 << i)) dp[mask] += dp[mask \^ (1 << i)]}.
+	\item Variantes: supersets DP (sumar sobre superconjuntos).
+	\item El orden de iteracion (bit externo, mascara interno) es crucial.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+SOS DP (Sum over Subsets):
+\begin{verbatim}
+vector<long long> dp(1 << N);
+for (int i = 0; i < (1 << N); ++i) dp[i] = f[i];
+for (int bit = 0; bit < N; ++bit)
+    for (int mask = 0; mask < (1 << N); ++mask)
+        if (mask & (1 << bit))
+            dp[mask] += dp[mask ^ (1 << bit)];
+// dp[mask] = suma de f(sub) para sub âŠ† mask
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \cdot 2^N)$.
+	\item Memoria $O(2^N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Max/min en lugar de suma}: cambiar \texttt{+=} por la operacion correspondiente.
+	\item \textbf{Supersets DP}: iterar \texttt{mask} de $0$ a $2^N$ y aniadir \texttt{dp[mask] += dp[mask | (1<<i)]}.
+	\item \textbf{XOR convolution} (subset convolution): version mas avanzada.
+	\item \textbf{Aplicaciones}: contar subconjuntos con propiedades especificas.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $N$ es 30 o mas, $2^N$ no entra en memoria; usar trucos o reducir $N$.
+	\item El sentido del XOR (sumar a \texttt{mask \^ bit}) es para ``agregar el bit $i$ al subconjunto''.
+	\item En supersets DP, la condicion es \texttt{(mask \& (1<<bit)) == 0}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{SOS DP}.
+
+\vspace{0.5em}

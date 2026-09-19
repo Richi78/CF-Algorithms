@@ -1,0 +1,63 @@
+﻿\subsubsection{Kosaraju SCC}
+
+\paragraph{Idea intuitiva.}
+Encuentra las \textbf{componentes fuertemente conexas} (SCCs) en $O(V + E)$. Algoritmo en 3 pasos:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item DFS en $G$ rellenando una pila en \textbf{post-orden} (los nodos que terminan tarde quedan arriba).
+	\item Construir $G^T$ (grafo transpuesto).
+	\item DFS en $G^T$ procesando nodos en orden de la pila (de mayor a menor tiempo); cada DFS da una SCC.
+\end{itemize}
+La demostracion: dos nodos $u, v$ estan en la misma SCC sii hay camino $u \leadsto v$ y $v \leadsto u$; Kosaraju captura exactamente esto al explorar $G^T$ desde los nodos con mayor tiempo de finalizacion en $G$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada SCC es maximal fuertemente conexa.
+	\item El \textbf{grafo de SCCs} (metagraf) es un DAG.
+	\item Kosaraju y Tarjan dan el mismo resultado; Tarjan es ``mas rapido'' en practica (un solo DFS).
+	\item Cada nodo pertenece a exactamente una SCC.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La estructura de Kosaraju:
+\begin{verbatim}
+vector<int> order;
+vector<bool> used(n);
+function<void(int)> dfs1 = [&](int v) {
+    used[v] = true;
+    for (int u : g[v]) if (!used[u]) dfs1(u);
+    order.push_back(v);  // post-orden
+};
+function<void(int, int)> dfs2 = [&](int v, int root) {
+    comp[v] = root;
+    for (int u : gt[v]) if (comp[u] == -1) dfs2(u, root);
+};
+// 1: DFS en G para llenar order
+// 2: DFS en G^T en orden inverso para asignar SCCs
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Constante 2 (dos DFS + el grafo transpuesto).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{2-SAT}: SCC sobre grafo de implicaciones.
+	\item \textbf{Construir el DAG de SCCs}: aniadir aristas entre SCCs diferentes.
+	\item \textbf{Tamano de cada SCC}: aniadir contador durante el segundo DFS.
+	\item \textbf{Grafo grande}: usar Tarjan para evitar construir $G^T$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet usa \texttt{vector<...> adj[n]} (VLA); reemplazable por \texttt{vector<vector<pair<int,int>>} para portabilidad.
+	\item El orden del segundo DFS debe ser \textbf{inverso} al de finalizacion del primero.
+	\item Si el grafo no es conexo, aniadir un loop sobre todos los nodos en el primer DFS.
+	\item Confundir SCC con componentes conexas (las primeras son para dirigidos, las segundas para no dirigidos).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Kosaraju SCC}.
+
+\vspace{0.5em}

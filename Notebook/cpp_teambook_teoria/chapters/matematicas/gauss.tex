@@ -1,0 +1,117 @@
+\subsubsection{Gauss-Jordan (mod p)}
+
+\paragraph{Idea intuitiva.}
+Reduccion gaussiana para resolver sistemas $Ax = b$ y calcular determinante y rango. En la version \textbf{Gauss-Jordan}, se elimina hacia arriba y hacia abajo (obteniendo la forma escalonada reducida por filas, RREF). El algoritmo opera sobre la matriz aumentada $[A \mid b]$ modulo $p$. La justificacion: las operaciones elementales de fila (intercambio de filas, multiplicacion por escalar no nulo y suma de un multiplo de una fila a otra) preservan el conjunto de soluciones del sistema y las propiedades del espacio vectorial.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Rango \texttt{r}: numero de filas no nulas (o pivotes) tras la reduccion.
+	\item \textbf{3 casos} para $Ax = b$ con matriz $n \times n$:
+	\begin{itemize}\setlength\itemsep{0pt}
+		\item \textbf{Sin solucion} (inconsistente): existe alguna fila nula en los coeficientes de $A$ cuyo termino independiente es no nulo ($\text{aug}[i][n] \ne 0$ para algun $i \ge r$).
+		\item \textbf{Solucion unica}: sistema consistente y $r = n$ (rango igual al numero de incognitas).
+		\item \textbf{Infinitas soluciones}: sistema consistente y $r < n$ (quedan $n - r$ variables libres).
+	\end{itemize}
+	\item Determinante: producto de los elementos diagonales en la forma triangular, multiplicado por $(-1)^s$ donde $s$ es el numero de swaps de filas realizados (en $\bmod\ p$: \texttt{det = (MOD - det) \% MOD}).
+	\item En el caso de infinitas soluciones, fijar las variables libres en $0$ permite obtener una solucion particular de forma directa.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Eliminacion Gauss-Jordan completa (RREF in-place modulo $p$):
+\begin{verbatim}
+int gaussJordan(vector<vector<long long>>& a) {
+    int n = a.size(), m = a[0].size(), rank = 0, row = 0;
+    for (int col = 0; col < m && row < n; ++col) {
+        int sel = row;
+        for (int i = row; i < n; ++i) if (a[i][col]) { sel = i; break; }
+        if (!a[sel][col]) continue;
+        swap(a[sel], a[row]);
+        long long inv = modpow(a[row][col], MOD - 2, MOD);
+        for (int j = col; j < m; ++j) a[row][j] = a[row][j] * inv % MOD;
+        for (int i = 0; i < n; ++i) {
+            if (i != row && a[i][col]) {
+                long long factor = a[i][col];
+                for (int j = col; j < m; ++j) {
+                    a[i][j] = (a[i][j] - factor * a[row][j] % MOD + MOD) % MOD;
+                }
+            }
+        }
+        ++row; ++rank;
+    }
+    return rank;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N^3)$ para una matriz cuadrada $N \times N$ (en general $O(N \cdot M \cdot \min(N, M))$ para $N$ filas y $M$ columnas).
+	\item La eliminacion o triangularizacion es $O(N^3)$; la sustitucion regresiva en la eliminacion gaussiana clasica es $O(N^2)$.
+	\item Para $N \le 500$: $\sim 6 \cdot 10^7$ operaciones modulares, perfectamente factible en $\le 1$ segundo.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Sin modulo (numeros reales)}: usar \texttt{double}, pivoteo parcial eligiendo el elemento con mayor \texttt{fabs(a[i][col])} y comparar con un umbral \texttt{eps} ($\approx 10^{-9}$) en vez de $0$.
+	\item \textbf{Modulo 2 (GF(2) / XOR)}: usar \texttt{std::bitset} para representar las filas. Las sumas se vuelven XORs y la complejidad se reduce a $O(N^3 / 64)$, permitiendo $N \le 2000 \sim 4000$.
+	\item \textbf{Solucion particular con libres en 0}: el snippet lo hace de manera natural; para asignar otros valores a las variables libres, inicializar las columnas no pivote.
+	\item \textbf{Rango sobre matriz sin aumentar}: pasar directamente la matriz de coeficientes $A$ ($n \times m$), la funcion retornara su rango.
+	\item \textbf{Matriz de Vandermonde}: si la matriz tiene estructura de Vandermonde, se puede resolver o invertir en $O(N^2)$ mediante polinomios de Lagrange/Newton.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Sobrescritura prematura del factor}: calcular y guardar \texttt{long long factor = a[i][col];} antes de entrar al bucle de columnas $j$. Si se usa directamente \texttt{a[i][col]} al actualizar $a[i][j]$, cuando $j = \text{col}$ se vuelve cero y anula la eliminacion en el resto de la fila.
+	\item \textbf{Restas negativas en C++}: la operacion \texttt{(a - b) \% MOD} puede ser negativa; siempre usar \texttt{(a - b \% MOD + MOD) \% MOD}.
+	\item \textbf{Division por cero y modulo no primo}: se requiere el inverso modular de cada pivote. Esto asume que el modulo $p$ es primo (usando $a^{p-2} \bmod p$). Si el modulo es compuesto, se debe usar eliminacion gaussiana basada en el algoritmo de Euclides.
+	\item \textbf{Signo del determinante}: cada swap de filas invierte el signo del determinante; en modulo $p$, multiplicar por $-1$ equivale a \texttt{det = (MOD - det) \% MOD}.
+	\item \textbf{Inestabilidad numerica}: con \texttt{double}, siempre usar pivoteo parcial (buscar el maximo valor absoluto en la columna) para minimizar errores de precision por punto flotante.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{gaussJordan}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int gaussJordan(vector<vector<long long>>& a)| -- reduccion RREF in-place; retorna el rango.
+	\item \verb|int n = a.size(), m = a[0].size(), rank = 0, row = 0;| -- dimensiones de la matriz, rango y fila pivote actual.
+	\item \verb|for(int col=0; col<m && row<n; col++)| -- avanza columna por columna mientras haya filas disponibles.
+	\item \verb|int sel = row;| -- indice candidato para la fila pivote.
+	\item \verb|for(int i=row;i<n;i++) if(a[i][col]){ sel = i; break; }| -- busca la primera fila con pivote no cero en esta columna.
+	\item \verb|if(!a[sel][col]) continue;| -- si toda la columna debajo de \texttt{row} es cero, es variable libre; salta a la siguiente columna.
+	\item \verb|swap(a[sel], a[row]);| -- mueve la fila elegida a la posicion \texttt{row}.
+	\item \verb|long long inv = modpow(a[row][col], MOD - 2, MOD);| -- calcula el inverso modular del pivote.
+	\item \verb|for(int j=col;j<m;j++) a[row][j] = a[row][j] * inv % MOD;| -- normaliza la fila pivote para que el pivote sea 1.
+	\item \verb|for(int i=0;i<n;i++)| -- elimina la columna en todas las demas filas (hacia arriba y hacia abajo).
+	\item \verb|if(i != row && a[i][col])| -- evita la propia fila pivote y filas que ya tienen cero en esta columna.
+	\item \verb|long long factor = a[i][col];| -- guarda el factor antes de modificar la fila para no sobrescribirlo.
+	\item \verb|a[i][j] = (a[i][j] - factor * a[row][j] % MOD + MOD) % MOD;| -- resta el multiplo de la fila pivote.
+	\item \verb|row++; rank++;| -- avanza a la siguiente fila y cuenta un nuevo pivote en el rango.
+\end{itemize}
+\textbf{Funcion \texttt{determinant}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long det = 1;| -- determinante inicializado en $1$.
+	\item \verb|for(int i=0;i<n;i++)| -- eliminacion gaussiana para triangularizar la matriz.
+	\item \verb|int sel = i;| -- busca la fila pivote a partir de la fila $i$.
+	\item \verb|for(int j=i;j<n;j++) if(a[j][i]){ sel = j; break; }| -- encuentra una fila con elemento no cero en la diagonal/columna.
+	\item \verb|if(!a[sel][i]) return 0;| -- si todos son cero, el rango es menor a $n$ y el determinante es $0$.
+	\item \verb|if(sel != i){ swap(a[sel], a[i]); det = (MOD - det) % MOD; }| -- swap de filas invierte el signo del determinante.
+	\item \verb|det = det * a[i][i] % MOD;| -- multiplica el determinante por el elemento diagonal (pivote).
+	\item \verb|long long inv = modpow(a[i][i], MOD - 2, MOD);| -- inversa del pivote para eliminar por debajo.
+	\item \verb|for(int j=i+1;j<n;j++)| -- itera sobre las filas por debajo de la diagonal.
+	\item \verb|long long factor = a[j][i] * inv % MOD;| -- factor de eliminacion para la fila $j$.
+	\item \verb|a[j][k] = (a[j][k] - factor * a[i][k] % MOD + MOD) % MOD;| -- elimina la entrada bajo el pivote en toda la fila.
+\end{itemize}
+\textbf{Funcion \texttt{solveSystem}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<vector<long long>> aug(n, vector<long long>(n + 1));| -- construye la matriz aumentada $[A \mid b]$ de $n \times (n+1)$.
+	\item \verb|aug[i][j] = A[i][j]; aug[i][n] = b[i];| -- copia los coeficientes de $A$ y el vector $b$.
+	\item \verb|int r = gaussJordan(aug);| -- reduce a RREF y obtiene el rango.
+	\item \verb|for(int i = r; i < n; i++) if(aug[i][n] != 0) return 0;| -- verifica inconsistencia: fila nula con $b_i \ne 0$ (retorna 0 = sin solucion).
+	\item \verb|if(r < n) return 2;| -- rango menor que $n$: variables libres (retorna 2 = infinitas soluciones).
+	\item \verb|sol.assign(n, 0); for(int i=0; i<n; i++) sol[i] = aug[i][n];| -- lee la solucion particular de la ultima columna.
+	\item \verb|return 1;| -- retorna 1 indicando solucion unica almacenada en \texttt{sol}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Gauss-Jordan (mod p)}.
+
+\vspace{0.5em}
+

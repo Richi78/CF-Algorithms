@@ -1,0 +1,78 @@
+﻿\subsubsection{Extended Euclidean Algorithm}
+
+\paragraph{Idea intuitiva.}
+Dados dos enteros $a$ y $b$ no ambos cero, existen enteros $x, y$ tales que $ax + by = \gcd(a, b)$. El algoritmo extendido de Euclides los construye \textbf{mientras} calcula el gcd, mediante recursion: si $(x_1, y_1)$ resuelve $b \cdot x_1 + (a \bmod b) \cdot y_1 = \gcd$, entonces $x = y_1$ e $y = x_1 - y_1 \cdot \lfloor a/b \rfloor$ resuelve $ax + by = \gcd$. La existencia se demuestra por la identidad de B\'ezout: en cada paso, $\gcd(a, b) = \gcd(b, a \bmod b)$, y la recursion garantiza que siempre podemos ``desenrollar'' los coeficientes.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Siempre termina (Euclides baja el segundo argumento).
+	\item $x$ puede ser negativo.
+	\item Si $\gcd(a,b) = 1$, entonces $x$ es el \textbf{inverso modular} de $a$ modulo $b$.
+	\item $|x|, |y| \le \max(a, b) / 2$ en valor absoluto (propiedad util para cotas).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La recursion que arma la base del algoritmo:
+\begin{verbatim}
+long long extgcd(long long a, long long b, long long& x, long long& y) {
+    if (b == 0) { x = (a >= 0 ? 1 : -1); y = 0; return abs(a); }
+    long long x1, y1;
+    long long g = extgcd(b, a % b, x1, y1);
+    x = y1;
+    y = x1 - y1 * (a / b);
+    return g;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log \min(a,b))$ operaciones (misma que el gcd de Euclides).
+	\item Cada llamada hace una division y dos asignaciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Inversa modular}: la linea \texttt{x = y1; y = x1 - y1 * (a/b);} resuelve el caso recursivo. Para usar como inversa modular con mod primo, despues ajustar al rango $[0, \text{mod})$.
+	\item \textbf{Cuidado con negativos}: si $b$ es negativo, ajustar la division entera.
+	\item Si el problema requiere \textbf{muchas} inversas del mismo mod, conviene precomputar con el algoritmo de Fermat ($a^{p-2} \bmod p$) en lugar de llamar a extgcd por cada una.
+	\item \textbf{Para ecuaciones diofanticas}: aniadir la busqueda de la solucion general $x = x_0 + (b/g) \cdot t$, $y = y_0 - (a/g) \cdot t$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los numeros exceden \texttt{int}, cambiar a \texttt{long long}. El snippet retorna \texttt{int}; insuficiente para $a > 2^{31}$.
+	\item \texttt{a \% b} con $a$ o $b$ negativos puede dar resultados inesperados en distintos compiladores; ajustar antes de la recursion.
+	\item Confundir $a/b$ (truncado hacia cero en C++17+) con $\lfloor a/b \rfloor$; afecta la correccion si $a$ es negativo.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{extgcd}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int extgcd(int a, int b, int &x, int &y)| -- calcula $\gcd(a,b)$ y los coeficientes de B\'ezout; los retorna por referencia.
+	\item \verb|if(b==0)| -- caso base: cuando $b=0$, $\gcd(a, 0) = a$.
+	\item \verb|x=1; y=0;| -- en este caso $a \cdot 1 + 0 \cdot 0 = a$, asi que $x=1, y=0$.
+	\item \verb|return a;| -- devuelve el $\gcd$.
+	\item \verb|int x1,y1;| -- variables temporales para los coeficientes de la llamada recursiva.
+	\item \verb|int g=extgcd(b, a%b, x1, y1);| -- llamada recursiva con el algoritmo de Euclides clasico.
+	\item \verb|x = y1;| -- ``desenrolla'' los coeficientes: el nuevo $x$ es el antiguo $y_1$.
+	\item \verb|y = x1 - y1 * (a / b);| -- reconstruye $y$ a partir de la identidad de B\'ezout.
+	\item \verb|return g;| -- devuelve el $\gcd$ (es el mismo que el de la llamada recursiva).
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int x, y;| -- variables para los coeficientes de B\'ezout.
+	\item \verb|int g = extgcd(12, 8, x, y);| -- calcula $\gcd(12,8)=4$ con coeficientes $x, y$.
+	\item \verb|cout << "gcd = " << g << "\textbackslash n";| -- imprime $\gcd = 4$.
+	\item \verb|cout << "x = " << x << ", y = " << y << "\textbackslash n";| -- imprime $x=1, y=-1$ (verifica: $12 \cdot 1 + 8 \cdot (-1) = 4$).
+	\item \verb|int xi, yi;| -- variables para el calculo del inverso modular.
+	\item \verb|int a = 3, m = 7;| -- modulo primo pequeno para verificar.
+	\item \verb|int g2 = extgcd(a, m, xi, yi);| -- aplica extgcd para $a=3$, $m=7$.
+	\item \verb|if(g2 == 1)| -- si el gcd es 1, existe el inverso modular.
+	\item \verb|int inv = (xi % m + m) % m;| -- ajusta $x$ al rango positivo $[0, m)$.
+	\item \verb|cout << a << " * " << inv << " mod " << m << " = " << (a * inv) % m << "\textbackslash n";| -- imprime la verificacion $3 \cdot 5 \equiv 1 \pmod 7$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Extended Euclidean Algorithm}.
+
+\vspace{0.5em|||}

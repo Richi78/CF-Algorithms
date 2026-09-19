@@ -1,0 +1,53 @@
+﻿\subsubsection{LCS / Edit distance}
+
+\paragraph{Idea intuitiva.}
+\textbf{LCS} (Longest Common Subsequence): para dos strings $a$, $b$, $dp[i][j]$ = LCS de $a[0..i)$ y $b[0..j)$. Recurrencia:
+\[ dp[i][j] = \begin{cases} dp[i-1][j-1] + 1 & \text{si } a[i-1] = b[j-1] \\ \max(dp[i-1][j], dp[i][j-1]) & \text{si no} \end{cases} \]
+
+\textbf{Edit distance} (Levenshtein): numero minimo de operaciones (insert, delete, replace) para convertir $a$ en $b$. Recurrencia similar con un $+1$ adicional. La idea: ``alinear'' los strings eligiendo matches/mismatches/insert/delete.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item LCS y Edit Distance son DP $O(nm)$.
+	\item Memoria se puede reducir a $O(\min(n, m))$ con rolling array.
+	\item Edit distance con peso por operacion distinto: ajustar el \texttt{+1} por el peso.
+	\item La subestructura optima: la respuesta para prefijos se construye de prefijos menores.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La recurrencia clasica de LCS:
+\begin{verbatim}
+vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+for (int i = 1; i <= n; ++i)
+    for (int j = 1; j <= m; ++j)
+        if (a[i-1] == b[j-1]) dp[i][j] = dp[i-1][j-1] + 1;
+        else dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+return dp[n][m];
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(NM)$ tiempo y memoria.
+	\item Para $N, M \le 5000$: $\sim 2.5 \cdot 10^7$ operaciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir la LCS / las operaciones}: aniadir \texttt{prev[i][j]} para backtrack.
+	\item \textbf{LCS de varios strings}: NP-hard para $\ge 3$ strings; en la practica se hace con bitmask.
+	\item \textbf{Edit distance con costos distintos}: cambiar el \texttt{+1} por el costo apropiado.
+	\item \textbf{Rolling array}: si memoria es problema, mantener solo 2 filas.
+	\item \textbf{Hirschberg}: algoritmo $O(NM)$ tiempo, $O(\min(N,M))$ memoria, con reconstruccion.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Indices en la recurrencia: \texttt{a[i-1]} y \texttt{b[j-1]} (no \texttt{a[i]}).
+	\item Para reconstruccion, el caso \texttt{a[i-1] == b[j-1]} tiene prioridad.
+	\item Si los strings son muy largos, considerar Hirschberg o bitset optimization.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{LCS / Edit distance}.
+
+\vspace{0.5em}

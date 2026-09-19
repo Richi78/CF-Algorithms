@@ -1,0 +1,48 @@
+﻿\subsubsection{Knapsack unbounded}
+
+\paragraph{Idea intuitiva.}
+Igual que Knapsack 0/1 pero \textbf{cada item se puede tomar multiples veces}. La recurrencia es similar:
+\[ dp[j] = \max(dp[j],\, dp[j - w_i] + v_i), \]
+pero ahora el bucle va de \textbf{menor a mayor} (porque tomar el item $i$ no afecta corridas futuras del mismo item). La idea: tras tomar el item $i$, queremos volver a tener la opcion de tomarlo; iterar de menor a mayor permite que el item ``se acumule''.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El bucle \texttt{for (j = w[i]; j <= W; j++)} es lo que distingue unbounded.
+	\item A diferencia de 0/1, no hay riesgo de ``usar dos veces el mismo item''.
+	\item La DP es exacta; cada ``subconjunto'' se cuenta correctamente.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La version 1D con bucle directo:
+\begin{verbatim}
+vector<long long> dp(W + 1, 0);
+for (int i = 0; i < N; ++i)
+    for (int j = w[i]; j <= W; ++j)  // directo (no invertido)
+        dp[j] = max(dp[j], dp[j - w[i]] + v[i]);
+return dp[W];
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \cdot W)$ tiempo, $O(W)$ memoria.
+	\item Constante muy pequena.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir cuantos de cada item}: aniadir \texttt{cnt[i]} y backtrack.
+	\item \textbf{Cambiar moneda minima por maxima}: el snippet maximiza valor; para minimizar monedas, cambiar a \texttt{min} con inicializacion en \texttt{INF}.
+	\item \textbf{Coin change}: si todos los pesos son positivos y queremos ``minimo numero de monedas'', es unbounded con min.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Misma que Knapsack 0/1 con overflow.
+	\item El orden de iteracion de items no afecta el resultado (convexo).
+	\item Si se quiere ``maximo valor con exactamente $k$ items'', aniadir segunda dimension.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Knapsack unbounded}.
+
+\vspace{0.5em}

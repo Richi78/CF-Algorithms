@@ -1,0 +1,73 @@
+\subsubsection{BIT point update + prefix sum}
+
+\paragraph{Idea intuitiva.}
+El \textbf{Fenwick Tree} (BIT) almacena sums parciales de manera que \texttt{sum(i)} (suma de $[1, i]$) y \texttt{add(i, delta)} cuestan $O(\log n)$. La representacion es ingeniosa: el nodo $i$ cubre el rango $[i - \text{lowbit}(i) + 1, i]$. Asi, \texttt{sum(i)} itera \texttt{i -= lowbit(i)}, sumando los nodos que cubren un prefijo creciente, y \texttt{add(i, delta)} itera \texttt{i += lowbit(i)}, propagando el cambio a todos los nodos cuyo rango contiene a $i$. La idea: cada indice $i$ se descompone en una suma de bloques disjuntos de tamano potencias de 2 (su ``lowbit representation'').
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Indice \textbf{1-based} (no usar $i=0$).
+	\item \texttt{lowbit(i) = i \& (-i)}.
+	\item Cada nodo cubre exactamente un rango de tamano \texttt{lowbit(i)}.
+	\item La operacion debe ser \textbf{invertible} (suma, xor, no min/max).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Las dos operaciones basicas:
+\begin{verbatim}
+void add(int i, long long d) {
+    for (; i <= n; i += i & -i) bit[i] += d;
+}
+long long sum(int i) {
+    long long s = 0;
+    for (; i > 0; i -= i & -i) s += bit[i];
+    return s;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log n)$ por operacion. Memoria $O(n)$.
+	\item Constante muy pequena ($\sim 1$): en la practica, $\sim 3x$ mas rapido que segment tree.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Suma -> max/min/xor}: cambiar el \texttt{+=} por la operacion (con identidad apropriada). \textbf{No} funciona para \texttt{min} de forma natural (no es invertible).
+	\item \textbf{Tamano dinamico}: aniadir un metodo \texttt{resize(newSize)} que preserve valores.
+	\item \textbf{Tamano grande}: con $n = 10^7$, mejor comprimir coordenadas.
+	\item \textbf{Operador no conmutativo}: usar segment tree en su lugar.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Indices 0 vs 1: el BIT es \textbf{1-based}. Si el problema da indices 0-based, aniadir \texttt{+1} en cada llamada.
+	\item El metodo \texttt{sum} itera \texttt{i -= i \& -i}; aniadir o quitar 1 rompe el invariante.
+	\item Si el tipo es \texttt{int}, posibles overflows; usar \texttt{long long}.
+	\item Para rango $[l, r]$, el query es \texttt{sum(r) - sum(l-1)} (cuidado con $l = 1$).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura del BIT:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct BIT { int n; vector<long long> t; };| -- encapsula el Fenwick Tree.
+	\item \verb|BIT(int n): n(n), t(n+1, 0) {}| -- constructor: tamano $n+1$ para indexacion 1-based.
+	\item \verb|void add(int i, long long delta)| -- agrega \texttt{delta} en la posicion \texttt{i}.
+	\item \verb|for(; i <= n; i += i & -i) t[i] += delta;| -- avanza por los ancestros de \texttt{i} (\texttt{lowbit}), sumando en cada uno.
+	\item \verb|long long sum(int i)| -- calcula la suma de \texttt{a[1]} a \texttt{a[i]}.
+	\item \verb|for(; i > 0; i -= i & -i) r += t[i];| -- desciende removiendo el bit menos significativo.
+	\item \verb|long long rangeSum(int l, int r)| -- retorna la suma en $[l, r]$ mediante \texttt{sum(r) - sum(l - 1)}.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|BIT bit(10);| -- crea BIT de tamano 10.
+	\item \verb|bit.add(3, 5);| -- suma 5 en la posicion 3.
+	\item \verb|bit.add(7, 2);| -- suma 2 en la posicion 7.
+	\item \verb|cout << bit.sum(5) << "\n";| -- imprime suma de $[1, 5]$ (que es 5).
+	\item \verb|cout << bit.rangeSum(1, 10) << "\n";| -- imprime suma total (7).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{BIT point update + prefix sum}.
+
+\vspace{0.5em}
+

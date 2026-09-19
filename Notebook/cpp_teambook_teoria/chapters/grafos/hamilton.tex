@@ -1,0 +1,50 @@
+﻿\subsubsection{Hamiltonian path / cycle (bitmask DP + backtracking)}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{camino hamiltoniano} visita cada vertice \textbf{exactamente una vez}. \textbf{Determinar} si existe es NP-completo en general, pero con $V \le 20$ se puede hacer DP con bitmask en $O(V^2 \cdot 2^V)$. \textbf{Teoremas suficientes}: \textbf{Dirac} (grado $\ge n/2$) y \textbf{Ore} ($\text{deg}(u) + \text{deg}(v) \ge n$ para todo par no adyacente). La idea de la DP: cada estado es (conjunto de visitados, ultimo vertice); la transicion es agregar un vecino no visitado.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item DP: $dp[mask][v]$ = true si hay un camino que visita exactamente \texttt{mask} y termina en $v$.
+	\item TSP: variante con pesos minimos (Hamilton cycle minimo).
+	\item Reconstruccion: guardar \texttt{par[mask][v]} (predecesor).
+	\item $2^V$ estados con $V$ bits cada uno; factible para $V \le 20$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+DP con bitmask:
+\begin{verbatim}
+dp[1][0] = 0;  // empezar en 0
+for (int mask = 1; mask < (1<<n); ++mask)
+    for (int v = 0; v < n; ++v) if (dp[mask][v] < INF)
+        for (int u = 0; u < n; ++u)
+            if (!(mask & (1<<u)))
+                dp[mask | (1<<u)][u] = min(dp[mask | (1<<u)][u],
+                                            dp[mask][v] + w[v][u]);
+// TSP: respuesta = min(dp[(1<<n)-1][v] + w[v][0])
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V^2 \cdot 2^V)$ tiempo, $O(V \cdot 2^V)$ memoria.
+	\item Para $V = 20$: $\sim 4 \cdot 10^8$ operaciones (lento pero factible).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{TSP asimetrico}: aniadir pesos $w[v][u]$ (no necesariamente simetricos).
+	\item \textbf{Hamilton con inicio obligatorio}: fijar \texttt{src} en el DP inicial.
+	\item \textbf{Bitmask DP mas compacto}: usar \texttt{long long} como mascara si $V \le 64$.
+	\item \textbf{TSP optimo aproximado}: MST, 2-opt, simulated annealing.
+	\item \textbf{Reconstruir el path}: usar \texttt{par[mask][v]} y backtrack.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item TSP asume grafo \textbf{completo} (con \texttt{LINF} para aristas faltantes); si no, aniadir chequeo.
+	\item La condicion ``\texttt{mask == (1<<n) - 1}'' cierra el ciclo retornando al origen.
+	\item Para $V > 20$, la memoria $2^V$ se vuelve prohibitiva; usar meet-in-the-middle o heuristicas.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Hamiltonian path / cycle (bitmask DP + backtracking)}.

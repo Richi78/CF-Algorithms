@@ -1,0 +1,56 @@
+﻿\subsubsection{DFS / BFS / componentes}
+
+\paragraph{Idea intuitiva.}
+\textbf{DFS} (Depth-First Search) y \textbf{BFS} (Breadth-First Search) son los dos recorridos basicos de grafos. DFS usa una pila (o recursion) y explora tan profundo como puede antes de retroceder; BFS usa una cola y explora por ``niveles'' de distancia. La cantidad de \textbf{componentes conexas} se cuenta iniciando un BFS/DFS desde cada nodo no visitado. La diferencia clave: BFS da el camino mas corto en aristas; DFS da un orden de finalizacion util para problemas topologicos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item BFS da la \textbf{distancia en aristas} mas corta desde el origen.
+	\item DFS da un \textbf{orden topologico} (si se aniaden al final).
+	\item Ambos son $O(V + E)$.
+	\item Un grafo con $C$ componentes conexas satisface $\sum \text{subtree\_size}_v = V$ y $\sum E_v = 2E$.
+	\item DFS en arbol da un spanning tree; las ``back edges'' corresponden a ciclos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+BFS clasico:
+\begin{verbatim}
+queue<int> q;
+q.push(source);
+dist[source] = 0;
+while (!q.empty()) {
+    int v = q.front(); q.pop();
+    for (int u : adj[v])
+        if (dist[u] == -1) {
+            dist[u] = dist[v] + 1;
+            q.push(u);
+        }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$ tiempo, $O(V)$ memoria.
+	\item Cada arista se procesa exactamente 2 veces (ida y vuelta) en no dirigidos.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir pesos}: si las aristas tienen peso y queres shortest path, BFS ya no sirve; usar Dijkstra.
+	\item \textbf{Grafo dirigido}: en DFS, aniadir check \texttt{if (state[u] == 1)} para detectar ciclos.
+	\item \textbf{Bipartite check}: BFS alternando colores (ver el siguiente modulo).
+	\item \textbf{Componentes fuertemente conexas (dirigidos)}: usar Tarjan o Kosaraju.
+	\item \textbf{BFS en matriz}: aniadir offsets por direccion para grid 2D.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Stack overflow con DFS recursivo para $V > 10^5$; usar version iterativa con pila explicita.
+	\item En BFS, olvidar marcar \texttt{dist[u] = dist[v] + 1} antes de pushear da visitas duplicadas.
+	\item Para grafos dirigidos, ``componente conexa'' no esta definida; usar SCC.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{DFS / BFS / componentes}.
+
+\vspace{0.5em}

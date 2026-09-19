@@ -1,0 +1,68 @@
+﻿\subsubsection{Lucas theorem}
+
+\paragraph{Idea intuitiva.}
+Para $p$ primo y $n, k$ grandes, $\binom{n}{k} \bmod p$ se calcula descomponiendo $n$ y $k$ en base $p$: $n = n_0 + n_1 p + n_2 p^2 + \dots$, $k = k_0 + k_1 p + \dots$. Entonces $\binom{n}{k} \equiv \prod_i \binom{n_i}{k_i} \pmod p$ (\textbf{Lucas}). Cada $\binom{n_i}{k_i}$ se calcula con el snippet anterior. La demostracion usa que $(1+x)^n \equiv \prod_i (1+x^{p^i})^{n_i}$ en $\mathbb{F}_p[x]$ (por el ``freshman's dream'' $a^p \equiv a \pmod p$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Solo funciona con $p$ primo.
+	\item Si algun $k_i > n_i$, el coeficiente es 0.
+	\item Reduce el problema a $\log_p(n)$ coeficientes chiquitos.
+	\item Cada $\binom{n_i}{k_i}$ se computa con factoriales precomputados hasta $p-1$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Lucas iterativo (descomponiendo en base $p$):
+\begin{verbatim}
+long long lucas(long long n, long long k, long long p) {
+    long long res = 1;
+    while (n > 0 || k > 0) {
+        int ni = n % p, ki = k % p;
+        if (ki > ni) return 0;
+        res = res * nCr_small(ni, ki) % p;  // usa fact hasta p-1
+        n /= p; k /= p;
+    }
+    return res;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log_p n)$ multiplicaciones, cada una requiere un $\binom{n_i}{k_i}$ que es $O(1)$ con factoriales precomputados.
+	\item Para $p = 10^6$ y $n = 10^{18}$: $\sim 12$ iteraciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{$p$ no primo}: requiere extender Lucas a modulos compuestos (no trivial, basado en factorizacion).
+	\item \textbf{Devolver la suma}: si necesitas $\sum_k \binom{n}{k} \bmod p$, es $2^n \bmod p$ via Fermat (cuando $p$ es primo).
+	\item \textbf{Multiples queries}: precomputar todos los $\binom{n_i}{k_i}$ en una tabla y consultar.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{buildFact(MOD)} solo precomputa hasta \texttt{MOD}, no hasta \texttt{n}. Pero como cada $\binom{n_i}{k_i}$ tiene $n_i < p$, eso es suficiente.
+	\item Si $p$ es muy chico ($\le 100$), los factoriales repiten valores (\texttt{fact[p] = 0}); eso no rompe Lucas pero aniadir logica.
+	\item Lucas \textbf{no} funciona para modulos no primos sin extension (algoritmo basado en factorizacion).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{nCrLucas}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long nCrLucas(long long n, long long k, long long MOD)| -- calcula $\binom{n}{k} \bmod p$ para $n, k$ grandes via Lucas.
+	\item \verb|if(k == 0) return 1;| -- caso base: $\binom{n}{0} = 1$.
+	\item \verb|long long ni = n % MOD, ki = k % MOD;| -- extrae el digito menos significativo de $n$ y $k$ en base $p$.
+	\item \verb|if(ki > ni) return 0;| -- si el digito de $k$ excede el de $n$, $\binom{n_i}{k_i}=0$.
+	\item \verb|return nCrLucas(n / MOD, k / MOD, MOD) * nCr((int)ni, (int)ki) % MOD;| -- aplica la recurrencia: producto sobre los digitos.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|buildFact(MOD);| -- precalcula los factoriales e inversos hasta $p-1$.
+	\item \verb|cout << nCrLucas(1000, 100, MOD) << "\textbackslash n";| -- evalua $\binom{1000}{100} \bmod 998244353$ usando Lucas.
+\end{itemize}
+Notar que \texttt{nCr} aqui es la version factorial con precomputo (ver \texttt{factorial\_ncr.tex}).
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Lucas theorem}.
+
+\vspace{0.5em|||}

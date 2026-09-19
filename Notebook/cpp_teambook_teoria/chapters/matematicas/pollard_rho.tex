@@ -1,0 +1,88 @@
+﻿\subsubsection{Pollard's Rho + factorizacion}
+
+\paragraph{Idea intuitiva.}
+Miller-Rabin detecta primalidad pero no factoriza. Pollard's Rho busca un \textbf{factor no trivial} de $n$ usando una secuencia pseudoaleatoria $x_{k+1} = x_k^2 + c \pmod n$ y aplicando la \textbf{paradoja del cumpleanos}: si la secuencia cae en un ciclo modulo un factor primo $p$ de $n$, entonces $\gcd(|x_i - x_j|, n)$ sera $p$ para algun $i, j$. Esto es esperado $O(n^{1/4})$ por factor. La intuicion: la secuencia modulo $p$ (donde $p \le \sqrt{n}$) tiene un ciclo esperado de longitud $O(\sqrt{p}) = O(n^{1/4})$, mucho mas corto que el ciclo modulo $n$ ($\sim n$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada llamada a \texttt{pollard(n)} devuelve \textbf{un} factor (no necesariamente primo); se llama recursivamente.
+	\item Si \texttt{millerRabin(n)} retorna \texttt{true}, $n$ es primo y se aniade directo.
+	\item El factor final sale \textbf{ordenado} porque el snippet ordena al final.
+	\item El algoritmo de Floyd (``tortuga y liebre'') detecta el ciclo comparando dos punteros a distinta velocidad.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El bucle de Floyd (tortuga y liebre):
+\begin{verbatim}
+long long x = rand2(rng) % n, y = x, c = rand2(rng) % (n - 1) + 1, d = 1;
+while (d == 1) {
+    x = (mul_mod(x, x, n) + c) % n;       // tortuga: 1 paso
+    y = (mul_mod(y, y, n) + c) % n;
+    y = (mul_mod(y, y, n) + c) % n;       // liebre: 2 pasos
+    d = gcd(abs(x - y), n);
+}
+if (d != n) return d;  // encontro factor
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Esperado $O(n^{1/4})$ por factor. Practico para $n$ hasta $10^{18}$.
+	\item Para $n = 10^{18}$, tarda $\sim 10^3$ iteraciones por factor.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Mejorar la constante}: aniadir el algoritmo de Brent (variante del Floyd para el ciclo, $\sim 24\%$ mas rapido).
+	\item \textbf{Determinismo}: si la corrida con $c$ falla, reintentar con otro $c$ aleatorio (ya lo hace el snippet con \texttt{while(true)}).
+	\item \textbf{Salida con multiplicidad}: el snippet devuelve la lista con repeticiones (porque \texttt{factorRec} empuja \texttt{n} cuando es primo y tambien \texttt{n/d}). Si solo queres factores distintos, aniadir un \texttt{set} o deduplicar al final.
+	\item \textbf{Acelerar con product acumulado}: Brent acumula productos parciales y reduce gcd; ahorra muchos gcd.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $n$ es potencia de un primo pequeno (ej. $2^k$), Pollard puede tardar. Considerar chequeo previo de potencia.
+	\item Si $n$ es primo, llamar a \texttt{pollard(n)} causaria loop infinito porque \texttt{d == n}; el snippet tiene la guarda \texttt{if (millerRabin(n)) return}.
+	\item Si $c = 0$ y $x = 0$ o $x$ es punto fijo, la secuencia es constante y $\gcd = 0$; por eso $c \ne 0$.
+	\item \texttt{abs(x - y)} puede overflow si ambos son cercanos a $n/2$; usar \texttt{u64} con cuidado o comparar con \texttt{std::abs(int64\_t(x - y))}.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Multiplicacion modular \texttt{modmul}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|static u64 modmul(u64 a, u64 b, u64 mod)| -- calcula $a \cdot b \bmod \text{mod}$ sin overflow.
+	\item \verb|return (u128)a * b % mod;| -- cast a 128 bits para evitar overflow de la multiplicacion.
+\end{itemize}
+\textbf{Pollard Rho \texttt{pollard}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|if(n % 2 == 0) return 2;| -- caso trivial: si $n$ es par, $2$ es factor.
+	\item \verb|static std::mt19937_64 rng(...);| -- generador aleatorio (seed con tiempo).
+	\item \verb|while(true)| -- reintenta con distintos parametros si falla.
+	\item \verb|u64 c = uniform_int_distribution<u64>(1, n - 1)(rng);| -- constante $c$ aleatoria en $[1, n-1]$.
+	\item \verb|u64 x = uniform_int_distribution<u64>(0, n - 1)(rng);| -- valor inicial $x_0$ aleatorio.
+	\item \verb|u64 y = x;| -- ``liebre'' empieza igual que la ``tortuga''.
+	\item \verb|auto f = [&](u64 v){ return (modmul(v, v, n) + c) % n; };| -- funcion pseudoaleatoria $f(v) = v^2 + c \bmod n$.
+	\item \verb|while(d == 1)| -- ciclo de Floyd: tortuga 1 paso, liebre 2 pasos.
+	\item \verb|x = f(x);| -- avanza la tortuga.
+	\item \verb|y = f(f(y));| -- avanza la liebre el doble.
+	\item \verb|d = std::gcd<u64>(x > y ? x - y : y - x, n);| -- calcula $\gcd(|x-y|, n)$.
+	\item \verb|if(d != n) return d;| -- si encontro un factor no trivial, lo retorna.
+\end{itemize}
+\textbf{Recursion \texttt{factorRec}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|if(n == 1) return;| -- caso base.
+	\item \verb|if(millerRabin(n)){ out.push_back(n); return; }| -- si es primo, lo guarda.
+	\item \verb|u64 d = pollard(n);| -- busca un factor.
+	\item \verb|factorRec(d, out);| -- factoriza la primera mitad.
+	\item \verb|factorRec(n / d, out);| -- factoriza la segunda mitad.
+\end{itemize}
+\textbf{\texttt{factorize}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|factorRec(n, out);| -- llena \texttt{out} recursivamente.
+	\item \verb|sort(out.begin(), out.end());| -- ordena los factores (para consistencia).
+
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Pollard's Rho + factorizacion}.
+
+\vspace{0.5em|||}

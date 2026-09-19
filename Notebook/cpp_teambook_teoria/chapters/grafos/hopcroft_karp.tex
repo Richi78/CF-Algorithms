@@ -1,0 +1,60 @@
+﻿\subsubsection{Hopcroft-Karp}
+
+\paragraph{Idea intuitiva.}
+Matching bipartito maximo en $O(\sqrt{V} E)$. Algoritmo en \textbf{fases}: en cada fase, hacer BFS para encontrar los \textbf{caminos de aumento mas cortos} desde nodos libres de $L$; luego DFS solo por esos caminos. Cada fase aumenta el matching en $\ge 1$ y toma $O(E)$. La demostracion: tras una fase, todos los augmenting paths tienen longitud $\ge$ la nueva minima; eso sucede cada $\sqrt{V}$ fases (longitud minima crece geometricamente).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{dist[u]} = distancia en niveles desde un nodo libre de $L$.
+	\item BFS termina cuando no hay mas camino a un nodo libre de $R$.
+	\item DFS respeta los niveles (solo sigue \texttt{dist[matchV[v]] == dist[u] + 1}).
+	\item Cada fase aumenta el matching en $\ge 1$ arista.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El BFS de Hopcroft-Karp:
+\begin{verbatim}
+bool bfs() {
+    queue<int> q;
+    for (int v : L) {
+        if (matchU[v] == -1) { dist[v] = 0; q.push(v); }
+        else dist[v] = -1;
+    }
+    bool found = false;
+    while (!q.empty()) {
+        int v = q.front(); q.pop();
+        for (int u : g[v]) {
+            if (matchV[u] != -1 && dist[matchV[u]] == -1) {
+                dist[matchV[u]] = dist[v] + 1;
+                q.push(matchV[u]);
+            }
+            if (matchV[u] == -1) found = true;  // llegamos a libre
+        }
+    }
+    return found;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\sqrt{V} E)$.
+	\item Para $V = 10^4$, $E = 10^5$: $\sim 3 \cdot 10^7$ operaciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir el matching}: ya viene en \texttt{matchU}/\texttt{matchV}.
+	\item \textbf{Aniadir pesos}: Hungarian algorithm.
+	\item \textbf{Densidad alta}: si $E \approx V^2$, sigue siendo util pero verificar constantes.
+	\item \textbf{Aniadir capacidades}: partir los nodos con capacidad $> 1$ en varias copias.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{dist[matchV[v]] == dist[u] + 1} (no \texttt{==} a secas); sin esto, el DFS no respeta los niveles y se pierde la complejidad.
+	\item El BFS debe marcar los niveles correctamente; resetear \texttt{dist} para nodos alcanzables solo via matching.
+	\item El DFS debe respetar los niveles; cualquier ``atajo'' invalida la cota.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Hopcroft-Karp}.

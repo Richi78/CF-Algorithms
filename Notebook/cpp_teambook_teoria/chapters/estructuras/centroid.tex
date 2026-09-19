@@ -1,0 +1,81 @@
+\subsubsection{Centroid Decomposition}
+
+\paragraph{Idea intuitiva.}
+Descomponer recursivamente un arbol mediante sus \textbf{centroides}. Un centroide es un vertice cuya eliminacion divide al arbol en componentes conexas, cada una con un tamano de a lo sumo $\lfloor n/2 \rfloor$ nodos. En cualquier arbol siempre existe al menos un centroide (y a lo sumo dos, que serian adyacentes). Al seleccionar el centroide como raiz y repetir el proceso recursivamente sobre cada componente resultante, se obtiene un \textbf{arbol de centroides} de altura a lo sumo $O(\log n)$.
+
+La propiedad medular de esta descomposicion es que \textbf{todo camino simple entre dos nodos $u$ y $v$ pasa por un unico centroide comun $C$ que es su LCA en el arbol de centroides}, cumpliendose que $\text{dist}(u, v) = \text{dist}(u, C) + \text{dist}(C, v)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cota de tamano}: cada subarbol en el nivel de recursion $k$ tiene tamano $\le n / 2^k$.
+	\item \textbf{Altura logaritmica}: el arbol de centroides tiene una profundidad maxima de $\lfloor \log_2 n \rfloor + 1$.
+	\item \texttt{removed[v]}: marca los vertices fijados como centroides para desconectar de facto las componentes sin modificar la lista de adyacencia.
+	\item \texttt{centroidParent[c]}: almacena el padre del nodo $c$ en el arbol de centroides (para la raiz del arbol de centroides es $-1$).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Busqueda del centroide en una componente de tamano \texttt{total}:
+\begin{verbatim}
+int dfsCentroid(int v, int p, int total) {
+    for (int u : adj[v]) {
+        if (u != p && !removed[u] && subSize[u] > total / 2) {
+            return dfsCentroid(u, v, total);
+        }
+    }
+    return v;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion (Build)}: $O(n \log n)$ en tiempo. En cada uno de los $O(\log n)$ niveles de profundidad, cada vertice es visitado $O(1)$ veces para calcular su tamano y localizar el centroide.
+	\item \textbf{Consultas / Actualizaciones dinamicas}: tipicamente $O(\log n)$ o $O(\log^2 n)$ por evento, iterando sobre los $O(\log n)$ ancestros en el arbol de centroides.
+	\item \textbf{Memoria}: $O(n)$ para listas de adyacencia y vectores auxiliares.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Caminos de longitud $K$ o con propiedad $X$}: en cada centroide $C$, procesar las contribuciones de sus subarboles combinando los caminos que van de los nodos a $C$ (usando dos punteros, frecuencias o estructuras como multiset/map), restando luego las combinaciones dentro del mismo subarbol para evitar falsos caminos.
+	\item \textbf{Actualizaciones dinamicas (nodo coloreado mas cercano)}: para cada nodo modificado, subir por sus ancestros en el arbol de centroides actualizando la mejor respuesta en la estructura asociada a cada ancestro.
+	\item \textbf{Distancia rapida entre nodos}: precalcular distancias o LCA en el arbol original (mediante Binary Lifting en $O(1)$ o $O(\log n)$) para consultar $\text{dist}(u, v)$ rapidamente.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Calcular \texttt{total} localmente}: en cada llamada a \verb|build(v, p)| se DEBE invocar primero \verb|dfsSize(v, -1)| para obtener el tamano real del componente conexo actual. Usar el $N$ global provocara recursiones incorrectas o busquedas fallidas.
+	\item \textbf{Ignorar nodos con \texttt{removed[u]}}: tanto en \verb|dfsSize| como en \verb|dfsCentroid| y en la recursion de \verb|build|, es imprescindible omitir vertices con \verb|removed[u] == true|.
+	\item \textbf{No desmarcar \texttt{removed}}: a diferencia de recorridos con backtracking, \verb|removed[c]| se mantiene en \verb|true| durante toda la descomposicion para aislar las componentes.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura CentroidDecomp:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct CentroidDecomp { ... };| -- encapsula la descomposicion por centroides.
+	\item \verb|int n;| -- cantidad total de vertices.
+	\item \verb|vector<vector<int>> adj;| -- lista de adyacencia del arbol.
+	\item \verb|vector<int> subSize;| -- almacena el tamano de subarbol en la componente actual.
+	\item \verb|vector<bool> removed;| -- bandera que indica si un nodo ya fue elegido como centroide previo.
+	\item \verb|vector<int> centroidParent;| -- padre de cada nodo en el arbol de centroides generado.
+	\item \verb|CentroidDecomp(int n): n(n)| -- constructor: dimensiona vectores e inicializa \verb|centroidParent| con $-1$.
+	\item \verb|void addEdge(int u, int v)| -- inserta una arista bidireccional entre $u$ y $v$.
+	\item \verb|int dfsSize(int v, int p)| -- recorre la componente actual calculando tamanos ignorando nodos removidos.
+	\item \verb|int dfsCentroid(int v, int p, int total)| -- desciende por la rama que contiene estrictamente mas de $\lfloor \text{total} / 2 \rfloor$ nodos.
+	\item \verb|return v;| -- si ningun hijo supera la mitad del tamano, $v$ es el centroide de la componente.
+	\item \verb|void build(int v = 0, int p = -1)| -- funcion recursiva que construye el arbol de centroides.
+	\item \verb|int total = dfsSize(v, -1);| -- calcula el tamano exacto de la componente conexa activa.
+	\item \verb|int c = dfsCentroid(v, -1, total);| -- encuentra el centroide $c$ de la componente.
+	\item \verb|centroidParent[c] = p; removed[c] = true;| -- conecta $c$ a su padre en el arbol de centroides y lo desactiva.
+	\item \verb|for(int u : adj[c]) if(!removed[u]) build(u, c);| -- descompone recursivamente cada subcomponente restante.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|CentroidDecomp cd(5);| -- inicializa la estructura para un arbol de 5 nodos.
+	\item \verb|cd.addEdge(0, 1); cd.addEdge(1, 2); ...| -- inserta las aristas del arbol.
+	\item \verb|cd.build();| -- ejecuta la descomposicion recursiva.
+	\item \verb|cout << cd.centroidParent[0] << "\n";| -- imprime el padre del nodo 0 en el arbol de centroides.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Centroid Decomposition}.
+
+\vspace{0.5em}

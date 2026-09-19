@@ -1,0 +1,60 @@
+﻿\subsubsection{Small game tables (Kayles SG values)}
+
+\paragraph{Idea intuitiva.}
+Cuando el juego tiene \textbf{pocas} posiciones conocidas, conviene \textbf{hardcodear} la tabla de Grundys para responder en $O(1)$ por query. Kayles es un juego clasico donde tiras un bolo y tumbas uno o dos adyacentes; sus Grundys para $n \le 71$ son bien conocidos y estan precomputados. La razon de precomputar: el Grundy de Kayles satisface una recurrencia compleja y no se puede calcular con formula cerrada simple.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Solo util para Kayles; otros juegos necesitan su propia tabla.
+	\item La tabla se obtuvo experimentalmente (o por recurrencia) y se almacena literal en el codigo.
+	\item Los Grundys tienen \textbf{periodo} tras cierto $n$ (e.g., Kayles tiene periodo $12$ tras $n = 72$).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Si el problema tiene $n$ en $[1, N]$ con $N$ conocido, precomputar la tabla:
+\begin{verbatim}
+vector<int> grundy(N + 1, 0);
+for (int n = 1; n <= N; ++n) {
+    set<int> s;
+    for (int k = 0; k < n; ++k) {
+        // un bolo en k: kayles se parte en [0, k-1] y [k+1, n-1]
+        s.insert(grundy[k] ^ grundy[n-1-k]);
+        if (k+1 < n) s.insert(grundy[k] ^ grundy[n-2-k]);
+    }
+    int g = 0; while (s.count(g)) ++g;
+    grundy[n] = g;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$ por query (con tabla hardcodeada).
+	\item Precompute $O(N^2)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Otro juego}: aniadir otra tabla literal (Nim, Dawson's Kayles, Grundy's Game, etc.).
+	\item \textbf{Tabla generada por codigo}: aniadir un precompute al inicio que llene la tabla con el template Sprague-Grundy.
+	\item \textbf{Usar periodicidad}: si el Grundy tiene periodo $P$ a partir de $N_0$, aniadir \texttt{int g = (n >= N0) ? tabla[(n - N0) \% P] : tabla[n];}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si el problema da $n$ fuera de rango, aniadir bounds check antes de indexar.
+	\item La tabla es especifica de la variante de Kayles (original, Dawson's, etc.); verificar cual es.
+	\item En algunos juegos (Wythoff), la estrategia no es Grundy sino un par de moves explicitos.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|#include <bits/stdc++.h>| -- incluye todas las bibliotecas estandar.
+	\item \verb|using namespace std;| -- evita prefijar \verb|std::|.
+	\item \verb|vector<int> kaylesSG = \{...\}| -- tabla hardcodeada con los Grundys de Kayles para $n = 0, \dots, 71$ (precalculada fuera de linea).
+	\item Los valores en la tabla siguen la recurrencia SG de Kayles: cada $n$ tiene un Grundy unico que codifica las estrategias ganadoras/perdedoras.
+	\item \verb|cout << "SG Kayles(7) = " << kaylesSG[7] << "\textbackslash n";| -- consulta en $O(1)$: el Grundy de Kayles con 7 bolos es $3$.
+\end{itemize}
+Para entender la teoria de la tabla: el Grundy $g(n)$ de Kayles se calcula como $g(n) = \text{mex}\{g(k) \oplus g(n-1-k), g(k) \oplus g(n-2-k)\}$ para todos los $k$ validos; los valores en la tabla son la solucion de esta recurrencia (eventualmente periodica con periodo 12).
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{...}.

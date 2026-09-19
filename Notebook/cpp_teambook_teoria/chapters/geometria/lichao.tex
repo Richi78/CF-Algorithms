@@ -1,0 +1,52 @@
+﻿\subsubsection{Li Chao Tree (long long)}
+
+\paragraph{Idea intuitiva.}
+Mantiene un \textbf{lower envelope} (o upper) de un conjunto de rectas $y = mx + b$ sobre un dominio $[X_{LO}, X_{HI}]$ y responde ``minimo $y$ en un $x$ dado'' en $O(\log X)$. La estructura es un segment tree donde cada nodo guarda la recta ``mejor'' para su segmento medio; al aniadir una recta, se compara con la actual y se decide cual es mejor en cada mitad, descendiendo recursivamente. La demostracion: en cada nivel, solo se guarda la mejor recta para el ``punto medio''; las otras se transmiten a los hijos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Online}: cada \texttt{addLine} en $O(\log X)$.
+	\item Solo insercion; no hay borrar (para borrar, usar Li Chao segmentado con reset).
+	\item La recta guardada en un nodo es la ``mejor'' en su punto medio.
+	\item Las rectas ``perdedoras'' se transmiten a los hijos para futuros inserts.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La insercion en Li Chao:
+\begin{verbatim}
+void addLine(Line nw, int v = 1, int l = X_LO, int r = X_HI) {
+    int m = (l + r) / 2;
+    bool left = nw.get(l) < tree[v].get(l);
+    bool mid = nw.get(m) < tree[v].get(m);
+    if (mid) swap(tree[v], nw);
+    if (r - l == 1) return;
+    if (left != mid) addLine(nw, v*2, l, m);
+    else             addLine(nw, v*2+1, m, r);
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log X)$ por insercion y query, donde $X$ es el tamano del dominio.
+	\item Memoria $O(\log X)$ por insercion, $O(X)$ total.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Upper envelope en vez de lower}: invertir el signo (\texttt{>} en vez de \texttt{<}).
+	\item \textbf{Queries de segmento} (no full line): si la recta solo esta activa en un rango, aniadir bandera \texttt{active}.
+	\item \textbf{Eliminar rectas}: usar Li Chao segmentado (mas complejo).
+	\item \textbf{Pendientes grandes}: si las pendientes tienen magnitud $> 10^9$, aniadir \texttt{\_\_int128} para evitar overflow.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El parametro \texttt{lo == hi} debe retornar el valor del nodo (caso base).
+	\item La comparacion \texttt{newLine.get(mid) < node->line.get(mid)} decide quien es mejor en el medio.
+	\item Si las rectas tienen $m$ iguales pero $b$ distintos, se queda con la primera (tie-break).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Li Chao Tree (long long)}.
+
+\vspace{0.5em}

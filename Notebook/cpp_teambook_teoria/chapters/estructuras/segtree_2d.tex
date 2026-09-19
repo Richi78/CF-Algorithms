@@ -1,0 +1,85 @@
+\subsubsection{Segment Tree 2D}
+
+\paragraph{Idea intuitiva.}
+Extension del Segment Tree a dos dimensiones (arbol de arboles de segmentos): el arbol exterior particiona las filas (coordenada $x$), y cada nodo del arbol exterior contiene un Segment Tree completo que particiona las columnas (coordenada $y$). La raiz cubre $[0, n-1] \times [0, m-1]$. Para actualizar o consultar, se desciende recursivamente primero en $x$ y luego en $y$, logrando operaciones de punto/subrectangulo en $O(\log n \cdot \log m)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{tree[vx][vy]}: suma del subrectangulo $[lx, rx] \times [ly, ry]$ representado por el nodo exterior $vx$ y el nodo interior $vy$.
+	\item \texttt{updateX}: desciende recursivamente en la dimension $x$ hacia la fila $x$. En cada nivel de $x$, invoca \texttt{updateY} para actualizar la columna $y$ en ese nodo exterior.
+	\item \texttt{updateY}: desciende en la dimension $y$. En las hojas de $y$ ($ly = ry$), si $lx = rx$ asigna el nuevo valor; si $lx \ne rx$, combina los hijos exteriores: \texttt{tree[vx*2][vy] + tree[vx*2+1][vy]}.
+	\item \texttt{queryX} y \texttt{queryY}: descomponen el rectangulo de consulta $[x1, x2] \times [y1, y2]$ en $O(\log n \cdot \log m)$ nodos canonicos.
+	\item Memoria: requiere $4n \times 4m = 16nm$ enteros.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Actualizacion puntual 2D (arbol de arboles):
+\begin{verbatim}
+void updateY(int vx, int lx, int rx, int vy, int ly, int ry, int x, int y, int val) {
+    if (ly == ry) {
+        if (lx == rx) tree[vx][vy] = val;
+        else tree[vx][vy] = tree[vx * 2][vy] + tree[vx * 2 + 1][vy];
+    } else {
+        int my = (ly + ry) / 2;
+        if (y <= my) updateY(vx, lx, rx, vy * 2, ly, my, x, y, val);
+        else updateY(vx, lx, rx, vy * 2 + 1, my + 1, ry, x, y, val);
+        tree[vx][vy] = tree[vx][vy * 2] + tree[vx][vy * 2 + 1];
+    }
+}
+
+void updateX(int vx, int lx, int rx, int x, int y, int val) {
+    if (lx != rx) {
+        int mx = (lx + rx) / 2;
+        if (x <= mx) updateX(vx * 2, lx, mx, x, y, val);
+        else updateX(vx * 2 + 1, mx + 1, rx, x, y, val);
+    }
+    updateY(vx, lx, rx, 1, 0, m - 1, x, y, val);
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Actualizacion puntual: $O(\log n \cdot \log m)$.
+	\item Consulta en subrectangulo: $O(\log n \cdot \log m)$.
+	\item Memoria: $O(n \cdot m)$ con factor constante $16$ ($4n \times 4m$ enteros).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar operacion}: para maximo o minimo, cambiar la suma por \texttt{max} o \texttt{min} tanto en la combinacion de $x$ como en la de $y$.
+	\item \textbf{Alternativa mas ligera (2D BIT / Fenwick)}: si la operacion es suma o XOR y no se requiere lazy, un Fenwick 2D usa solo $O(nm)$ de memoria con la misma complejidad temporal y constante mucho menor.
+	\item \textbf{Segment Tree 2D dinamico / disperso}: si la grilla es de hasta $10^9 \times 10^9$ pero hay pocas actualizaciones, se reemplazan los vectores por punteros o indices dinamicos.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Omitir la recursion en $x$ (\texttt{updateX})}: llamar a \texttt{updateY} unicamente desde la raiz de $x$ deja desactualizados los hijos de $x$ y produce resultados en cero. Es indispensable descender primero en $x$ con \texttt{updateX} y llamar a \texttt{updateY} en cada paso.
+	\item \textbf{Consumo excesivo de memoria}: la constante 16 hace que para $N = M = 2000$ se requieran $\approx 16 \times 4 \cdot 10^6 \times 4\text{ B} \approx 256$ MB, al borde del limite de memoria.
+	\item \textbf{Indices 0-based vs 1-based}: asegurar que las consultas y actualizaciones respeten los limites $[0, n-1]$ y $[0, m-1]$.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct SegTree2D { int n, m; vector<vector<int>> tree; };| -- dimensiones y matriz de nodos.
+	\item \verb|tree.assign(4*n, vector<int>(4*m, 0));| -- reserva espacio para los $4n \times 4m$ nodos 2D.
+	\item \verb|void updateY(...)| -- desciende en la dimension $y$ para el nodo exterior $vx$.
+	\item \verb|if(ly == ry)| -- caso base de $y$ (hoja de columnas).
+	\item \verb|if(lx == rx) tree[vx][vy] = val;| -- hoja de filas y hoja de columnas: celda puntual $(x, y)$.
+	\item \verb|else tree[vx][vy] = tree[vx*2][vy] + tree[vx*2+1][vy];| -- nodo interno de filas: combina los dos hijos de $x$.
+	\item \verb|tree[vx][vy] = tree[vx][vy*2] + tree[vx][vy*2+1];| -- combina los dos hijos de $y$.
+	\item \verb|void updateX(int vx, int lx, int rx, int x, int y, int val)| -- desciende en la dimension $x$.
+	\item \verb|if(lx != rx)| -- si no es hoja en $x$, avanza hacia el hijo que contiene a $x$.
+	\item \verb|updateY(vx, lx, rx, 1, 0, m-1, x, y, val);| -- actualiza el arbol de $y$ para el nodo $vx$ actual.
+	\item \verb|void update(int x, int y, int val) { updateX(1, 0, n-1, x, y, val); }| -- punto de entrada para update.
+	\item \verb|int queryY(int vx, int vy, int ly, int ry, int y1, int y2)| -- consulta el rango $[y1, y2]$ en el nodo $vx$.
+	\item \verb|if(y1 > ry || y2 < ly) return 0;| -- rango disjunto en $y$.
+	\item \verb|if(y1 <= ly && ry <= y2) return tree[vx][vy];| -- intervalo totalmente contenido en $y$.
+	\item \verb|int queryX(int vx, int lx, int rx, int x1, int x2, int y1, int y2)| -- consulta el rango $[x1, x2]$ en $x$.
+	\item \verb|if(x1 <= lx && rx <= x2) return queryY(vx, 1, 0, m-1, y1, y2);| -- intervalo cubierto en $x$: consulta el arbol de $y$.
+	\item \verb|int query(int x1, int y1, int x2, int y2)| -- punto de entrada publico para consulta en subrectangulo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree 2D}.
+
+\vspace{0.5em}

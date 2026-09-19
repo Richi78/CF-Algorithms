@@ -1,0 +1,56 @@
+﻿\subsubsection{Prim (priority queue)}
+
+\paragraph{Idea intuitiva.}
+Otra forma de calcular el MST: empezar desde un nodo y, en cada paso, aniadir la arista de menor peso que conecta el conjunto construido con el resto. Usando priority queue, es $O((V + E) \log V)$. La demostracion: cada vez que se aniade una arista, es la minima cruzando el ``corte'' entre el conjunto actual y el resto (Cut Property); eso preserva optimalidad.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Similar a Dijkstra pero sin acumular distancias, solo eligiendo minimo por arista.
+	\item Funciona mejor que Kruskal en \textbf{grafos densos} ($E \approx V^2$).
+	\item Si el grafo es disconexo, genera el bosque (solo llega a los alcanzables).
+	\item Cada nodo se inserta al heap una vez; cada arista se procesa una vez.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Prim clasico con heap:
+\begin{verbatim}
+priority_queue<pair<int, int>, vector<...>, greater<...>> pq;
+vector<bool> used(n, false);
+vector<int> minEdge(n, INF);
+minEdge[0] = 0;
+pq.push({0, 0});
+while (!pq.empty()) {
+    auto [w, v] = pq.top(); pq.pop();
+    if (used[v]) continue;
+    used[v] = true;
+    mst += w;
+    for (auto [peso, u] : adj[v])
+        if (!used[u] && peso < minEdge[u]) {
+            minEdge[u] = peso;
+            pq.push({peso, u});
+        }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O((V + E) \log V)$.
+	\item Con matriz de adyacencia: $O(V^2)$ sin heap.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Prim con matriz de adyacencia}: $O(V^2)$ sin heap, util en grafos densos pequenos.
+	\item \textbf{Reconstruir el MST}: aniadir \texttt{parent[]}.
+	\item \textbf{Prim en streaming}: variante para grafos que llegan incrementalmente.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El \texttt{if (used[v]) continue;} es crucial: si el nodo ya fue procesado, saltar.
+	\item En la version matriz, elije el minimo por linea (no heap).
+	\item Si el grafo es disconexo, aniadir un loop externo sobre todos los nodos no usados.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Prim (priority queue)}.

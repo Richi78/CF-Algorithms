@@ -1,0 +1,56 @@
+﻿\subsubsection{Dijkstra}
+
+\paragraph{Idea intuitiva.}
+Encuentra el shortest path desde un origen $s$ a todos los vertices en $O((V + E) \log V)$ asumiendo \textbf{pesos no negativos}. La idea: usar una cola de prioridad (min-heap) ordenada por distancia tentativa. En cada paso, extraer el nodo con menor distancia; si ya fue procesado, saltar. Si al actualizar un vecino la distancia mejora, insertar/actualizar en la cola. La demostracion: cuando un nodo se extrae por primera vez, no hay forma de llegar a el con menor distancia (cualquier camino alternativo deberia pasar por nodos no procesados, con distancia $\ge$ la actual).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Asume pesos $\ge 0$; con pesos negativos usar Bellman-Ford.
+	\item Greedy correctness: la primera vez que se extrae un nodo, su distancia es la definitiva.
+	\item Si se quiere reconstruir el camino, guardar el \texttt{parent[]}.
+	\item Cada nodo se procesa a lo sumo $V$ veces (mas relajarions, pero solo $V$ definitivas).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El bucle principal de Dijkstra:
+\begin{verbatim}
+priority_queue<pair<long long, int>, vector<...>, greater<...>> pq;
+pq.push({0, source});
+while (!pq.empty()) {
+    auto [d, v] = pq.top(); pq.pop();
+    if (d > dist[v]) continue;  // entrada vieja
+    for (auto [w, u] : adj[v])
+        if (dist[v] + w < dist[u]) {
+            dist[u] = dist[v] + w;
+            pq.push({dist[u], u});
+        }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O((V + E) \log V)$ con heap binario, $O(V + E)$ con heap de Fibonacci.
+	\item En la practica, $\sim 1.5 \cdot 10^{-7}$ segundos por operacion para $V = 10^5$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Camino mas corto entre todos los pares}: si se necesita desde todos los origenes, usar Floyd o ejecutar Dijkstra $V$ veces.
+	\item \textbf{Shortest path con aristas negativas limitadas}: Bellman-Ford.
+	\item \textbf{Reconstruir camino}: aniadir \texttt{parent[v]} actualizado junto a \texttt{dist[v]}.
+	\item \textbf{Dijkstra con potentials (Johnson)}: para aristas negativas si se puede reescalar.
+	\item \textbf{Multi-source}: aniadir varios nodos fuentes iniciales al heap.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Distancias no inicializadas a \texttt{INF}; el snippet usa \texttt{1e18}.
+	\item El \texttt{if(dist[adjN] != 1e18)} para borrar de la cola es importante si usas \texttt{set} (no asi con \texttt{priority\_queue}).
+	\item Con pesos grandes, \texttt{dist[v] + w} puede overflow; usar \texttt{LLONG\_MAX/2} como INF.
+	\item No usar con pesos negativos: el algoritmo puede dar respuestas incorrectas.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Dijkstra}.
+
+\vspace{0.5em}

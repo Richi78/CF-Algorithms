@@ -1,0 +1,57 @@
+﻿\subsubsection{Kuhn (bipartite matching)}
+
+\paragraph{Idea intuitiva.}
+Encuentra un \textbf{matching maximo} en un grafo bipartito en $O(VE)$. Para cada nodo $u$ en $L$, intentar encontrar un vecino $v$ en $R$ que este libre o cuyo match se pueda ``reorganizar'' recursivamente. Si se encuentra, matchear $u - v$. La idea: si $u$ quiere un vecino $v$ ya ocupado, intentamos ``mover'' el match de $v$ a otro nodo; recursivamente, esto encuentra un augmenting path si existe.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{matchR[v]} = el nodo de $L$ matcheado a $v$ (o $-1$ si libre).
+	\item \texttt{vis[]} se resetea \textbf{cada intento} de $u$.
+	\item Si el matching es perfecto, $|L| = |R| = $ tamano del matching.
+	\item Kuhn no garantiza maximalidad greedy; puede haber augmenting paths no encontrados.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La recursion del augmenting path:
+\begin{verbatim}
+bool tryKuhn(int v) {
+    if (vis[v]) return false;
+    vis[v] = true;
+    for (int u : g[v]) {
+        if (matchR[u] == -1 || tryKuhn(matchR[u])) {
+            matchR[u] = v;
+            return true;
+        }
+    }
+    return false;
+}
+// Por cada v en L:
+fill(vis, vis+n, false);
+if (tryKuhn(v)) ++matches;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(VE)$ en el peor caso.
+	\item Con Hopcroft-Karp: $O(\sqrt{V} \cdot E)$, mucho mejor para grafos densos.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Matching bipartito minimo (min vertex cover)}: Konig's theorem.
+	\item \textbf{Matching general}: blossom algorithm (no incluido).
+	\item \textbf{Aniadir capacidades}: si los nodos de $R$ tienen capacidad $> 1$, partir cada uno en capacidad copias.
+	\item \textbf{Output del matching}: el array \texttt{matchR} da los pares finales.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar resetear \texttt{vis} por intento; eso es lo que evita ``ciclos infinitos'' en la recursion.
+	\item Para grafos grandes ($V > 10^4$), Kuhn puede ser muy lento; usar Hopcroft-Karp.
+	\item Si el matching es maximo pero no perfecto, $|L|$ o $|R|$ puede ser mayor; el matching es solo maximo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Kuhn (bipartite matching)}.
+
+\vspace{0.5em}

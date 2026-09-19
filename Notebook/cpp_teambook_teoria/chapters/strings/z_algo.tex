@@ -1,0 +1,80 @@
+\subsubsection{Z-algorithm}
+
+\paragraph{Idea intuitiva.}
+El \textbf{algoritmo Z} calcula para cada posicion $i$ de una cadena $S$ de longitud $n$ el valor $Z[i]$, definido como la longitud del prefijo comun mas largo (\textbf{LCP}) entre la cadena completa $S$ y el sufijo que inicia en la posicion $i$:
+\[
+Z[i] = \max \{ k \ge 0 \mid S[0 \dots k-1] = S[i \dots i+k-1] \}
+\]
+Por definicion, $Z[0] = n$ (o se deja en 0 segun la convencion de implementacion). 
+
+Para lograr tiempo $O(n)$, el algoritmo mantiene una ventana o segmento $[l, r]$ que representa el intervalo con el mayor indice $r$ alcanzado tal que $S[l \dots r]$ coincide con el prefijo $S[0 \dots r-l]$. Al evaluar la posicion $i$:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $i \le r$, la subcadena en $i$ ya fue comparada contra el prefijo; por ende, $Z[i]$ es al menos $\min(r - i + 1, Z[i - l])$.
+	\item Si la coincidencia llega hasta el borde $r$ (o si $i > r$), se expande caracter por caracter incrementando $Z[i]$ y actualizando el nuevo intervalo $[l, r]$.
+\end{itemize}
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{r}: extremo derecho del prefijo coincidente mas lejano hacia la derecha.
+	\item Cada caracter del texto se compara con exito a lo sumo una vez para extender $r$, garantizando $O(n)$ en total.
+	\item Coincidencia de patrones: concatenando $P + \text{'\#'} + T$ (donde \texttt{'\#'} es un caracter centinela inexistente en $P$ y $T$), toda posicion $i > |P|$ con $Z[i] = |P|$ senala una aparicion exacta de $P$ en $T$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion del arreglo Z en $O(n)$:
+\begin{verbatim}
+vector<int> zFunction(const string& s) {
+    int n = s.size(), l = 0, r = 0;
+    vector<int> z(n, 0);
+    for (int i = 1; i < n; ++i) {
+        if (i <= r) z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]]) z[i]++;
+        if (i + z[i] - 1 > r) { l = i; r = i + z[i] - 1; }
+    }
+    return z;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n)$ en tiempo estricto en el peor caso.
+	\item \textbf{Memoria}: $O(n)$ para el vector retornado.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Contar apariciones de cada prefijo}: usar un arreglo de diferencias (*diff array*) sobre $Z[i]$ para contar cuantas veces aparece cada prefijo $S[0 \dots k-1]$ en $O(n)$.
+	\item \textbf{Detectar bordes y periodos}: si $i + Z[i] == n$, el prefijo de longitud $Z[i]$ es tambien sufijo de $S$ (un borde). El periodo minimo de $S$ es $i$ para el menor $i$ tal que $i + Z[i] == n$ y $n \% i == 0$.
+	\item \textbf{Palindromos}: calculando la Z-function sobre $S + \text{'\#'} + \text{reverse}(S)$, se obtienen las longitudes de los palindromos impares o prefijos que son palindromos.
+	\item \textbf{Patron en texto}: concatenar $P + \text{'\#'} + T$; el indice en el texto original es $i - |P| - 1$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Separador inadecuado}: el caracter centinela (como \verb|'#'| o \verb|'$'|) NO debe pertenecer al alfabeto del texto ni del patron; si aparece, permitira falsas coincidencias a traves del delimitador.
+	\item \textbf{Convencion en $Z[0]$}: la implementacion asigna $Z[0] = 0$. En problemas de bordes o autorreferencia, recordar que el prefijo completo tiene coincidencia trivial de longitud $n$.
+	\item \textbf{Off-by-one en indices de patron}: en $P + \text{'\#'} + T$, la posicion de inicio en $T$ es $i - |P| - 1$. Olvidar restar el centinela desfasa las coincidencias en 1.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion zFunction:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int n = s.size(); vector<int> z(n, 0);| -- inicializa el vector Z de tamano $n$ en 0.
+	\item \verb|int l = 0, r = 0;| -- extremos del intervalo $[l, r]$ con mayor $r$ alcanzado.
+	\item \verb|for(int i = 1; i < n; i++)| -- el calculo inicia en $i = 1$ ($Z[0]$ se mantiene en 0 por definicion del vector).
+	\item \verb|if(i <= r) z[i] = min(r - i + 1, z[i - l]);| -- si $i$ cae dentro del bloque $[l, r]$, copia el valor ya computado en $i - l$, truncado al borde derecho restante.
+	\item \verb|while(i + z[i] < n && s[z[i]] == s[i + z[i]]) z[i]++;| -- expande trivialmente mientras los caracteres sigan coincidiendo mas alla del bloque previo.
+	\item \verb|if(i + z[i] - 1 > r) { l = i; r = i + z[i] - 1; }| -- si el nuevo match sobrepasa el extremo derecho anterior $r$, actualiza la ventana $[l, r]$.
+\end{itemize}
+\textbf{Aplicaciones en main:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|best = max(best, z[i]);| -- calcula el LCP maximo entre la cadena $s$ y cualquiera de sus sufijos propios.
+	\item \verb|prefCnt[1]++; prefCnt[z[i] + 1]--;| -- utiliza un arreglo de diferencias para propagar en $O(n)$ el conteo de apariciones de cada prefijo de longitud $k$.
+	\item \verb|auto zp = zFunction(s + "#" + rs);| -- calcula palindromos impares concatenando la cadena con su reversa.
+	\item \verb|if(z2[i] == (int)p.size())| -- en $P + \text{'\#'} + T$, detecta aparicion exacta del patron en el indice $i - |P| - 1$ de $T$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Z-algorithm}.
+
+\vspace{0.5em}

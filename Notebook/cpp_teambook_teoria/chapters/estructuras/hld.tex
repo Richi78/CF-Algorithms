@@ -1,0 +1,84 @@
+\subsubsection{Heavy-Light Decomposition (HLD)}
+
+\paragraph{Idea intuitiva.}
+Descomponer un arbol en \textbf{cadenas pesadas} (caminos maximales formados por aristas pesadas, donde cada nodo no hoja se conecta con su hijo de mayor tamano de subarbol). Cada cadena se mapea a un rango contiguo en un arreglo base mediante un recorrido DFS modificado que visita primero a los hijos pesados. Asi, consultas y actualizaciones sobre \textbf{caminos} $u \to v$ se descomponen en $O(\log n)$ intervalos contiguos resueltos con un Segment Tree o Fenwick Tree. La garantia teorica radica en que cualquier hijo liviano tiene un subarbol de tamano a lo sumo la mitad ($\le |T|/2$); por ende, cualquier camino hacia la raiz cruza a lo sumo $\log_2 n$ aristas livianas y un camino arbitrario entre dos nodos cruza a lo sumo $2 \log_2 n$ cadenas pesadas.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{heavy[v]} = hijo pesado de $v$ (el de mayor subarbol).
+	\item \texttt{head[v]} = cabeza de la cadena que contiene a $v$.
+	\item \texttt{pos[v]} = posicion en el arreglo base.
+	\item Cada nodo pertenece a exactamente una cadena.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El query sobre un path $u \to v$:
+\begin{verbatim}
+long long pathQuery(int u, int v) {
+    long long res = 0;
+    while (head[u] != head[v]) {
+        if (depth[head[u]] < depth[head[v]]) swap(u, v);
+        res += seg.query(pos[head[u]], pos[u]);
+        u = parent[head[u]];
+    }
+    if (depth[u] > depth[v]) swap(u, v);
+    res += seg.query(pos[u], pos[v]);
+    return res;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precomputo / Build: $O(n)$ en tiempo.
+	\item Query / Update sobre camino ($u \to v$): $O(\log^2 n)$ usando Segment Tree o Fenwick Tree (un camino atraviesa a lo sumo $O(\log n)$ cadenas pesadas, y cada consulta sobre el rango continuo de una cadena toma $O(\log n)$).
+	\item Query / Update sobre subarbol: $O(\log n)$ con Segment Tree o BIT (el subarbol completo corresponde a un unico rango continuo en el arreglo base).
+	\item Memoria: $O(n)$ para los vectores de la descomposicion.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Subtree queries}: guardar el tamano del subarbol \verb|sz[v]| durante el DFS. Como la descomposicion numera primero todo el subarbol de cada nodo, el subarbol de $v$ abarca el rango $[\text{pos}[v], \text{pos}[v] + \text{sz}[v] - 1]$.
+	\item \textbf{Valores en aristas}: asociar cada arista al nodo mas profundo. Para consultas sobre caminos, el LCA se omite modificando el tramo final a $[\text{pos}[u] + 1, \text{pos}[v]]$ (o ignorandolo si $u = v$).
+	\item \textbf{Estructura externa}: conectar los rangos generados por \verb|pathSegments| con un Segment Tree o BIT para ejecutar consultas y actualizaciones puntuales o en rangos.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cadenas ligeras vs pesadas}: un camino entre $u$ y $v$ cruza a lo sumo $2 \log_2 n$ cadenas; olvidar el bucle \verb|while (head[u] != head[v])| rompe la descomposicion.
+	\item \textbf{Swap de nodos por profundidad de cabeza}: al ascender, siempre se debe mover el nodo cuya \textbf{cabeza de cadena} sea mas profunda (\verb|depth[head[u]] < depth[head[v]]|), NO simplemente \verb|depth[u] < depth[v]|.
+	\item \textbf{Ultimo segmento}: tras el bucle, $u$ y $v$ pertenecen a la misma cadena (\verb|head[u] == head[v]|). Se debe asegurar que \verb|pos[u] <= pos[v]| (usando \verb|if (depth[u] > depth[v]) swap(u, v)|) y agregar el segmento final \verb|[pos[u], pos[v]]|.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura HLD:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct HLD { ... };| -- estructura que encapsula Heavy-Light Decomposition.
+	\item \verb|int n, curPos;| -- cantidad de nodos y contador para asignar indices contiguos en el arreglo base.
+	\item \verb|vector<int> parent, depth, heavy, head, pos;| -- almacena padre, profundidad, hijo pesado, cabeza de cadena y posicion asignada en el arreglo base.
+	\item \verb|vector<vector<int>> adj;| -- lista de adyacencia del arbol.
+	\item \verb|HLD(int n): n(n)| -- constructor: reserva memoria e inicializa vectores con valores por defecto (padre $-1$, hijo pesado $-1$).
+	\item \verb|void addEdge(int u, int v)| -- inserta una arista bidireccional entre los nodos $u$ y $v$.
+	\item \verb|int dfs(int v)| -- calcula profundidades, padres y selecciona para cada nodo su hijo pesado (el de mayor tamano de subarbol).
+	\item \verb|if(sub > maxSub) { maxSub = sub; heavy[v] = u; }| -- identifica al hijo con el subarbol mas grande.
+	\item \verb|void decompose(int v, int h)| -- numera los nodos en \verb|pos[v]| colocando cadenas continuas en memoria; visita primero al hijo pesado.
+	\item \verb|if(heavy[v] != -1) decompose(heavy[v], h);| -- extiende la cadena actual con la misma cabeza $h$.
+	\item \verb|decompose(u, u);| -- para los hijos ligeros, inicia una nueva cadena con ellos mismos como cabeza.
+	\item \verb|void build(int root = 0)| -- ejecuta el DFS y la descomposicion desde la raiz elegida.
+	\item \verb|vector<pair<int,int>> pathSegments(int u, int v)| -- descompone el camino $u \to v$ en $O(\log n)$ rangos contiguos en el arreglo base.
+	\item \verb|if(depth[head[u]] < depth[head[v]]) swap(u, v);| -- garantiza subir la cadena cuya cabeza este a mayor profundidad.
+	\item \verb|segs.push_back({pos[head[u]], pos[u]}); u = parent[head[u]];| -- anade el tramo de la cadena actual y salta al padre de la cabeza.
+	\item \verb|if(depth[u] > depth[v]) swap(u, v);| -- dentro de la misma cadena, ordena los extremos por profundidad.
+	\item \verb|segs.push_back({pos[u], pos[v]});| -- anade el ultimo tramo del camino (entre el ancestro comun y el otro nodo).
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|HLD hld(5);| -- instancia la descomposicion para 5 nodos.
+	\item \verb|hld.addEdge(0, 1); ...| -- construye la topologia del arbol.
+	\item \verb|hld.build(0);| -- ejecuta el precalculo fijando el nodo 0 como raiz.
+	\item \verb|auto segs = hld.pathSegments(2, 4);| -- genera los segmentos contiguos para consultar el camino entre 2 y 4.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Heavy-Light Decomposition (HLD)}.
+
+\vspace{0.5em}

@@ -1,0 +1,59 @@
+﻿\subsubsection{Digit DP template}
+
+\paragraph{Idea intuitiva.}
+Contar numeros en $[0, N]$ que cumplen una propiedad sobre sus digitos. La idea: DP por posicion, manteniendo:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{pos}: posicion actual (de izquierda a derecha).
+	\item \texttt{tight}: si los digitos ya colocados son exactamente los de $N$ (limite superior estricto).
+	\item \texttt{state}: estado adicional (digitos usados, suma, etc.).
+\end{itemize}
+La clave: la condicion \texttt{tight} permite acotar correctamente el siguiente digito; sin ella, la DP contaria incorrectamente.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si \texttt{tight} es true, el siguiente digito esta acotado por el de $N$; si no, puede ser 0-9.
+	\item Memoria: $O(D \cdot 2 \cdot \text{states})$.
+	\item Caso base: si \texttt{pos == D}, devolver 1 si el estado cumple la propiedad, sino 0.
+	\item El bit \texttt{started} distingue ``numero con menos digitos'' (con leading zeros).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La estructura basica:
+\begin{verbatim}
+long long dp(int pos, bool tight, State s) {
+    if (pos == D) return check(s) ? 1 : 0;
+    if (memo[pos][tight][s] != -1) return memo;
+    int limit = tight ? digits[pos] : 9;
+    long long ans = 0;
+    for (int d = 0; d <= limit; ++d)
+        ans += dp(pos + 1, tight && (d == limit), update(s, d, pos));
+    return memo[pos][tight][s] = ans;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(D \cdot 10 \cdot \text{states})$ donde $D$ es el numero de digitos.
+	\item Para $D \le 19$ (hasta $10^{18}$): $\sim 200 \cdot \text{states}$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar la propiedad}: modificar \texttt{updateState} y la condicion base.
+	\item \textbf{Multiples estados}: aniadir mas dimensiones al \texttt{memo}.
+	\item \textbf{Leading zeros}: aniadir un flag \texttt{started} para distinguir numeros con menos digitos.
+	\item \textbf{Rango $[L, R]$}: calcular $f(R) - f(L-1)$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar resetear \texttt{memo} entre queries.
+	\item Si la cantidad de estados es grande, el \texttt{memo[pos][tight][state]} puede ser muy grande; usar \texttt{map}.
+	\item La condicion \texttt{started} es crucial para numeros con menos digitos que $D$.
+	\item Si $N$ es muy grande ($> 10^{18}$), aniadir soporte para long long.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Digit DP template}.
+
+\vspace{0.5em}

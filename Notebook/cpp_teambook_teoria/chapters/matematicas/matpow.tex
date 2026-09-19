@@ -1,0 +1,86 @@
+﻿\subsubsection{Matrix exponentiation}
+
+\paragraph{Idea intuitiva.}
+Para calcular $M^k$ en $O(N^3 \log k)$, se usa la misma idea que \texttt{modpow} pero la multiplicacion es de matrices. Asi, $M^k$ se descompone en bits y se multiplican las matrices correspondientes. La idea subyacente: $M^k$ actua sobre vectores; si tenemos una recurrencia lineal $\mathbf{v}_{n+1} = A \mathbf{v}_n$, entonces $\mathbf{v}_k = A^k \mathbf{v}_0$, asi que calcular $A^k$ nos da la respuesta en $O(\log k)$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Multiplicacion asociativa: $(M^a)(M^b) = M^{a+b}$.
+	\item Identidad es la matriz diagonal con 1s.
+	\item Si $M$ es la matriz de transicion de un sistema lineal (recurrencia, automata), $M^k$ da el estado tras $k$ pasos.
+	\item Si $M$ es diagonalizable, $M^k = P D^k P^{-1}$; util para closed-form.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El squaring matricial:
+\begin{verbatim}
+Mat operator*(const Mat& o) const {
+    Mat r(n, vector<long long>(n, 0));
+    for (int i = 0; i < n; ++i)
+        for (int k = 0; k < n; ++k) if (a[i][k])
+            for (int j = 0; j < n; ++j)
+                r[i][j] = (r[i][j] + a[i][k] * o.a[k][j]) % MOD;
+    return r;
+}
+Mat mpow(Mat M, long long e) {
+    Mat R = identity(M.n);
+    while (e > 0) {
+        if (e & 1) R = R * M;
+        M = M * M;
+        e >>= 1;
+    }
+    return R;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N^3 \log k)$.
+	\item Para $N = 50$, $k = 10^{18}$: $\sim 6 \cdot 10^6$ operaciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aplicar a recurrencia}: para $F_n = a F_{n-1} + b F_{n-2}$, construir $M = \begin{pmatrix} a & b \\ 1 & 0 \end{pmatrix}$, $M^n$ da $F_n$ en \texttt{M[0][0] * F\_1 + M[0][1] * F\_0}.
+	\item \textbf{Multiplicacion sin la optimizacion \texttt{if (a[i][k])}}: para matrices densas, la guarda no ayuda; quitarla.
+	\item \textbf{Matrices pequenas} ($N \le 3$): hardcodear la multiplicacion puede ser mas rapido.
+	\item \textbf{Camino count en grafo}: $A^k$ da el numero de caminos de largo $k$ entre pares de nodos.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Multiplicacion \texttt{a[i][k] * b[k][j]} puede overflow; el snippet usa \texttt{\% MOD} al final, pero el producto intermedio puede pasar $2^{63}$ si los valores son grandes y \texttt{MOD} es chico. Mejor hacer el modulo en cada paso.
+	\item Para grafos con $N = 10^3$ y aristas, $A^k$ no entra en memoria si no se usa sparse matrix.
+	\item Construir mal la matriz de transicion es la fuente mas comun de bugs; verificar con casos pequenos.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Multiplicacion de matrices \texttt{matMul}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|using Matrix = vector<vector<long long>>;| -- alias para una matriz $n \times n$.
+	\item \verb|void matMul(const Matrix& a, const Matrix& b, long long MOD)| -- calcula $c = a \cdot b \bmod p$.
+	\item \verb|Matrix c(n, vector<long long>(n, 0));| -- inicializa el resultado en ceros.
+	\item \verb|for(int i=0;i<n;i++)| -- itera sobre filas de $a$.
+	\item \verb|for(int k=0;k<n;k++) if(a[i][k])| -- itera sobre columnas de $a$ (= filas de $b$), saltando ceros.
+	\item \verb|for(int j=0;j<n;j++)| -- itera sobre columnas de $b$.
+	\item \verb|c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % MOD;| -- acumula $a_{ik} \cdot b_{kj}$ en $c_{ij}$.
+\end{itemize}
+\textbf{Exponenciacion \texttt{matPow}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|void matPow(Matrix base, long long exp, long long MOD)| -- calcula $\text{base}^{\text{exp}} \bmod p$.
+	\item \verb|Matrix res(n, vector<long long>(n, 0));| -- matriz resultado inicializada en ceros.
+	\item \verb|for(int i=0;i<n;i++) res[i][i] = 1;| -- coloca los $1$ en la diagonal (matriz identidad).
+	\item \verb|while(exp)| -- bucle principal del squaring.
+	\item \verb|if(exp & 1) res = matMul(res, base, MOD);| -- si el bit actual esta encendido, multiplica el resultado.
+	\item \verb|base = matMul(base, base, MOD);| -- eleva al cuadrado la base.
+	\item \verb|exp >>= 1;| -- divide el exponente entre 2.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|Matrix T = \{\{1,1\},\{1,0\}\};| -- matriz de transicion clasica de Fibonacci.
+	\item \verb|Matrix Fn = matPow(T, 10, MOD);| -- calcula $T^{10}$ en $O(\log 10)$ multiplicaciones.
+	\item \verb|cout << "F(10) = " << Fn[0][1] << "\textbackslash n";| -- imprime $F_{10} = 55$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{...}.

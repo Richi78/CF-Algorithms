@@ -1,0 +1,69 @@
+﻿\subsubsection{Chinese Remainder Theorem}
+
+\paragraph{Idea intuitiva.}
+Dado un sistema $x \equiv r_i \pmod{m_i}$ con los $m_i$ \textbf{coprimos dos a dos}, hay \textbf{una} solucion modulo $M = \prod m_i$. Se construye incrementalmente: combinando $x \equiv r_1 \pmod{m_1}$ con $x \equiv r_2 \pmod{m_2}$, la solucion es $x = r_1 + m_1 \cdot t$ donde $t \equiv (r_2 - r_1) \cdot m_1^{-1} \pmod{m_2}$. Iterar con cada $m_i$. La prueba de existencia y unicidad es por induccion sobre $N$: con una sola ecuacion la solucion es trivial; al aniadir la ecuacion $i+1$ con $\gcd(m_i, m_{i+1}) = 1$, existe $m_i^{-1} \pmod{m_{i+1}}$ y se resuelve el nuevo offset.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet asume $m_i$ coprimos dos a dos; \textbf{no} maneja el caso general.
+	\item Solucion unica modulo $M$.
+	\item Si los modulos \textbf{no} son coprimos y $\gcd(m_i, m_j) \nmid (r_i - r_j)$, no hay solucion; si divide, se reduce el sistema.
+	\item Cada paso incremental no destruye las ecuaciones previas.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El paso inductivo (combinar una solucion parcial con una ecuacion nueva):
+\begin{verbatim}
+long long k = ((r2 - r1) % m2 + m2) % m2;
+k = k * modInv(m1 % m2, m2) % m2;  // inversa de m1 mod m2
+r1 = r1 + m1 * k;     // nueva solucion
+m1 = m1 * m2;          // nuevo modulo
+r1 = (r1 % m1 + m1) % m1;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \log M)$ con $N$ el numero de ecuaciones.
+	\item Cada paso usa una inversa modular ($O(\log m_i)$) y unas multiplicaciones.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Modulos no coprimos}: aniadir el test $\gcd(m_i, m_j)$ en cada paso y devolver error o reducir.
+	\item \textbf{Devolver todas las soluciones}: si el problema quiere todas las $x$ en $[0, L]$, ajustar al final con un \texttt{if (x > L) return -1;}.
+	\item \textbf{Garner}: para evitar overflow con $M$ muy grande, usar el algoritmo de Garner (mas estable numericamente).
+	\item \textbf{Caso $k = 0$}: aniadir check para retornar temprano (ya resuelto).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Overflow al multiplicar \texttt{M * t} si los $m_i$ son grandes; usar \texttt{\_\_int128} o reducir modulo $M$ en cada paso (ya lo hace el snippet).
+	\item Si una ecuacion es $x \equiv r_i \pmod{m_i}$ con $r_i \ge m_i$, normalizar antes.
+	\item Confundir ``modulos coprimos'' con ``modulos primos individuales''; los $m_i$ solo necesitan ser coprimos entre si.
+	\item En la condicion ``hay solucion'', devolver un valor sentinela (e.g., $-1$) consistente con el resto del codigo.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|#include <bits/stdc++.h>| -- incluye todas las bibliotecas estandar (necesario para \texttt{vector}, \texttt{cout}, \texttt{modpow}).
+	\item \verb|using namespace std;| -- evita prefijar \verb|std::|.
+	\item \verb|long long crt(const vector<long long>& r, const vector<long long>& m)| -- recibe los residuos \verb|r[i]| y los modulos \verb|m[i]| (estos deben ser coprimos dos a dos).
+	\item \verb|long long x = 0;| -- solucion parcial actual: cumple las primeras $i$ congruencias.
+	\item \verb|long long M = 1;| -- modulo parcial actual: producto de los primeros $i$ modulos.
+	\item \verb|for(int i=0 ; i<r.size() ; i++)| -- procesa cada congruencia secuencialmente.
+	\item \verb|long long diff = (r[i] - x) % m[i];| -- calcula la diferencia que falta entre la solucion parcial y la nueva congruencia.
+	\item \verb|if(diff < 0) diff += m[i];| -- ajusta al rango positivo (residuo canonico).
+	\item \verb|long long inv = modpow(M % m[i], m[i] - 2, m[i]);| -- inversa de $M$ modulo $m_i$ via Fermat (porque $m_i$ es primo o coprimo).
+	\item \verb|long long t = diff * inv % m[i];| -- calcula el desplazamiento necesario para corregir la solucion parcial.
+	\item \verb|x = x + M * t;| -- actualiza la solucion parcial sumando el offset correcto.
+	\item \verb|M *= m[i];| -- extiende el modulo parcial al producto acumulado.
+	\item \verb|x %= M;| -- reduce la solucion modulo el nuevo $M$ para evitar overflow.
+	\item \verb|if(x < 0) x += M;| -- corrige a rango positivo.
+	\item \verb|return x;| -- retorna la solucion unica modulo $\prod m_i$.
+	\item \verb|cout << crt({2, 3, 2}, {3, 5, 7}) << "\textbackslash n";| -- resuelve $x \equiv 2 \pmod 3$, $x \equiv 3 \pmod 5$, $x \equiv 2 \pmod 7$ (respuesta: $23$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Chinese Remainder Theorem}.
+
+\vspace{0.5em}

@@ -1,0 +1,67 @@
+﻿\subsubsection{Euler tour / Hierholzer (camino y circuito)}
+
+\paragraph{Idea intuitiva.}
+Encuentra un \textbf{camino o circuito euleriano} (que usa cada arista exactamente una vez). \textbf{Condiciones}:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{No dirigido}: todos los grados pares (circuito) o exactamente 2 impares (camino, empieza en uno, termina en el otro). Ademas, conexo sobre el subgrafo con aristas.
+	\item \textbf{Dirigido}: $\text{indeg}(v) = \text{outdeg}(v)$ para todos (circuito) o exactamente un nodo con $\text{outdeg} = \text{indeg} + 1$ y otro con $\text{indeg} = \text{outdeg} + 1$ (camino).
+\end{itemize}
+
+\paragraph{Hierholzer}: elegir un ciclo desde el inicio, mientras haya ciclos ``laterales'' desde un nodo del camino, mergearlos. Implementacion con pila: avanzar por aristas, al no poder mas aniadir a la respuesta y backtrack. La demostracion de $O(V + E)$: cada arista se procesa una vez (entra y sale del stack una vez).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Multigrafos permitidos; las aristas se marcan como usadas.
+	\item No dirigido: cada arista aparece \textbf{dos veces} en \texttt{adj} (ida y vuelta).
+	\item La construccion del path con ids consistentes es importante.
+	\item El resultado es unico salvo orden de las aristas en multigrafos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Hierholzer con pila:
+\begin{verbatim}
+vector<int> path;
+stack<int> st;
+st.push(start);
+while (!st.empty()) {
+    int v = st.top();
+    while (!adj[v].empty() && used[adj[v].back()]) adj[v].pop_back();
+    if (adj[v].empty()) {
+        path.push_back(v);
+        st.pop();
+    } else {
+        int e = adj[v].back();
+        used[e] = true;
+        int u = edges[e].to(v);
+        adj[v].pop_back();
+        st.push(u);
+    }
+}
+reverse(path.begin(), path.end());
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E)$.
+	\item Memoria $O(V + E)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir con multigrafo}: aniadir ids consistentes antes del algoritmo.
+	\item \textbf{Aplicar a ``de Bruijn'' o problemas de strings}: modelar como multigrafo y buscar Euler.
+	\item \textbf{Dirigido vs no dirigido}: el snippet tiene ambas versiones.
+	\item \textbf{Letter addition}: modelar palabras como aristas y buscar el superstring.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si el grafo no es conexo (sobre las aristas), no existe euleriano. Verificar primero.
+	\item Para multigrafos, los IDs de aristas son cruciales para distinguirlas.
+	\item Si el problema es ``encuentra todos los euler tours'', el algoritmo es exponencial.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Euler tour / Hierholzer (camino y circuito)}.
+
+\vspace{0.5em}

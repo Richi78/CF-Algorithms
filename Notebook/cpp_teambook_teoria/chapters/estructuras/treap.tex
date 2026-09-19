@@ -1,0 +1,87 @@
+\subsubsection{Treap implicito}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{treap implicito} es un arbol binario de busqueda aleatorizado donde cada nodo tiene un \textbf{valor}, una \textbf{prioridad aleatoria} y un \textbf{tamano de subarbol}. La invariante es: heap por prioridad (el padre tiene mayor prioridad que sus hijos), y el \textbf{indice implicito} de un nodo en la secuencia viene dado por el tamano del subarbol izquierdo; no se almacena una clave explicita.
+
+Las dos primitivas fundamentales son:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{split(t, k, l, r)}: divide el treap $t$ en $l$ (primeros $k$ elementos, rango $[0, k)$) y $r$ (el resto, rango $[k, n)$).
+	\item \textbf{merge(l, r)}: une dos treaps manteniendo el orden (todos los de $l$ antes que los de $r$), eligiendo como raiz al nodo de mayor prioridad para preservar la propiedad de heap.
+\end{itemize}
+
+La altura esperada del arbol es $O(\log n)$ gracias a la aleatoriedad de las prioridades; no se necesita rebalanceo explicito.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|sz(t)|: tamano del subarbol de $t$ (0 si \verb|t == nullptr|).
+	\item Propiedad de heap: \verb|t->pr >= t->l->pr| y \verb|t->pr >= t->r->pr|.
+	\item Invariante de posicion: el indice de $t$ en la secuencia es $\text{sz}(t \to l)$.
+	\item Toda operacion comienza con \verb|upd(t)| al retornar para mantener \verb|sz| correcto.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Split por posicion (base del treap implicito):
+\begin{verbatim}
+void split(Node* t, int k, Node*& l, Node*& r) {
+    if (!t) { l = r = nullptr; return; }
+    if (sz(t->l) >= k) {
+        split(t->l, k, l, t->l);
+        r = t; upd(r);
+    } else {
+        split(t->r, k - sz(t->l) - 1, t->r, r);
+        l = t; upd(l);
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Todas las operaciones (split, merge, insert, erase): $O(\log n)$ \textbf{esperado} en promedio sobre las prioridades aleatorias.
+	\item El peor caso teorico es $O(n)$, pero la probabilidad de alcanzarlo decrece exponencialmente.
+	\item Memoria: $O(n)$ nodos; cada nodo ocupa espacio constante.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Lazy propagation}: aniadir un campo \verb|lazy| al nodo y aplicarlo en una funcion \verb|push(t)| antes de acceder a los hijos en \verb|split| y \verb|merge|.
+	\item \textbf{Operacion de reversa en rango}: con lazy, se puede implementar una operacion que invierta un subrango $[l, r]$ en $O(\log n)$: hacer split/split, marcar lazy, y merge/merge.
+	\item \textbf{Aggregate en rango}: aniadir campo \verb|agg| al nodo. Recalcularlo en \verb|upd| con \verb|op(l->agg, val, r->agg)|.
+	\item \textbf{Mejor generador aleatorio}: sustituir \verb|rand()| por \verb|mt19937 rng(...)| con semilla de \verb|chrono::steady_clock|, usando \verb|rng()| en el constructor del nodo.
+	\item \textbf{Treap por clave (no implicito)}: guardar la clave en el nodo y cambiar la condicion de split por comparacion de clave en lugar de tamano de subarbol izquierdo.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Olvidar \texttt{upd} al retornar}: tras modificar cualquier hijo, se debe llamar \verb|upd(t)| antes de retornar; de lo contrario el campo \verb|sz| queda desactualizado y todas las operaciones subsiguientes calculan indices incorrectos.
+	\item \textbf{Semantica de \texttt{split(t, k, l, r)}}: produce $l$ con exactamente $k$ elementos (indices $[0, k)$) y $r$ con los restantes (indices $[k, n)$). Confundir si el rango es abierto o cerrado genera off-by-one en insert y erase.
+	\item \textbf{Memory leak con \texttt{new}}: en contests es aceptable, pero en produccion es necesario un destructor o un allocator de pool de nodos para evitar fugas.
+	\item \textbf{Prioridades iguales}: si dos nodos tienen la misma prioridad, el treap sigue siendo correcto (la propiedad de heap se cumple con $\ge$), pero la altura esperada puede degradarse ligeramente con \verb|rand()| de baja calidad.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura Treap:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct Treap { struct Node { int val, pr, sz; Node *l, *r; }; };| -- estructura exterior con nodo interno.
+	\item \verb|Node(int v): val(v), pr(rand()), sz(1), l(nullptr), r(nullptr){}| -- nuevo nodo: valor dado, prioridad aleatoria, tamano 1, hijos nulos.
+	\item \verb|Node* root = nullptr;| -- puntero a la raiz del treap (arbol vacio inicialmente).
+	\item \verb|int sz(Node* t)| -- retorna \verb|t->sz| o 0 si \verb|t| es nulo; evita acceder a punteros nulos.
+	\item \verb|void upd(Node* t)| -- recalcula \verb|t->sz = 1 + sz(t->l) + sz(t->r)|; se llama al retornar de cada operacion.
+	\item \verb|void split(Node* t, int k, Node*& l, Node*& r)| -- divide $t$ en $l$ ($k$ elementos) y $r$ (resto).
+	\item \verb|if(sz(t->l) >= k)| -- el corte cae dentro del subarbol izquierdo: se recure en el izquierdo.
+	\item \verb|split(t->r, k - sz(t->l) - 1, t->r, r);| -- el corte esta en el derecho; se descuenta el subarbol izquierdo y la raiz actual ($-1$).
+	\item \verb|Node* merge(Node* l, Node* r)| -- une $l$ y $r$ manteniendo prioridades de heap.
+	\item \verb|if(l->pr > r->pr)| -- $l$ tiene mayor prioridad: es la raiz; su hijo derecho absorbe el resto.
+	\item \verb|void insert(int pos, int val)| -- inserta un nuevo nodo con \verb|val| en la posicion \verb|pos|: split $\to$ merge con nuevo nodo $\to$ merge.
+	\item \verb|void erase(int pos)| -- elimina el elemento en posicion \verb|pos|: split, split de 1 elemento, delete, merge.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|Treap t;| -- instancia un treap vacio.
+	\item \verb|t.insert(0, 10); t.insert(1, 20); t.insert(2, 30);| -- inserta tres elementos en posiciones 0, 1 y 2.
+	\item \verb|t.erase(1);| -- elimina el elemento en la posicion 1 (el valor 20).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Treap implicito}.
+
+\vspace{0.5em}

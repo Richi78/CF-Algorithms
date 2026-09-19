@@ -1,0 +1,57 @@
+﻿\subsubsection{Bitmask DP over subsets}
+
+\paragraph{Idea intuitiva.}
+Cuando el estado es un \textbf{subconjunto} de $\{0, \dots, N-1\}$, se representa como una mascara de $N$ bits. Para iterar sobre todos los subconjuntos de \texttt{mask}:
+\[ \text{for (sub = mask; sub; sub = (sub - 1) \& mask)} \{ \dots \} \]
+Para iterar sobre todos los superconjuntos de \texttt{mask} en $[0, U)$:
+\[ \text{for (sup = mask; sup < U; sup = (sup + 1) | mask)} \{ \dots \} \]
+La idea: las mascaras forman un lattice de subconjuntos; los trucos aritmeticos (\texttt{(sub-1) \& mask} y \texttt{(sup+1) | mask}) enumeran todo el lattice eficientemente.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Iterar subsets: $O(2^k)$ para una mascara con $k$ bits.
+	\item \texttt{sub \& mask == sub} siempre; \texttt{mask - sub} no siempre da un subconjunto.
+	\item \texttt{\_\_builtin\_popcount(mask)} cuenta los bits.
+	\item \texttt{(sub - 1) \& mask} itera subsets de \texttt{mask} en orden decreciente de inclusion.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Iteracion sobre subsets de una mascara:
+\begin{verbatim}
+// Todos los subsets de mask
+for (int sub = mask; sub; sub = (sub - 1) & mask) {
+    // procesar sub
+}
+// Incluir sub = 0 si es necesario
+sub = 0;  // procesar primero
+for (int sup = mask; sup < (1 << N); sup = (sup + 1) | mask) {
+    // procesar sup (todos los superconjuntos)
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \cdot 2^N)$ para una DP estandar sobre todos los subsets.
+	\item Iterar subsets de \texttt{mask}: $O(2^{|mask|})$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{TSP / Hamiltonian path}: bitmask DP (ver tambien \textit{Hamiltonian path} en \texttt{cpp.tex} seccion Grafos).
+	\item \textbf{Set cover}: iterar subsets.
+	\item \textbf{DP con supermask}: si el estado incluye ``todos los elementos que \textbf{no} hemos usado'', usar supermask iteration.
+	\item \textbf{Bitmasks grandes}: con $N > 20$, aniadir compresion o simulacion con segmentos.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El orden de iteracion de subsets de \texttt{mask} es decreciente (de \texttt{mask} a $0$).
+	\item \texttt{mask = 0} no tiene subsets no triviales; el bucle lo saltea correctamente.
+	\item El truco \texttt{(sub - 1) \& mask} requiere cuidado con \texttt{sub = 0} (termina el bucle).
+	\item Superconjuntos: \texttt{sup < (1 << N)} debe estar bien definido.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Bitmask DP over subsets}.
+
+\vspace{0.5em}

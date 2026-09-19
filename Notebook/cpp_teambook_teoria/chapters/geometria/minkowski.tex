@@ -1,0 +1,53 @@
+﻿\subsubsection{Minkowski sum (convex polygons)}
+
+\paragraph{Idea intuitiva.}
+La \textbf{suma de Minkowski} $A \oplus B$ de dos poligonos convexos es otro poligono convexo que representa $\{a + b : a \in A, b \in B\}$. Algoritmo: ordenar las aristas por angulo polar (CCW) y ``mergearlas'' como en merge sort; el resultado es un poligono CCW sin repetir el ultimo punto. La idea: el resultado tiene una arista paralela a cada arista de los originales; la suma se obtiene barriendo los angulos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $A, B$ son convexos con $n, m$ vertices, $A \oplus B$ tiene $\le n + m$ vertices.
+	\item Util para \textbf{detectar colision}: $A$ colisiona con $B$ si $0 \in A \oplus (-B)$.
+	\item Asume poligonos en orden \textbf{counter-clockwise}.
+	\item El resultado es convexo (suma de convexos es convexo).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La suma de Minkowski:
+\begin{verbatim}
+vector<Point> minkowski(const vector<Point>& A, const vector<Point>& B) {
+    vector<Point> result;
+    int i = 0, j = 0;
+    int n = A.size(), m = B.size();
+    do {
+        result.push_back(A[i] + B[j]);
+        long long cross = (A[(i+1)%n] - A[i]) ^ (B[(j+1)%m] - B[j]);
+        if (cross >= 0) i = (i + 1) % n;
+        if (cross <= 0) j = (j + 1) % m;
+    } while (i || j);
+    return result;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n + m)$.
+	\item Memoria $O(n + m)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Deteccion de colision}: aniadir $(-B)$ (reflejar) y verificar si $0$ esta en el resultado.
+	\item \textbf{Poligonos no convexos}: la suma puede no ser poligono simple; algoritmo distinto.
+	\item \textbf{Multiples queries}: precomputar las aristas una vez.
+	\item \textbf{Robot motion planning}: usar para planear trayectorias.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los poligonos no son CCW, la suma es incorrecta. Normalizar antes.
+	\item El bucle termina cuando ambos indices vuelven a 0; aniadir check.
+	\item Para la deteccion de colision, aniadir el test \texttt{0 in A \^ (-B)}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Minkowski sum (convex polygons)}.

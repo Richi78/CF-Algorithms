@@ -1,0 +1,104 @@
+\subsubsection{Binary Lifting / LCA}
+
+\paragraph{Idea intuitiva.}
+El \textbf{Binary Lifting} (levantamiento binario) es una tecnica que precalcula para cada nodo $v$ de un arbol enraizado sus ancestros a distancias exponenciales $2^0, 2^1, 2^2, \dots, 2^k$. Como cualquier entero positivo $d$ se descompone de forma unica en una suma de potencias de 2 (su representacion binaria), se puede ascender $d$ niveles en el arbol en tiempo $O(\log d) \le O(\log n)$. Para encontrar el \textbf{LCA} (Lowest Common Ancestor, o ancestro comun mas bajo) de dos nodos $u$ y $v$:
+\begin{enumerate}\setlength\itemsep{0pt}
+	\item Si estan a distinta profundidad, se asciende el nodo mas profundo hasta que ambos queden en el mismo nivel.
+	\item Si tras igualar profundidades coinciden ($u = v$), dicho nodo es el LCA.
+	\item En caso contrario, se realizan saltos binarios en paralelo desde el bit mas significativo hacia abajo, subiendo ambos nodos siempre que sus ancestros sigan siendo distintos. Al terminar, quedan inmediatamente debajo del LCA, por lo que este es su padre directo (\texttt{up[0][u]}).
+\end{enumerate}
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{up[k][v]}: ancestro a distancia $2^k$ del nodo $v$. Recurrencia:
+	\[
+	\text{up}[k][v] = \text{up}[k-1][\text{up}[k-1][v]]
+	\]
+	\item Numero de niveles: $\text{LOG} = \lfloor \log_2 n \rfloor + 1$ (en GCC: \verb|32 - __builtin_clz(n + 1)|).
+	\item Para la raiz se define $\text{up}[0][\text{root}] = -1$ (o la raiz misma con profundidad 0).
+	\item Distancia entre nodos en el arbol: $\text{dist}(u, v) = \text{depth}[u] + \text{depth}[v] - 2 \cdot \text{depth}[\text{lca}(u, v)]$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Precalculo DFS y consulta de LCA en $O(\log n)$:
+\begin{verbatim}
+void dfs(int v, int p) {
+    up[0][v] = p;
+    for (int k = 1; k < LOG; ++k) {
+        if (up[k - 1][v] != -1)
+            up[k][v] = up[k - 1][up[k - 1][v]];
+    }
+    for (int u : adj[v]) {
+        if (u == p) continue;
+        depth[u] = depth[v] + 1;
+        dfs(u, v);
+    }
+}
+
+int lca(int a, int b) {
+    if (depth[a] < depth[b]) swap(a, b);
+    int diff = depth[a] - depth[b];
+    for (int k = 0; k < LOG; ++k)
+        if (diff & (1 << k)) a = up[k][a];
+    if (a == b) return a;
+    for (int k = LOG - 1; k >= 0; --k) {
+        if (up[k][a] != up[k][b]) {
+            a = up[k][a];
+            b = up[k][b];
+        }
+    }
+    return up[0][a];
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precomputo (DFS + tabla): $O(n \log n)$ en tiempo.
+	\item Consulta de LCA o $k$-esimo ancestro: $O(\log n)$ en el peor caso.
+	\item Memoria: $O(n \log n)$ enteros para la tabla \texttt{up}.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{$K$-esimo ancestro}: para subir $k$ niveles desde $v$, iterar sobre los bits de $k$: \verb|if (k & (1 << j)) v = up[j][v];|.
+	\item \textbf{Camino ponderado (max/min/suma de aristas)}: anadir una tabla paralela \texttt{val[k][v]} que guarde la operacion en el camino de longitud $2^k$: \verb|val[k][v] = op(val[k-1][v], val[k-1][up[k-1][v]])|.
+	\item \textbf{Bosque de arboles}: si el grafo no es conexo, invocar \texttt{dfs(root, -1)} para cada componente conexa.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Omitir el chequeo \texttt{a == b}}: tras igualar profundidades, si $a = b$ (uno es ancestro del otro), se debe retornar $a$ inmediatamente. Si se entra al segundo bucle, se intentara subir por encima del LCA.
+	\item \textbf{Acceso fuera de rango en raiz}: al construir \texttt{up[k][v]}, si \texttt{up[k-1][v] == -1}, no acceder a \texttt{up[k-1][-1]}; verificar \verb|if (up[k-1][v] != -1)|.
+	\item \textbf{Condicion de la segunda fase}: la condicion debe ser \verb|up[k][a] != up[k][b]| para saltar juntos solo mientras sigan siendo distintos, asegurando que convergen a los hijos directos del LCA.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura LCA:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct LCA { int n, LOG; vector<vector<int>> up, adj; vector<int> depth; };| -- encapsula la estructura de Binary Lifting.
+	\item \verb|LOG = 32 - __builtin_clz(n + 1);| -- calcula $\approx \lceil \log_2 n \rceil + 1$, cantidad de niveles necesarios.
+	\item \verb|void addEdge(int u, int v)| -- inserta una arista bidireccional en el arbol.
+	\item \verb|void dfs(int v, int p)| -- recorre el arbol calculando profundidades y ancestros en potencias de 2.
+	\item \verb|up[0][v] = p;| -- el ancestro a distancia $2^0 = 1$ es el padre directo en el arbol.
+	\item \verb|up[k][v] = up[k-1][up[k-1][v]];| -- aplica la transitividad de saltos: $2^k = 2^{k-1} + 2^{k-1}$.
+	\item \verb|void build(int root)| -- inicia el precalculo con DFS desde la raiz dada con padre $-1$.
+	\item \verb|int lca(int a, int b)| -- responde a la consulta del ancestro comun mas bajo en $O(\log n)$.
+	\item \verb|if(depth[a] < depth[b]) swap(a, b);| -- asegura sin perdida de generalidad que $a$ este a mayor o igual profundidad.
+	\item \verb|if(diff & (1<<k)) a = up[k][a];| -- asciende $a$ la diferencia de niveles para emparejar profundidades.
+	\item \verb|if(a == b) return a;| -- si los nodos coinciden, $b$ era ancestro de $a$ y es el LCA.
+	\item \verb|if(up[k][a] != up[k][b]) { a = up[k][a]; b = up[k][b]; }| -- ascienden simultaneamente mientras sigan en ramas distintas.
+	\item \verb|return up[0][a];| -- al terminar, se encuentran justo debajo del LCA; se retorna su padre.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|LCA lca(5);| -- inicializa el arbol para 5 nodos ($0$ a $4$).
+	\item \verb|lca.addEdge(0, 1); ...| -- inserta las aristas del arbol.
+	\item \verb|lca.build(0);| -- construye las tablas asignando el nodo $0$ como raiz.
+	\item \verb|cout << lca.lca(2, 4) << "\n";| -- consulta el LCA entre los nodos 2 y 4 (resultado es 1).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Binary Lifting / LCA}.
+
+\vspace{0.5em}
+

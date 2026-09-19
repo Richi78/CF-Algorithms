@@ -1,0 +1,55 @@
+﻿\subsubsection{Distance point-segment / point-line}
+
+\paragraph{Idea intuitiva.}
+Distancia minima de un punto $p$ a un segmento $[a, b]$ o a la recta que pasa por $a$ y $b$.
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Linea}: $d = \frac{|ab \times ap|}{|ab|}$.
+	\item \textbf{Segmento}: si la proyeccion de $p$ sobre $ab$ cae fuera del segmento, la distancia es al extremo mas cercano.
+\end{itemize}
+La razon geometrica: la distancia a una linea es el area del paralelogramo dividido por la base; la proyeccion ortogonal indica si estamos ``dentro'' o ``fuera'' del segmento.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{dist2PointLine} retorna distancia \textbf{al cuadrado}.
+	\item \texttt{dist2PointSegment} distingue 3 casos: $p$ antes de $a$, despues de $b$, o proyectado sobre el segmento.
+	\item Si \texttt{len2 = 0} (degenerate), la distancia es $|ap|$ o $|bp|$.
+	\item La proyeccion se calcula con dot products y el parametro $t \in [0, 1]$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Distancia al cuadrado a segmento:
+\begin{verbatim}
+long long dist2Segment(Point p, Point a, Point b) {
+    long long len2 = (a-b).len2();
+    if (len2 == 0) return (p-a).len2();  // degenerate
+    long long t = max(0LL, min(1LL, dot(p-a, b-a) / len2));
+    Point proj = {a.x + t*(b.x - a.x), a.y + t*(b.y - a.y)};
+    return (p - proj).len2();
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$.
+	\item Constante minima.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Distancia (no al cuadrado)}: aniadir \texttt{sqrt} al final.
+	\item \textbf{Coordenadas doubles}: aniadir \texttt{long double} y tolerancia.
+	\item \textbf{3D}: aniadir coordenada $z$ y adaptar.
+	\item \textbf{Multiples queries}: usar KD-tree o segment tree para acelerar.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Overflow en \texttt{area2 * area2} si el area es grande; \texttt{long long} alcanza para $|x|, |y| \le 10^9$ pero no mas.
+	\item Si $a = b$ (segmento degenerado), aniadir check explicito.
+	\item En doubles, aniadir tolerancia \texttt{eps} para comparar.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Distance point-segment / point-line}.
+
+\vspace{0.5em}

@@ -1,0 +1,85 @@
+\subsubsection{Manacher}
+
+\paragraph{Idea intuitiva.}
+El algoritmo de \textbf{Manacher} calcula en tiempo estrictamente lineal $O(n)$ el radio del palindromo mas largo centrado en cada posicion de una cadena $S$ de longitud $n$, distinguiendo tanto palindromos de longitud impar (centrados en un caracter $i$) como de longitud par (centrados entre los caracteres $i-1$ e $i$).
+
+Mantiene una ventana $[l, r]$ que representa el palindromo que alcanza la posicion mas lejana a la derecha. Al evaluar un nuevo centro $i$:
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $i \le r$, el centro $i$ tiene un reflejo simetrico $i' = l + r - i$ respecto al centro de la ventana. Por simetria, el radio en $i$ es al menos $\min(\text{radio}[i'], \, r - i + 1)$.
+	\item Luego se intenta expandir mas alla del limite $r$ caracter a caracter, actualizando la ventana $[l, r]$ cuando se sobrepasa el extremo derecho previo.
+\end{itemize}
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Convencion del codigo}:
+	\begin{itemize}\setlength\itemsep{0pt}
+		\item \texttt{odd[i] = k} ($k \ge 1$): palindromo impar centrado en $i$, abarca $S[i - k + 1 \dots i + k - 1]$ con longitud $2k - 1$. Representa tambien la cantidad de subpalindromos impares con centro en $i$.
+		\item \texttt{even[i] = k} ($k \ge 0$): palindromo par centrado entre $i-1$ e $i$, abarca $S[i - k \dots i + k - 1]$ con longitud $2k$. Representa tambien la cantidad de subpalindromos pares centrados entre $i-1$ e $i$.
+	\end{itemize}
+	\item Consultas en $O(1)$: determinar si una subcadena $S[l \dots r]$ es un palindromo se resuelve en tiempo constante verificando si el radio registrado en su centro cubre la longitud total.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Calculo de radios de palindromos impares y pares:
+\begin{verbatim}
+// Impares
+for (int i = 0; i < n; ++i) {
+    int k = (i > r) ? 1 : min(odd[l + r - i], r - i + 1);
+    while (i - k >= 0 && i + k < n && s[i - k] == s[i + k]) k++;
+    odd[i] = k;
+    if (i + k - 1 > r) { l = i - k + 1; r = i + k - 1; }
+}
+// Pares
+l = 0; r = -1;
+for (int i = 0; i < n; ++i) {
+    int k = (i > r) ? 0 : min(even[l + r - i + 1], r - i + 1);
+    while (i - k - 1 >= 0 && i + k < n && s[i - k - 1] == s[i + k]) k++;
+    even[i] = k;
+    if (i + k - 1 > r) { l = i - k; r = i + k - 1; }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(n)$ en tiempo; cada caracter extiende el extremo derecho $r$ a lo sumo una vez.
+	\item \textbf{Consultas}: $O(1)$ por subcadena para consultas de verificacion con \verb|isPalindrome|.
+	\item \textbf{Memoria}: $O(n)$ para almacenar los vectores \verb|odd| y \verb|even|.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Contar cantidad total de subpalindromos}: sumar todos los elementos de \verb|odd| y \verb|even| (implementado en \verb|countPalindromes|).
+	\item \textbf{Subcadena palindromica mas larga}: buscar el maximo entre $2 \cdot \text{odd}[i] - 1$ y $2 \cdot \text{even}[i]$ (implementado en \verb|longestPalindrome|).
+	\item \textbf{Palindromos en arboles o caminos}: combinable con HLD / hashing para verificar palindromos en caminos de arboles.
+	\item \textbf{Version unificada con caracteres centinela}: intercalar \verb|'#'| entre cada letra transforma todos los palindromos a impares sobre una cadena de tamano $2n + 1$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Centro par desfasado}: para longitud par, el centro cae entre $i-1$ e $i$. En \verb|isPalindrome|, el centro se calcula como $c = (l + r + 1) / 2$, y se evalua \verb|even[c] >= len / 2|.
+	\item \textbf{Desfase en la formula del espejo}: para impares el espejo es $l + r - i$; para pares el espejo es $l + r - i + 1$. Mezclar ambas expresiones corrompe el algoritmo.
+	\item \textbf{Radio vs Longitud}: recordar que la longitud es $2k - 1$ para impares y $2k$ para pares; confundir $k$ con el diametro es un error habitual.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion manacher:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> odd(n, 0); int l = 0, r = -1;| -- inicializa el vector de impares y la ventana vacia.
+	\item \verb|int k = (i > r) ? 1 : min(odd[l + r - i], r - i + 1);| -- aprovecha el radio del nodo espejo reflejado en la ventana actual.
+	\item \verb|while(i-k >= 0 && i+k < n && s[i-k] == s[i+k]) k++;| -- expande hacia ambos lados mientras haya simetria.
+	\item \verb|if(i + k - 1 > r) { l = i - k + 1; r = i + k - 1; }| -- avanza la ventana $[l, r]$ si el nuevo palindromo rebasa el borde derecho previo.
+	\item \verb|vector<int> even(n, 0); l = 0; r = -1;| -- reinicia la ventana para el calculo de palindromos pares.
+	\item \verb|int k = (i > r) ? 0 : min(even[l + r - i + 1], r - i + 1);| -- radio par garantizado por el espejo simetrico.
+	\item \verb|while(i - k - 1 >= 0 && i + k < n && s[i - k - 1] == s[i + k]) k++;| -- expande comparando caracteres equidistantes del corte entre $i-1$ e $i$.
+\end{itemize}
+\textbf{Funciones auxiliares:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|longestPalindrome| -- recorre los centros comparando $2 \cdot \text{odd}[i] - 1$ y $2 \cdot \text{even}[i]$, retornando la subcadena de maxima longitud.
+	\item \verb|countPalindromes| -- suma todos los radios de \verb|odd| y \verb|even| obteniendo el numero total de subcadenas palindromicas.
+	\item \verb|isPalindrome(l, r, odd, even)| -- segun la paridad de la longitud $r - l + 1$, ubica el centro y verifica en $O(1)$ si el radio es suficiente para cubrir $[l, r]$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Manacher}.
+
+\vspace{0.5em}

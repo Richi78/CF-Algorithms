@@ -1,0 +1,38 @@
+﻿\subsubsection{Hora}
+
+\paragraph{Idea intuitiva.}
+Una pequena clase para representar \textbf{tiempos en segundos} y hacer aritmetica basica sobre ellos. Internamente almacena todo en segundos (un solo \texttt{int}), lo cual simplifica comparaciones y diferencias. El constructor acepta $(h, m, s)$ y los convierte a segundos. Hay un metodo \texttt{cut()} que fuerza un minimo (util para ``horas trabajadas'').
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Representacion canonica: \textbf{solo segundos}. No hay zonas horarias, no hay DST.
+	\item Comparadores \texttt{<} y \texttt{>} operan sobre los segundos.
+	\item \texttt{operator-} retorna la \textbf{diferencia absoluta} en segundos (siempre no negativa).
+	\item \texttt{cut()} aplica un piso (por defecto $8\text{h }30\text{m} = 30600$ segundos).
+\end{itemize}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$ por operacion.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir suma}: \texttt{operator+} que devuelve un \texttt{Hour} con la suma de segundos.
+	\item \textbf{Aniadir output formateado}: aniadir \texttt{show\_hms()} que imprime $H$:$M$:$S$.
+	\item \textbf{Cambiar el ``corte''}: modificar el valor magico \texttt{30'600} en \texttt{cut()} o pasarlo como parametro.
+	\item \textbf{Tamano maximo}: si los tiempos exceden $\sim 68$ anos, el \texttt{int} desborda; usar \texttt{long long}.
+	\item \textbf{Precision sub-segundo}: aniadir \texttt{ms} (milisegundos) y guardar en \texttt{long long} con factor 1000.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El operador \texttt{-} retorna \textbf{valor absoluto}, no diferencia con signo. Si necesitas diferencia con signo, aniadir un nuevo metodo o sobrecargar.
+	\item \texttt{cut()} modifica \texttt{s} \textbf{in-place}; si el llamador no espera esto, aniadir una version \texttt{cut(min)} que retorna un nuevo \texttt{Hour}.
+	\item El umbral magico \texttt{30'600} (8h 30m) esta hardcoded; documentar bien que es ``jornada minima''.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Hora}.
+
+\end{document}

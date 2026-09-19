@@ -1,0 +1,50 @@
+﻿\subsubsection{Polygon Area}
+
+\paragraph{Idea intuitiva.}
+El area (con signo) de un poligono se calcula con la \textbf{Shoelace formula}: $A = \frac{1}{2} \sum_{i=0}^{n-1} (x_i y_{i+1} - x_{i+1} y_i)$, donde el indice es modulo $n$. El snippet retorna el \textbf{doble} del area (en valor absoluto). La formula sale del ``sumar areas de trapezoides'': cada lado del poligono define un trapezoide con el eje $x$; la suma con signo da el area.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El signo indica la orientacion: positivo si counter-clockwise.
+	\item Para el doble: no dividir por 2 si no es necesario (evita fracciones).
+	\item Funciona para poligonos simples (no auto-intersectantes).
+	\item Si el poligono es no convexo, la formula da el area ``con signo''.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La suma de trapezoides:
+\begin{verbatim}
+long long shoelace(const vector<Point>& p) {
+    long long s = 0;
+    int n = p.size();
+    for (int i = 0; i < n; ++i)
+        s += (long long)p[i].x * p[(i+1)%n].y - (long long)p[(i+1)%n].x * p[i].y;
+    return abs(s);  // doble del area
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n)$.
+	\item Constante minima.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Area exacta}: dividir por 2 (con cuidado si da fraccion; usar \texttt{double}).
+	\item \textbf{Area firmada}: quitar \texttt{abs} y dejar el signo.
+	\item \textbf{Punto dentro de poligono convexo}: con la hull, chequear que esta a un mismo lado de todas las aristas.
+	\item \textbf{Triangulacion}: descomponer en triangulos y sumar areas.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si los puntos no estan en orden (CCW o CW), el area firmada puede ser incorrecta. Para signed area consistente, usar siempre el mismo orden.
+	\item Para poligonos con holes, sumar las areas con signo apropiado.
+	\item Con doubles, aniadir tolerancia \texttt{eps}.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Polygon Area}.
+
+\vspace{0.5em}

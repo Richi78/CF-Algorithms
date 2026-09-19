@@ -1,0 +1,58 @@
+﻿\subsubsection{Random / mt19937}
+
+\paragraph{Idea intuitiva.}
+\texttt{mt19937\_64} es un generador de numeros pseudoaleatorios (Mersenne Twister) con periodo $2^{19937} - 1$. A diferencia del \texttt{rand()} de C, tiene una distribucion razonablemente uniforme y se puede \textbf{seedear} explicitamente, lo que permite reproducir exactamente la misma secuencia. En contests se usa para: barajar vectores en algoritmos randomized (quicksort, kruskal randomizado), generar casos de prueba, y romper empates con hash aleatorio. La razon de preferir \texttt{mt19937\_64} sobre \texttt{rand()}: \texttt{rand()} en algunas plataformas retorna solo 15 bits y el operador \texttt{\% n} introduce sesgo importante para $n$ pequenos.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Periodo gigantesco: la probabilidad de repetir es despreciable en cualquier contest.
+	\item Produce 64 bits por llamada; si necesitas \texttt{int}, tomar el valor modulo el rango deseado.
+	\item \texttt{uniform\_int\_distribution<int>(lo, hi)} es \textbf{inclusivo en ambos extremos}; \texttt{uniform\_real\_distribution<double>} es \textbf{semi-abierto} $[lo, hi)$.
+	\item El estado del RNG tiene tamano fijo ($\sim 2.5$KB para \texttt{mt19937\_64}); copiarlo es barato.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Patron estandar:
+\begin{verbatim}
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+int x = uniform_int_distribution<int>(0, n-1)(rng);  // [0, n-1]
+shuffle(v.begin(), v.end(), rng);                    // barajar
+ll y = rng();                                        // 64 bits crudos
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item O(1) por llamada. Construir el \texttt{rng} con seed de \texttt{chrono} es O(1).
+	\item \texttt{shuffle} sobre $N$ elementos: $O(N)$ (cada llamada a \texttt{swap} consume un random).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reproducibilidad}: cambiar el seed de \texttt{chrono::steady\_clock::now()...} por un literal (\texttt{42ULL}, etc.) si queres exactamente la misma secuencia en cada corrida.
+	\item \textbf{Tipo}: usar \texttt{mt19937} (32 bits) en lugar de \texttt{mt19937\_64} si solo necesitas \texttt{int}; es ligeramente mas rapido pero no se nota en la practica.
+	\item \texttt{randInt(lo, hi)} con \texttt{lo > hi} da comportamiento indefinido; aniade un \texttt{assert} si te preocupa.
+	\item \texttt{randPick(v)} hace \texttt{v.size() - 1}; si \texttt{v} esta vacio hay UB. Aniadir check.
+	\item \textbf{Saltar N valores}: \texttt{rng.discard(N)} es equivalente a $N$ llamadas pero mas rapido (optimizado internamente).
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Barajar un arreglo para simulacion Monte Carlo:
+\begin{verbatim}
+vector<int> p(n);
+iota(p.begin(), p.end(), 0);
+shuffle(p.begin(), p.end(), rng);
+// p es una permutacion aleatoria de [0, n)
+\end{verbatim}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item En Windows (MSVC) el \texttt{uniform\_int\_distribution} puede tener un bug conocido con distribuciones grandes; usar \texttt{mt19937\_64} lo evita.
+	\item Llamar a \texttt{rand() \% n} es \textbf{sesgado} si \texttt{RAND\_MAX + 1} no es multiplo de $n$. \texttt{uniform\_int\_distribution} no tiene ese problema.
+	\item \texttt{rng()} NO es threadsafe por instancia; si dos threads usan el mismo \texttt{rng} la secuencia se corrompe. Hacer un \texttt{rng} por thread.
+	\item Sembrar con \texttt{time(NULL)} da colisiones si lanzas dos programas en el mismo segundo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Random / mt19937}.
+
+\vspace{0.5em}

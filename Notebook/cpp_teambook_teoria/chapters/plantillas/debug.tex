@@ -1,0 +1,52 @@
+﻿\subsubsection{Debug pretty-printer}
+
+\paragraph{Idea intuitiva.}
+Imprimir \texttt{vector<int>\{1,2,3\}} con \texttt{cout << v} da una direccion de memoria, no el contenido. Hay que iterar manualmente. Los macros \texttt{DBG(x)} y \texttt{DBGV(x)} envuelven esa iteracion y muestran, ademas del valor, el \textbf{nombre de la variable} (\texttt{\#x} lo convierte en string en tiempo de preprocesamiento). Asi un \texttt{DBG(ans)} imprime \texttt{ans = 42}, y un \texttt{DBGV(arr)} imprime \texttt{arr = [1, 2, 3]}. Esto acelera muchisimo el debug: con solo aniadir una linea ves el estado de una variable. El truco del \texttt{\#} (stringify) es una facilidad del preprocesador que convierte el token textual en string literal sin expandir macros internas.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{\#x} en una macro \textbf{siempre} toma el nombre textual tal cual lo escribiste; si pasas \texttt{arr[i]}, imprime \texttt{arr[i] = ...}, no el nombre del array.
+	\item \texttt{DBGV} solo funciona para \texttt{vector<T>}; para \texttt{set}, \texttt{map}, etc. aniadir overloads especificos.
+	\item Los macros escriben a \texttt{cerr} (no \texttt{cout}), asi no contaminan la salida del problema.
+	\item Los macros no tienen overhead en tiempo de ejecucion si se compilan con \texttt{-DNDEBUG}.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El corazon del macro y el helper de impresion:
+\begin{verbatim}
+#define DBG(x) cerr << #x << " = " << (x) << "\n"
+#define DBGV(x) cerr << #x << " = ["; \
+    for (auto it = (x).begin(); it != (x).end(); ++it) \
+        cerr << (it==(x).begin()?"":", ") << *it; \
+    cerr << "]\n"
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item O(N) por impresion donde N = tamano del contenedor.
+	\item El overhead del macro es despreciable.
+	\item En competicion, compilar con \texttt{-O2} y los macros expandidos son igual de rapidos que el codigo escrito a mano.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir tipos} (set, map, pair de vectores, etc.): duplicar la plantilla de \texttt{vecToStr} para cada tipo y crear un \texttt{DBG\#\#} correspondiente.
+	\item \textbf{Volcar a archivo}: cambiar \texttt{cerr} por un \texttt{ofstream} abierto al inicio.
+	\item \textbf{Quitar del envio}: las macros se activan solo donde estan definidas; antes de enviar al juez, \textbf{borrar las lineas con \texttt{DBG}/\texttt{DBGV}} o aniadir \texttt{\#undef} despues del bloque (como hace el snippet).
+	\item \textbf{Debug condicional}: aniadir \texttt{\#ifdef LOCAL} antes de las macros y compilar con \texttt{-DLOCAL} solo en local.
+	\item \textbf{Variadic}: para imprimir multiples variables en una linea, usar \texttt{\#define DBG(...) fprintf(stderr, \_\_VA\_ARGS\_\_)}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si el output del juez es estricto (case-sensitive, sin espacios extra), no debe quedar ningun \texttt{cerr} activo.
+	\item En recursion profunda, los \texttt{DBG} pueden explotar el stack de \texttt{cerr} (raro, pero pasa). Usar \texttt{\textbackslash n} (no \texttt{endl}) para evitar flush.
+	\item Macros con argumentos multiples (\texttt{DBG(a, b)}) requieren variadic macros (\texttt{\#define DBG(...)}) en C++11.
+	\item Si \texttt{DBG(x)} se expande en una linea multiple, recordar los \texttt{\textbackslash} al final de cada linea de la macro.
+	\item Macros pueden capturar nombres conflictivos; evita nombres como \texttt{T}, \texttt{X} que uses en templates.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Debug pretty-printer}.
+
+\vspace{0.5em}

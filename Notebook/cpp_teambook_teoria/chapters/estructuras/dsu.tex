@@ -1,0 +1,70 @@
+﻿\subsubsection{DSU classico}
+
+\paragraph{Idea intuitiva.}
+El \textbf{Disjoint Set Union} (Union-Find) mantiene una particion de elementos en conjuntos disjuntos. Las dos operaciones basicas son \texttt{find(x)} (devuelve el representante del conjunto de $x$) y \texttt{union(x, y)} (fusiona los conjuntos). La optimizacion \textbf{path compression} aplana el arbol durante \texttt{find}, y \textbf{union by size/rank} mantiene el arbol balanceado. Combinadas, dan costo \textbf{amortizado} $O(\alpha(n))$ por operacion, casi $O(1)$. La cota de Ackermann aparece porque las alturas de los arboles son \textbf{extremadamente pequenas} (del orden de $\alpha(n)$ que para $n < 10^{600}$ es $\le 5$).
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{parent[i]} apunta al padre en el arbol; la raiz es \texttt{parent[i] == i}.
+	\item \texttt{size[i]} solo es valido en la raiz.
+	\item \textbf{Representante unico}: cada conjunto tiene exactamente una raiz.
+	\item Union by size garantiza que la altura del arbol es $O(\log n)$ peor caso (antes de path compression).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+DSU con union by size y path compression:
+\begin{verbatim}
+int find(int x) { return parent[x] == x ? x : parent[x] = find(parent[x]); }
+void unite(int a, int b) {
+    a = find(a); b = find(b);
+    if (a == b) return;
+    if (size[a] < size[b]) swap(a, b);
+    parent[b] = a;
+    size[a] += size[b];
+}
+bool connected(int a, int b) { return find(a) == find(b); }
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\alpha(n))$ amortizado, donde $\alpha$ es la inversa de Ackermann.
+	\item En la practica: $\sim 4$ operaciones por llamada para $n \le 10^6$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir informacion al conjunto} (ej. tamano del conjunto ya esta; suma de los elementos; etc.): aniadir campos al struct y mantenerlos en \texttt{union}.
+	\item \textbf{DSU para borrar}: borrar el ultimo elemento es trivial, borrar en medio requiere reasignar o rehacer.
+	\item \textbf{Weighted DSU}: para resolver ecuaciones tipo $x \equiv a \pmod n$ con restricciones, mantener el ``peso'' relativo al padre.
+	\item \textbf{DSU on next}: aniadir \texttt{next[i]} para saltar elementos borrados (proximo no en el mismo set).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{find} recursivo puede overflow del stack para $n$ muy grande; cambiar a iterativo si pasa.
+	\item Olvidar inicializar \texttt{size[i] = 1}.
+	\item Si \texttt{size[a] == size[b]}, aniadir tie-break (e.g., por id) para determinismo.
+	\item Confundir union por size con union por rank; en size, se compara el tamano del set, no la altura.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Clase DisjointSet:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|class DisjointSet\{}| -- encapsula el DSU.
+	\item \verb|vector<int> parent, size;\}| -- arreglos de padre y tamano del set.
+	\item \texttt{DisjointSet(int n){...}} -- constructor: tamano \texttt{n+1} (1-based o para incluir indice 0).
+	\item \texttt{for(int i=0 ; i<=n ; i++){ parent[i]=i; size[i]=1; }} -- cada nodo inicia como su propio set de tamano 1.
+	\item \texttt{int findUPar(int node){...}} -- encuentra el representante (raiz).
+	\item \texttt{if(node == parent[node]) return node;} -- caso base: si es su propio padre, es la raiz.
+	\item \texttt{return parent[node]=findUPar(parent[node]);} -- recursion con path compression.
+	\item \texttt{void UnionBySize(int u, int v){...}} -- une los sets de \texttt{u} y \texttt{v}.
+	\item \texttt{int ulp\_u=findUPar(u); int ulp\_v=findUPar(v);} -- encuentra las raices.
+	\item \texttt{if(ulp\_u == ulp\_v) return;} -- ya estan en el mismo set.
+	\item \texttt{if(size[ulp\_u] < size[ulp\_v]){...}} -- union by size: el pequeno se cuelga del grande.
+	\item \texttt{parent[ulp\_u]=ulp\_v; size[ulp\_v]+=size[ulp\_u];} -- actualiza puntero y tamano.
+	\item \texttt{else{ parent[ulp\_v]=ulp\_u; size[ulp\_u]+=size[ulp\_v]; }} -- caso simetrico.
+\end{itemize}
+|\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{DSU classico}.
+
+\vspace{0.5em|||}

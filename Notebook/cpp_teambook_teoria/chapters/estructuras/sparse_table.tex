@@ -1,0 +1,89 @@
+\subsubsection{Sparse Table}
+
+\paragraph{Idea intuitiva.}
+Estructura para consultas estaticas de rango (Range Minimum Query, RMQ) en $O(1)$ tras un precomputo de $O(n \log n)$. La idea fundamental es precalcular las respuestas para todos los subintervalos cuya longitud es una potencia de dos ($2^k$). La entrada \texttt{st[k][i]} representa la respuesta en el intervalo $[i, i + 2^k - 1]$. Dado un rango de consulta $[l, r]$ de longitud $\text{len} = r - l + 1$, se elige $k = \lfloor \log_2(\text{len}) \rfloor$ de modo que dos bloques de longitud $2^k$ (uno que comienza en $l$ y otro que termina en $r$) cubren completamente el intervalo $[l, r]$. Esta combinacion directa funciona en $O(1)$ \textbf{exclusivamente para operaciones idempotentes} ($x \circ x = x$), como $\min$, $\max$, $\gcd$ y operaciones a nivel de bits (AND/OR), donde el solapamiento de los dos bloques no altera el resultado.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Caso base: \texttt{st[0][i] = a[i]} (intervalos de longitud $2^0 = 1$).
+	\item Relacion de recurrencia: \texttt{st[k][i] = min(st[k-1][i], st[k-1][i + (1 << (k-1))])}.
+	\item Numero de niveles: $\text{LOG} = \lfloor \log_2 n \rfloor + 1$ (en GCC: \verb|32 - __builtin_clz(n)|).
+	\item La operacion debe ser asociativa e \textbf{idempotente} ($f(x, x) = x$).
+	\item Estructura estatica: no soporta actualizaciones eficientes (requeriria $O(n)$ por modificacion).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion y consulta $O(1)$ en Sparse Table:
+\begin{verbatim}
+struct SparseTable {
+    int n, LOG;
+    vector<vector<int>> st;
+    vector<int> lg;
+    SparseTable(const vector<int>& a) {
+        n = a.size();
+        LOG = 32 - __builtin_clz(n);
+        st.assign(LOG, vector<int>(n));
+        st[0] = a;
+        for (int k = 1; k < LOG; ++k) {
+            for (int i = 0; i + (1 << k) <= n; ++i) {
+                st[k][i] = min(st[k - 1][i], st[k - 1][i + (1 << (k - 1))]);
+            }
+        }
+        lg.assign(n + 1, 0);
+        for (int i = 2; i <= n; ++i) lg[i] = lg[i / 2] + 1;
+    }
+    int query(int l, int r) {
+        int k = lg[r - l + 1]; // o: 31 - __builtin_clz(r - l + 1)
+        return min(st[k][l], st[k][r - (1 << k) + 1]);
+    }
+};
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Construccion: $O(n \log n)$ en tiempo.
+	\item Consulta: $O(1)$ en tiempo.
+	\item Memoria: $O(n \log n)$ enteros.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar operacion}: reemplazar \texttt{min} por \texttt{max}, \texttt{std::gcd}, o bits (\texttt{\&}, \texttt{|}) tanto en la construccion como en la consulta.
+	\item \textbf{Operaciones no idempotentes (suma, multiplicacion, XOR)}: descomponer el rango $[l, r]$ en potencias de 2 disjuntas en $O(\log n)$, o utilizar una \textbf{Disjoint Sparse Table} para mantener consultas en $O(1)$.
+	\item \textbf{Optimizacion de logaritmo}: la tabla \texttt{lg} precalculada evita la llamada a funciones bitwise; en C++20 tambien se puede usar \texttt{std::bit\_width} o \texttt{std::\_\_lg(len)}.
+	\item \textbf{Localidad espacial de cache}: indexar \texttt{st[k][i]} en lugar de \texttt{st[i][k]} garantiza acceso contiguo en memoria durante los bucles de construccion y reduce notablemente los fallos de cache.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Rango inclusivo}: la funcion espera $[l, r]$ inclusivo ($0 \le l \le r < n$). El inicio del segundo bloque es $r - (1 \ll k) + 1$.
+	\item \textbf{Intentar usar para suma}: solapar dos intervalos en una suma contara los elementos centrales dos veces. Para sumas estaticas, usar sumas prefijas ordinarias ($O(1)$ tiempo y $O(n)$ memoria).
+	\item \textbf{Off-by-one en limite de bucle}: la condicion \verb|i + (1 << k) <= n| asegura que el segundo sub-bloque no desborde el tamano $n$ del vector.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura SparseTable:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int n, LOG;| -- dimension del arreglo y cantidad de niveles de potencias de 2.
+	\item \verb|vector<vector<int>> st;| -- tabla donde \texttt{st[k][i]} cubre $[i, i + 2^k - 1]$.
+	\item \verb|vector<int> lg;| -- tabla precalculada de logaritmos base 2 para consulta en $O(1)$.
+	\item \verb|LOG = 32 - __builtin_clz(n);| -- calcula $\lfloor \log_2 n \rfloor + 1$ niveles necesarios.
+	\item \verb|st.assign(LOG, vector<int>(n)); st[0] = a;| -- inicializa el nivel base con los elementos de entrada.
+	\item \verb|for(int k=1; k<LOG; k++)| -- genera sucesivamente los niveles doblando la longitud de los bloques.
+	\item \verb|st[k][i] = min(st[k-1][i], st[k-1][i + (1<<(k-1))]);| -- combina los dos sub-bloques adyacentes de tamano $2^{k-1}$.
+	\item \verb|lg[i] = lg[i/2] + 1;| -- calcula $\lfloor \log_2 i \rfloor$ mediante programacion dinamica lineal.
+	\item \verb|int k = lg[r - l + 1];| -- mayor potencia de dos tal que $2^k \le r - l + 1$.
+	\item \verb|return min(st[k][l], st[k][r - (1<<k) + 1]);| -- combina el bloque que inicia en $l$ y el bloque que termina en $r$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|SparseTable st({3, 1, 4, 1, 5, 9, 2, 6});| -- construye la Sparse Table para el arreglo dado.
+	\item \verb|cout << st.query(0, 4) << "\n";| -- consulta el minimo en $[0, 4]$ (elementos $\{3, 1, 4, 1, 5\}$, minimo es 1).
+	\item \verb|cout << st.query(2, 7) << "\n";| -- consulta el minimo en $[2, 7]$ (elementos $\{4, 1, 5, 9, 2, 6\}$, minimo es 1).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Sparse Table}.
+
+\vspace{0.5em}
+

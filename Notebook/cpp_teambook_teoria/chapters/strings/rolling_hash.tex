@@ -1,0 +1,84 @@
+\subsubsection{Rolling Hash (doble modulo)}
+
+\paragraph{Idea intuitiva.}
+Un \textbf{rolling hash} (o hash polinomial) asigna a cada prefijo de una cadena un valor numerico asociando los caracteres a los coeficientes de un polinomio evaluado en una base $A$ modulo $M$:
+\[
+H(s[0 \dots k-1]) = \sum_{i=0}^{k-1} s[i] \cdot A^{k-1-i} \pmod M
+\]
+La ventaja crucial es que el hash de cualquier subsecuencia contigua $s[l \dots r]$ (1-indexada) se obtiene en tiempo $O(1)$ restando los hashes de los prefijos con el debido escalamiento:
+\[
+\text{hash}(s[l \dots r]) = \left( h[r] - h[l-1] \cdot A^{r-l+1} \right) \pmod M
+\]
+Para mitigar colisiones accidentales o intencionales (anti-hash tests en competencias), se calcula simultaneamente con \textbf{dos modulos primos distintos} (doble hash), reduciendo la probabilidad de colision entre dos cadenas distintas a aproximadamente $1 / (M_1 \cdot M_2) \approx 10^{-18}$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{h[i]}: hash del prefijo de longitud $i$ (con $h[0] = (0, 0)$).
+	\item \texttt{p[i]}: potencia $A^i$ para ambos modulos precalculada en $O(n)$.
+	\item Comparacion $O(1)$: dos subcadenas son identicas con probabilidad abrumadora si sus pares de hashes coinciden en ambos modulos.
+	\item Indexacion 1-based: la subcadena que va desde el caracter $l$ hasta $r$ inclusive abarca longitud $r - l + 1$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Extraccion del hash de subcadena en $O(1)$ con ajuste para diferencias negativas:
+\begin{verbatim}
+pair<int, int> getHash(int l, int r) {
+    pair<int, int> ans;
+    ans.first  = (h[r].first  - 1LL * h[l - 1].first  * p[r - l + 1].first)  % MOD1;
+    ans.second = (h[r].second - 1LL * h[l - 1].second * p[r - l + 1].second) % MOD2;
+    ans.first  = (ans.first  + MOD1) % MOD1;
+    ans.second = (ans.second + MOD2) % MOD2;
+    return ans;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Precomputo}: $O(n)$ en tiempo y memoria (construccion de tablas $h$ y $p$).
+	\item \textbf{Consulta de hash}: $O(1)$ por cada intervalo $[l, r]$.
+	\item \textbf{Memoria}: $O(n)$ para almacenar los pares de enteros de tamaño $n + 1$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Cambiar alfabeto o caracteres no ASCII}: la formula suma \verb|s[i-1]| como entero directo; si el alfabeto contiene mayusculas, minusculas o digitos, puede usarse el valor char directo o normalizar con \verb|s[i-1] - 'a' + 1| (evitando el valor 0 para no colapsar caracteres nulos con prefijos).
+	\item \textbf{Anti-hack (Base aleatoria)}: en plataformas como Codeforces, las bases fijas como $A=31$ o $A=53$ pueden ser hackeadas con pruebas precalculadas de Thue-Morse. Se puede generar $A$ de forma aleatoria en el rango $[256, M-1]$ usando \verb|mt19937|.
+	\item \textbf{Concatenar cadenas por hash}: el hash de $S + T$ se calcula como $(H(S) \cdot A^{|T|} + H(T)) \pmod M$.
+	\item \textbf{Hash inverso / Palindromos}: construir un objeto $H$ sobre la cadena invertida para comprobar si $s[l \dots r]$ es palindromo comparando su hash directo con su hash reflejado en $O(1)$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Resta negativa en modulo}: en C++, el operador \verb|%| sobre enteros negativos da un resultado negativo. Es imperativo sumar el modulo (\verb|+ MOD|) antes de volver a aplicar modulo.
+	\item \textbf{Desbordamiento en el producto}: la multiplicacion \verb|h[l-1] * p[len]| puede desbordar un entero de 32 bits con signo. Se debe castear a \verb|long long| (por ejemplo multiplicando por \verb|1LL|).
+	\item \textbf{Mapeo de caracter 0}: si un caracter se codifica como 0, las cadenas ``a'', ``aa'', ``aaa'' tendrian hashes identicos al multiplicarse por potencias de la base. El valor sumado por caracter debe ser siempre $\ge 1$.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura pair\_hash:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct pair_hash| -- functor que empaqueta dos enteros de 32 bits en un \verb|uint64_t| mediante desplazamiento binario y XOR, permitiendo usar \verb|pair<int,int>| en \verb|unordered_set| o \verb|unordered_map|.
+\end{itemize}
+\textbf{Estructura H:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<pair<int,int>> h, p;| -- tablas de hashes acumulados y potencias de la base para cada longitud.
+	\item \verb|const int MOD1 = 998244353, MOD2 = 1e9 + 7;| -- modulos primos coprimos grandes elegidos para minimizar la probabilidad de colision conjunta.
+	\item \verb|const int A = 31;| -- base polinomial (debe ser mayor que el rango del alfabeto).
+	\item \verb|H(string &a)| -- constructor: dimensiona $h$ y $p$ a $n + 1$, e inicializa $p[0] = (1, 1)$.
+	\item \verb|h[i].F = ((h[i-1].F * A) % MOD1 + s[i-1]) % MOD1;| -- aplica la recurrencia polinomial acumulando el caracter actual en el hash del primer modulo.
+	\item \verb|p[i].F = (p[i-1].F * A) % MOD1;| -- precalcula $A^i \pmod{\text{MOD1}}$.
+	\item \verb|pair<int,int> getHash(int l, int r)| -- retorna el doble hash de la subcadena en el rango 1-indexado $[l, r]$.
+	\item \verb|ans.F = (h[r].F - (h[l-1].F * p[r-l+1].F) % MOD1) % MOD1;| -- substrae la contribucion del prefijo previo escalado por la potencia correspondiente.
+	\item \verb|ans.F = (ans.F + MOD1) % MOD1;| -- normaliza el valor al rango no negativo $[0, \text{MOD1}-1]$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|H h(s);| -- precalcula las tablas sobre el string base.
+	\item \verb|auto a = h.getHash(1, 3);| -- extrae el doble hash de la subcadena de indices 1 a 3 (``ban'').
+	\item \verb|cout << (a == b ? "iguales" : "distintos");| -- compara igualdad exacta entre ambos hashes en tiempo constante.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Rolling Hash (doble modulo)}.
+
+\vspace{0.5em}

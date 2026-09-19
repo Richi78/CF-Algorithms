@@ -1,0 +1,71 @@
+﻿\subsubsection{Stirling S2 (particiones)}
+
+\paragraph{Idea intuitiva.}
+$S(n, k)$ = numero de formas de particionar $n$ elementos en $k$ subconjuntos no vacios. La recurrencia es $S(n, k) = S(n-1, k-1) + k \cdot S(n-1, k)$ (o pones el elemento $n$-esimo solo en un nuevo subconjunto, o lo metes en uno de los $k$ existentes). La recurrencia sale de un caso especial de la recurrencia general de inclusion-exclusion sobre funciones sobreyectivas.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $S(n, 0) = [n = 0]$.
+	\item $S(n, n) = 1$, $S(n, 1) = 1$.
+	\item $\sum_k S(n, k) = B_n$ (numero de Bell).
+	\item $S(n, k) = \frac{1}{k!} \sum_{i=0}^{k} (-1)^{k-i} \binom{k}{i} i^n$ (formula con inclusion-exclusion).
+	\item $\sum_{k=0}^{n} S(n, k) \cdot k! = $ numero de funciones sobreyectivas de $[n]$ a $[k]$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+DP bidimensional clasica:
+\begin{verbatim}
+S2[0][0] = 1;
+for (int n = 1; n <= N; ++n)
+    for (int k = 1; k <= n; ++k)
+        S2[n][k] = (S2[n-1][k-1] + k * S2[n-1][k]) % MOD;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N^2)$ tiempo y memoria.
+	\item Para $N = 5000$: $\sim 25$MB si se usa \texttt{int}; con \texttt{long long} el doble.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Stirling de primera especie}: recurrencia distinta; aniadir nueva tabla.
+	\item \textbf{Memory optimization}: solo guardar la fila anterior (DP en espacio $O(N)$).
+	\item \textbf{Output sin mod}: si el conteo es chico, retornar \texttt{long long} y omitir \texttt{\% MOD}.
+	\item \textbf{Bell numbers}: $\sum_k S(n, k)$ por fila.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar inicializar \texttt{S2[0][0] = 1} y el resto en 0.
+	\item Overflow sin modulo.
+	\item $S(n, k)$ crece muy rapido; sin modulo desborda para $n \ge 20$.
+	\item El termino $k \cdot S(n-1, k)$ es donde se acumula la mayoria del costo; en modulo $p$, esto es $O(1)$ por iteracion.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Stirling S2 (particiones en subconjuntos) \texttt{buildStirlingS2}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<vector<long long>> S2;| -- tabla bidimensional $S2[n][k]$.
+	\item \verb|void buildStirlingS2(int n)| -- llena la tabla para $i, k \le n$.
+	\item \verb|S2.assign(n + 1, vector<long long>(n + 1, 0));| -- inicializa a $0$.
+	\item \verb|S2[0][0] = 1;| -- caso base: un solo modo de particionar $0$ elementos en $0$ conjuntos.
+	\item \verb|for(int i=1;i<=n;i++)| -- itera sobre el numero de elementos.
+	\item \verb|for(int j=1;j<=i;j++)| -- itera sobre el numero de subconjuntos (no puede exceder $i$).
+	\item \verb|S2[i][j] = (S2[i-1][j-1] + j * S2[i-1][j]) % MOD;| -- recurrencia: elemento $i$ forma un bloque nuevo ($S2[i-1][j-1]$) o se une a uno de los $j$ existentes ($j \cdot S2[i-1][j]$).
+\end{itemize}
+\textbf{Stirling S1 (permutaciones por ciclos) \texttt{buildStirlingS1}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<vector<long long>> S1;| -- tabla bidimensional $S1[n][k]$.
+	\item \verb|void buildStirlingS1(int n)| -- llena la tabla para permutaciones con $k$ ciclos.
+	\item \verb|S1.assign(n + 1, vector<long long>(n + 1, 0));| -- inicializa a $0$.
+	\item \verb|S1[0][0] = 1;| -- caso base: permutacion vacia con $0$ ciclos.
+	\item \verb|for(int i=1;i<=n;i++)| -- itera sobre el numero de elementos.
+	\item \verb|for(int j=1;j<=i;j++)| -- itera sobre el numero de ciclos.
+	\item \verb|S1[i][j] = (S1[i-1][j-1] + (long long)(i - 1) * S1[i-1][j]) % MOD;| -- recurrencia: $i$ forma un ciclo propio ($S1[i-1][j-1]$) o se inserta en uno de los $(i-1)$ huecos disponibles en los ciclos previos ($(i-1) \cdot S1[i-1][j]$).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Stirling S2 (particiones)}.
+
+\vspace{0.5em|||}

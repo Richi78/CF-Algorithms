@@ -1,0 +1,84 @@
+\subsubsection{Aho-Corasick (basic)}
+
+\paragraph{Idea intuitiva.}
+El algoritmo de \textbf{Aho-Corasick} es una generalizacion simultanea del algoritmo KMP y de un \textbf{Trie}, disenado para buscar un conjunto de multiples patrones $\{P_1, P_2, \dots, P_k\}$ dentro de un texto $T$ en tiempo lineal $O(|T| + \sum |P_i|)$.
+
+Construye un trie sobre todos los patrones y establece \textbf{enlaces de fallo} (*suffix/failure links*): para cada nodo $v$, su enlace \verb|link| apunta al nodo del trie que representa el sufijo propio mas largo de la cadena correspondiente a $v$. Durante la construccion por BFS, el trie se transforma en un autómata determinista finito (DFA) completando las transiciones faltantes hacia los enlaces de fallo (\textit{trie graph}). Asi, el recorrido por el texto consiste en una simple transicion $O(1)$ por caracter.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{link[u]}: estado del trie correspondiente al sufijo propio mas largo de $u$.
+	\item \texttt{out[u]}: lista de identificadores de los patrones que terminan en $u$ o en cualquiera de sus ancestros en el arbol de fallos.
+	\item Transiciones completas: \verb|next[v][c]| siempre apunta al siguiente estado valido del autómata, sin requerir bucles \texttt{while} durante la busqueda.
+	\item Calculo por niveles (BFS): los enlaces de fallo de profundidad $d$ solo dependen de los enlaces de profundidad $< d$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Construccion de enlaces de fallo y del autómata mediante BFS:
+\begin{verbatim}
+while (!q.empty()) {
+    int v = q.front(); q.pop();
+    for (int k = 0; k < 26; ++k) {
+        int u = t[v].next[k];
+        if (u != -1) {
+            t[u].link = t[t[v].link].next[k];
+            for (int pid : t[t[u].link].out) t[u].out.push_back(pid);
+            q.push(u);
+        } else {
+            t[v].next[k] = t[t[v].link].next[k];
+        }
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Construccion}: $O(\Sigma \cdot \sum |P_i|)$ donde $\Sigma = 26$ es el tamano del alfabeto.
+	\item \textbf{Busqueda}: $O(|T| + \text{matches})$ recorriendo exactamente un estado por cada caracter del texto.
+	\item \textbf{Memoria}: $O(\Sigma \cdot \sum |P_i|)$ enteros para la tabla de transiciones del trie.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Propagacion eficiente de conteos}: si la cantidad total de ocurrencias es muy grande (por ejemplo $O(|T| \sqrt{\sum |P_i|})$), no se debe copiar el vector \verb|out| por BFS. En su lugar, se acumula la frecuencia en cada estado visitado y al final se propagan los valores en orden inverso de BFS o en el arbol de enlaces de fallo (*failure tree*).
+	\item \textbf{Patrones con pesos o costos}: asociar a cada nodo del trie una ganancia o costo acumulado desde su enlace de fallo.
+	\item \textbf{Alfabeto general}: cambiar el tamano de \verb|next| y la conversion \verb|c - 'a'| para admitir digitos, mayusculas o caracteres arbitrarios.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Hijos de la raiz}: en la raiz ($v = 0$), las aristas inexistentes rebotan a 0 (\verb|t[0].next[k] = 0|), y los hijos directos tienen enlace a la raiz (\verb|t[u].link = 0|).
+	\item \textbf{Explosion de memoria en \texttt{out}}: hacer \verb|t[u].out.push_back| de todos los patrones de los enlaces de fallo puede consumir $O(V \cdot K)$ memoria si hay muchos patrones contenidos unos dentro de otros. Para contests con $K$ grande, usar enlaces de salida directos (*dictionary links*) o conteos escalares.
+	\item \textbf{Identificadores repetidos}: si se insertan patrones duplicados, el identificador debe manejarse apropiadamente (acumulando o ignorando segun el problema).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura Node:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|int next[26]; int link; vector<int> out;| -- matriz de transiciones para las 26 letras, enlace de fallo y lista de IDs de patrones que finalizan en el nodo.
+	\item \verb|fill(begin(next), end(next), -1); link = -1;| -- inicializa todas las aristas y el enlace en $-1$.
+\end{itemize}
+\textbf{Estructura AhoCorasick:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|AhoCorasick() { t.push_back(Node()); }| -- crea el trie con el nodo 0 como raiz.
+	\item \verb|void addString(const string& s, int id)| -- inserta el patron en el trie asignandole el identificador \verb|id| en el nodo final.
+	\item \verb|void build()| -- transforma el trie en un autómata determinista calculando enlaces de fallo por BFS.
+	\item \verb|t[0].link = 0;| -- el enlace de fallo de la raiz apunta a si misma.
+	\item \verb|if(t[0].next[k] != -1) { t[t[0].next[k]].link = 0; q.push(...); }| -- los hijos de la raiz tienen enlace de fallo a la raiz y se encolan primero.
+	\item \verb|else t[0].next[k] = 0;| -- las ramas inexistentes desde la raiz rebotan a la misma raiz.
+	\item \verb|t[u].link = t[t[v].link].next[k];| -- el fallo del hijo se obtiene siguiendo la transicion del caracter $k$ desde el fallo del padre.
+	\item \verb|for(int pid : t[t[u].link].out) t[u].out.push_back(pid);| -- propaga los patrones detectados por el sufijo comun hacia el nodo actual.
+	\item \verb|else t[v].next[k] = t[t[v].link].next[k];| -- atajo del autómata: si no hay arista real, transiciona directamente al estado correspondiente del enlace de fallo.
+	\item \verb|vector<int> countOccurrences(const string& text, int numPatterns)| -- procesa el texto caracter por caracter avanzando por el autómata y contando coincidencias.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|ac.addString("he", 0); ac.addString("she", 1); ac.addString("his", 2);| -- registra los patrones.
+	\item \verb|ac.build();| -- construye la estructura completa del autómata.
+	\item \verb|ac.countOccurrences("ushers", 3);| -- devuelve la cantidad de veces que cada patron aparece en el texto.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Aho-Corasick (basic)}.
+
+\vspace{0.5em}

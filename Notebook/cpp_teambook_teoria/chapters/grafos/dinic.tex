@@ -1,0 +1,58 @@
+﻿\subsubsection{Dinic (max flow)}
+
+\paragraph{Idea intuitiva.}
+Algoritmo de flujo mas eficiente que Edmonds-Karp: combina \textbf{BFS para level graph} con \textbf{DFS bloqueante} (multiple augmenting paths en una sola pasada). Cada fase cuesta $O(E)$ y hay $O(V)$ fases en el peor caso; para bipartitos, $O(\sqrt{V} E)$. La razon: cada fase ``satura'' al menos una arista, asi que en $O(E)$ fases el flujo maximo se alcanza; con $O(V)$ niveles en el BFS, hay $O(VE)$ operaciones totales.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{level[v]} = distancia desde $s$ en el level graph (solo aristas con cap $> 0$).
+	\item \texttt{it[v]} = iterador actual para evitar reprocesar aristas.
+	\item DFS solo sigue aristas con \texttt{level[e.to] == level[v] + 1}.
+	\item Back-edges tienen \texttt{rev} apuntando a la forward edge original.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El DFS bloqueante de Dinic:
+\begin{verbatim}
+long long dfs(int v, int t, long long f) {
+    if (v == t) return f;
+    for (int& i = it[v]; i < adj[v].size(); ++i) {
+        Edge& e = adj[v][i];
+        if (e.cap > 0 && level[e.to] == level[v] + 1) {
+            long long ret = dfs(e.to, t, min(f, e.cap));
+            if (ret > 0) {
+                e.cap -= ret;
+                adj[e.to][e.rev].cap += ret;
+                return ret;
+            }
+        }
+    }
+    return 0;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V^2 E)$ general, $O(\sqrt{V} E)$ para bipartitos.
+	\item En la practica, mucho mas rapido que Edmonds-Karp.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Dinic con scaling}: aniadir factor de escala para capacidades grandes.
+	\item \textbf{Lower bounds}: aniadir un super-source/sink para forzar flujo minimo.
+	\item \textbf{Matching bipartito}: el grafo se construye como source -> L -> R -> sink, todos con capacidad 1.
+	\item \textbf{Push-relabel}: alternativa para grafos muy densos.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{it[v]} debe \textbf{incrementarse} en cada iteracion; sino, el DFS se queda atascado en la misma arista.
+	\item Si el BFS no encuentra $t$, el flujo es maximo; terminar.
+	\item Las back-edges son cruciales para ``cancelar'' elecciones previas.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Dinic (max flow)}.
+
+\vspace{0.5em}

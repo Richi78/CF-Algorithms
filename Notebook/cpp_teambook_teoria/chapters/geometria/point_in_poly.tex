@@ -1,0 +1,54 @@
+﻿\subsubsection{Point in polygon (ray casting)}
+
+\paragraph{Idea intuitiva.}
+Algoritmo de \textbf{ray casting}: contar cuantas veces un rayo horizontal desde $p$ cruza los bordes del poligono. Si es impar, $p$ esta dentro; si par, fuera. El snippet implementa la version clasica recorriendo aristas. La razon: cada cruce cambia el lado del rayo respecto al poligono; un numero impar de cambios significa ``terminamos dentro''.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Funciona con poligonos simples (no necesariamente convexos).
+	\item Las intersecciones en vertices cuentan especialmente.
+	\item Para poligonos con \textbf{huecos}, sigue funcionando.
+	\item La respuesta es estrictamente 0 (fuera) o 1 (dentro) para poligonos simples.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El test clasico de ray casting:
+\begin{verbatim}
+bool pointInPolygon(Point p, const vector<Point>& poly) {
+    int n = poly.size();
+    bool inside = false;
+    for (int i = 0, j = n - 1; i < n; j = i++) {
+        if ((poly[i].y > p.y) != (poly[j].y > p.y) &&
+            p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) /
+                    (poly[j].y - poly[i].y) + poly[i].x)
+            inside = !inside;
+    }
+    return inside;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n)$ por query.
+	\item Memoria $O(1)$ (no se almacena el rayo).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Winding number}: version alternativa que cuenta el numero de vueltas.
+	\item \textbf{Poligono convexo}: check lineal contra las aristas (mas rapido).
+	\item \textbf{Multiples queries}: precomputar o usar segment tree sobre las aristas.
+	\item \textbf{Punto en frontera}: aniadir check adicional si es colineal con alguna arista.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El manejo del vertice (cuando el rayo pasa por un vertice) puede causar double-counting; el snippet lo evita con la condicion \texttt{(poly[i].y > p.y) != (poly[j].y > p.y)}.
+	\item Si el poligono tiene holes, el algoritmo sigue funcionando.
+	\item Para poligonos no simples (auto-intersectantes), el resultado puede ser ambiguo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Point in polygon (ray casting)}.
+
+\vspace{0.5em}

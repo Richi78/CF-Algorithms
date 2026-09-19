@@ -1,0 +1,76 @@
+﻿\subsubsection{Modular inverse}
+
+\paragraph{Idea intuitiva.}
+La \textbf{inversa} de $a$ modulo $m$ es un $b$ tal que $a \cdot b \equiv 1 \pmod m$. Si $m$ es primo y $\gcd(a, m) = 1$, entonces $b = a^{m-2} \pmod m$ (por el \textbf{teorema pequeno de Fermat}). Si $m$ no es primo, se usa el algoritmo extendido de Euclides, que resuelve $ax + my = \gcd(a, m)$. El truco de Fermat: si $m$ es primo, $(\mathbb{Z}/m\mathbb{Z})^*$ es un grupo de orden $m - 1$, asi que $a^{m-1} \equiv 1$ y $a \cdot a^{m-2} \equiv 1$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La inversa existe sii $\gcd(a, m) = 1$.
+	\item Para mod primo, \texttt{modInv(a, mod) = modpow(a, mod - 2, mod)}.
+	\item \texttt{modInvGeneral} retorna $-1$ si no hay inversa.
+	\item Si existe, la inversa es \textbf{unica} modulo $m$.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Recurrencia lineal para precomputar todas las inversas (solo funciona con mod primo):
+\begin{verbatim}
+// inv[1] = 1
+// inv[i] = -(mod/i) * inv[mod%i] mod mod
+for (int i = 2; i <= N; ++i) {
+    inv[i] = MOD - (long long)(MOD / i) * inv[MOD % i] % MOD;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log \text{mod})$ en ambos casos (Fermat y extgcd).
+	\item Precomputar $N$ inversas: $O(N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Precomputar muchas inversas} (ej. para todos los $1..N$): precomputar en $O(N)$ con la recurrencia \texttt{inv[i] = -(mod/i) * inv[mod \% i] \% mod} y ajustar a positivo.
+	\item \textbf{Cambiar mod}: si modificas el \texttt{MOD} global, asegurate de que sea primo (sino, usar extgcd).
+	\item \textbf{Ajustar a positivo}: tras \texttt{-= MOD} o \texttt{+= MOD} para tener resultado en $[0, MOD)$.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si \texttt{MOD = 1}, $a^{MOD-2} = a^{-1}$ no esta definido; aniadir check.
+	\item Si \texttt{a = 0}, no hay inversa (excepto en mod trivial).
+	\item El snippet usa \texttt{modInv(a, mod)} que asume mod primo por construccion.
+	\item La recurrencia lineal \texttt{inv[i] = -(mod/i)*inv[mod\%i]} solo sirve si \texttt{mod} es primo y \texttt{i < mod}.
+	\item Si llamas \texttt{modInv} con $a$ divisible por \texttt{mod}, devuelve cualquier cosa (generalmente 0 porque $a^{m-2} \equiv 0$).
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Inversa con Fermat \texttt{modInv}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long modInv(long long a, long long mod)| -- calcula $a^{-1} \bmod p$ asumiendo $p$ primo.
+	\item \verb|return modpow(a, mod - 2, mod);| -- aplica el teorema de Fermat: $a^{p-2} \equiv a^{-1} \pmod p$.
+\end{itemize}
+\textbf{Algoritmo extendido de Euclides \texttt{extGcd}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long extGcd(long long a, long long b, long long& x, long long& y)| -- calcula $\gcd$ y coeficientes de B\'ezout.
+	\item \verb|if(b == 0){ x = 1; y = 0; return a; }| -- caso base: $a \cdot 1 + 0 \cdot 0 = a$.
+	\item \verb|long long x1, y1;| -- variables temporales.
+	\item \verb|long long g = extGcd(b, a % b, x1, y1);| -- llamada recursiva.
+	\item \verb|x = y1;| -- el nuevo $x$ es el antiguo $y_1$.
+	\item \verb|y = x1 - y1 * (a / b);| -- reconstruye $y$.
+\end{itemize}
+\textbf{Inversa general \texttt{modInvGeneral}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long g = extGcd(a, mod, x, y);| -- obtiene el gcd y los coeficientes.
+	\item \verb|if(g != 1) return -1;| -- si el gcd no es 1, no existe inversa.
+	\item \verb|return (x % mod + mod) % mod;| -- ajusta al rango $[0, \text{mod})$.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|cout << modInv(3, 1000000007LL) << "\textbackslash n";| -- inversa de $3$ modulo $10^9+7$ (via Fermat).
+	\item \verb|cout << modInvGeneral(7, 26LL) << "\textbackslash n";| -- inversa de $7$ modulo $26$ (via extgcd), resultado $15$.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Modular inverse}.
+
+\vspace{0.5em|||}

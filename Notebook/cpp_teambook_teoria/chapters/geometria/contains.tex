@@ -1,0 +1,43 @@
+﻿\subsubsection{Contains colineal}
+
+\paragraph{Idea intuitiva.}
+Verifica si un punto $c$ esta sobre el segmento $[a, b]$ (asumiendo que ya son colineales). Si \texttt{cross(a, b, c) = 0} y $c$ esta dentro del bounding box de $[a, b]$, entonces $c$ esta en el segmento. La razon: si los tres puntos son colineales, $c$ esta en el segmento sii sus coordenadas estan entre las de $a$ y $b$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Asume colinealidad (no la verifica mas alla de \texttt{cross == 0}).
+	\item Usa comparaciones con \texttt{<=} para extremos \textbf{inclusivos}.
+	\item Funciona con segmentos verticales (la condicion se reduce a una sola coordenada).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Test de contencion en segmento (asume colinealidad):
+\begin{verbatim}
+bool onSegment(Point a, Point b, Point c) {
+    return min(a.x, b.x) <= c.x && c.x <= max(a.x, b.x) &&
+           min(a.y, b.y) <= c.y && c.y <= max(a.y, b.y);
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(1)$.
+	\item Constante minima.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Contener estricto}: cambiar \texttt{<=} a \texttt{<} para excluir extremos.
+	\item \textbf{Coordenadas doubles}: usar tolerancia (\texttt{eps}).
+	\item \textbf{Solo x o solo y}: aniadir check especifico para segmentos verticales/horizontales.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item No usar este snippet para puntos \textbf{no colineales}; siempre verificar primero la colinealidad.
+	\item Si los puntos tienen doubles, el chequeo \texttt{cross == 0} puede fallar; aniadir tolerancia.
+	\item El bounding box incluye los extremos; verificar si el problema quiere exclusivo o inclusivo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Contains colineal}.

@@ -1,0 +1,73 @@
+﻿\subsubsection{Modular exponentiation}
+
+\paragraph{Idea intuitiva.}
+Calcular $a^e \bmod m$ en $O(\log e)$ mediante \textbf{exponenciacion binaria} (squaring). La idea: si $e$ es par, $a^e = (a^{e/2})^2$; si es impar, $a^e = a \cdot (a^{(e-1)/2})^2$. Asi, en cada paso, el exponente se reduce a la mitad y se hace una multiplicacion modular. El nombre ``squaring'' viene de que en cada paso elevamos al cuadrado una variable (``base''). Se puede demostrar por induccion que tras $k$ iteraciones, la variable ``resultado'' contiene $a^{(\text{bits consumidos})}$, manteniendo la invariante $\text{result} \cdot \text{base}^e = a^{e_{\text{original}}}$.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{a \% m} se hace al inicio (en caso de que \texttt{a} sea negativo, se ajusta \texttt{+= mod}).
+	\item Multiplicacion: para evitar overflow, usar \texttt{\_\_int128} o \texttt{long long} solo si $m < 2^{32}$ (porque $a \cdot b < m^2 < 2^{64}$).
+	\item Resultado siempre en $[0, m)$.
+	\item El algoritmo usa exactamente $\lfloor \log_2 e \rfloor + 1$ multiplicaciones (medido en bits del exponente).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El bucle de squaring en su forma mas pura:
+\begin{verbatim}
+long long modpow(long long a, long long e, long long m) {
+    long long r = 1; a %= m;
+    while (e > 0) {
+        if (e & 1) r = (__int128)r * a % m;
+        a = (__int128)a * a % m;
+        e >>= 1;
+    }
+    return r;
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(\log e)$ multiplicaciones modulares.
+	\item $\sim 30$ iteraciones para $e$ hasta $10^9$; $\sim 60$ para $e$ hasta $10^{18}$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Modulo de $10^{18}$}: aniadir \texttt{\_\_int128} a las multiplicaciones (ya hecho si el snippet usa \texttt{u128}; si no, aniadir manualmente).
+	\item \textbf{Exponentes muy grandes} ($e > 10^{18}$): el bucle sigue funcionando pero no entra; aniadir modularizacion del exponente via Euler si $\gcd(a, m) = 1$ y queres reducir $e$ primero.
+	\item \textbf{Pow matrix/Poly}: la misma estructura sirve; solo cambia el tipo de la base y la operacion (mul de matrices, mul de polinomios).
+	\item \textbf{Exponenciacion rapida sin division}: Montgomery multiplication para criptografia.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $m$ es 1, el resultado siempre es 0; aniadir check si te molesta.
+	\item Overflow en \texttt{a * a \% mod} si \texttt{a} y \texttt{mod} son \texttt{long long} grandes.
+	\item En MSVC, \texttt{\_\_int128} no existe; aniadir \texttt{\#include <boost/multiprecision/cpp\_int.hpp>}.
+	\item Si $e$ es \texttt{int} negativo (raro, pero por un bug), el bucle no termina.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Funcion \texttt{modpow}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|static const long long MOD = 998244353LL;| -- modulo por defecto (primo usado en contests).
+	\item \verb|long long modpow(long long a, long long e, long long mod = MOD)| -- calcula $a^e \bmod \text{mod}$.
+	\item \verb|long long r = 1;| -- resultado inicializado en $1$ (neutro multiplicativo).
+	\item \verb|a %= mod;| -- reduce la base al rango $[0, \text{mod})$.
+	\item \verb|if(a < 0) a += mod;| -- corrige negativos al positivo equivalente.
+	\item \verb|while(e)| -- itera mientras queden bits por procesar.
+	\item \verb|if(e & 1) r = r * a % mod;| -- si el bit menos significativo es 1, multiplica el resultado.
+	\item \verb|a = a * a % mod;| -- eleva al cuadrado la base para el proximo bit.
+	\item \verb|e >>= 1;| -- desplaza el exponente (divide entre 2).
+	\item \verb|return r;| -- retorna el resultado final.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|cout << modpow(2, 10) << "\textbackslash n";| -- calcula $2^{10} \bmod 998244353 = 1024$.
+	\item \verb|cout << modpow(2, 10, 1000000007LL) << "\textbackslash n";| -- calcula $2^{10} \bmod 10^9+7 = 1024$ (mismo resultado por ser pequeno).
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Modular exponentiation}.
+
+\vspace{0.5em|||}

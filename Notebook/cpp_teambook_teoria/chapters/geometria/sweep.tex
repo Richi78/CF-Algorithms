@@ -1,0 +1,34 @@
+﻿\subsubsection{Sweep line template}
+
+\paragraph{Idea intuitiva.}
+Patron de diseno para problemas geometricos donde se barre una linea sobre el plano y se mantiene una estructura de datos sobre el otro eje. Eventos (add, query, remove) se ordenan por la coordenada de barrido y se procesan secuencialmente.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Eventos: tuplas \texttt{(x, type, id)}.
+	\item La estructura auxiliar (set, multiset, segtree) se mantiene sobre el otro eje.
+	\item Procesar eventos en orden de $x$ ascendente.
+\end{itemize}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Depende del problema; tipico $O((N + E) \log N)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir/quitar segmentos}: aniadir eventos add/remove al barrido.
+	\item \textbf{Aniadir queries}: aniadir eventos query.
+	\item \textbf{Cambiar el eje de barrido}: si barres en $y$ en vez de $x$, aniadir comparador.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El snippet es solo el \textbf{esqueleto}; los handlers \texttt{add/query/remove} se llenan por problema.
+	\item Cuidado con eventos duplicados.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Sweep line template}.
+
+\vspace{0.5em}

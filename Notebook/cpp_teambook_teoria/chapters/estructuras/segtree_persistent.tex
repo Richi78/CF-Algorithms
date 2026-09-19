@@ -1,0 +1,81 @@
+\subsubsection{Segment Tree persistente}
+
+\paragraph{Idea intuitiva.}
+Variante donde cada update crea una \textbf{nueva raiz} en vez de modificar el arbol existente. La estructura es funcional: cada nodo tiene hijos apuntando a versiones anteriores (que no se modifican). Asi, queries sobre versiones antiguas siguen funcionando. La eficiencia: cada update crea $O(\log n)$ nodos nuevos (solo el camino afectado). Es util para ``consultar el estado del arreglo tras el $k$-esimo update'' o problemas de ``offline con rollback''.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada update retorna un nuevo puntero a raiz; el arbol anterior permanece intacto.
+	\item Solo se crean $O(\log n)$ nodos por update (el camino afectado).
+	\item Memoria total: $O((N + Q) \log N)$ nodos.
+	\item Las versiones forman un arbol (cada version es un nodo en el ``version tree'').
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La recursion de update (que crea nuevos nodos):
+\begin{verbatim}
+PNode* pUpdate(PNode* node, int l, int r, int pos, long long val) {
+    if (l == r) return new PNode(val);
+    int m = (l + r) / 2;
+    if (pos <= m) return new PNode(0, pUpdate(node->l, l, m, pos, val), node->r);
+    else return new PNode(0, node->l, pUpdate(node->r, m+1, r, pos, val));
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Update: $O(\log n)$ (creacion de nodos).
+	\item Query: $O(\log n)$.
+	\item Memoria: $O((n + q) \log n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Aniadir lazy}: aniadir un campo \texttt{lazy} y propagar en \texttt{pupdate}.
+	\item \textbf{Otra operacion}: cambiar la suma por max, min, xor, etc.
+	\item \textbf{Rollback explicito}: aniadir un stack de punteros a raiz por version.
+	\item \textbf{Offline queries con tiempo}: guardar punteros a raiz para cada query.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Tras \texttt{a = \{1,2,3,4,5\}}, hacer \texttt{set(2, 10)} crea una nueva version $v_2$. La version original (\texttt{root}) sigue dando suma 15; la nueva (\texttt{v2}) da 22.
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Nunca modificar nodos existentes: cada update crea uno nuevo.
+	\item Si hay muchas updates, la memoria crece; considerar limpieza con un \texttt{unordered\_map} para reusar nodos.
+	\item El destructor debe liberar toda la memoria (recorrer el arbol recursivamente).
+	\item En el constructor de nodo, los hijos se asignan por defecto a \texttt{nullptr}.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Estructura PNode:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|struct PNode\{ long long val; PNode *l, *r;\}| -- nodo con valor y dos hijos.
+	\item \verb|PNode(long long v = 0, PNode* l = nullptr, PNode* r = nullptr): val(v), l(l), r(r)\{\}| -- constructor con defaults.
+	\item \verb|PNode* pBuild(int l, int r, const vector<long long>\& a)\{...\}| -- construye el arbol inicial.
+	\item \verb|if(l == r) return new PNode(a[l]);| -- caso base: hoja con el valor del arreglo.
+	\item \verb|int m = (l + r) / 2;| -- punto medio.
+	\item \verb|return new PNode(0, pBuild(l, m, a), pBuild(m+1, r, a));| -- nodo interno con hijos recursivos.
+	\item \verb|PNode* pUpdate(PNode* node, int l, int r, int pos, long long val)\{...\}| -- update que crea nueva version.
+	\item \verb|if(l == r) return new PNode(val);| -- caso base: nueva hoja con el valor.
+	\item \verb|if(pos <= m) return new PNode(0, pUpdate(node->l, l, m, pos, val), node->r);| -- actualiza hijo izquierdo.
+	\item \verb|else return new PNode(0, node->l, pUpdate(node->r, m+1, r, pos, val));| -- actualiza hijo derecho.
+	\item \verb|long long pQuery(PNode* node, int l, int r, int ql, int qr)\{...\}| -- query en una version.
+	\item \verb|if(!node or ql > r or qr < l) return 0;| -- caso vacio o fuera de rango.
+	\item \verb|if(ql <= l \&\& r <= qr) return node->val;| -- caso contenido.
+	\item \verb|return pQuery(node->l, l, m, ql, qr) + pQuery(node->r, m+1, r, ql, qr);| -- recursion.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<long long> a = \{1, 2, 3, 4, 5\};| -- arreglo inicial.
+	\item \verb|PNode* root = pBuild(0, 4, a);| -- construye version inicial.
+	\item \verb|PNode* v2 = pUpdate(root, 0, 4, 2, 10);| -- crea version con a[2] = 10.
+	\item \verb|cout << pQuery(root, 0, 4, 0, 4) << "\textbackslash n";| -- suma version 1: 15.
+	\item \verb|cout << pQuery(v2, 0, 4, 0, 4) << "\textbackslash n";| -- suma version 2: 22.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Segment Tree persistente}.
+
+\vspace{0.5em}

@@ -1,0 +1,52 @@
+﻿\subsubsection{Min-Cost Max-Flow}
+
+\paragraph{Idea intuitiva.}
+Encuentra el flujo maximo con \textbf{costo minimo} (asumiendo costos no negativos). Usa \textbf{SPFA} (o Dijkstra con potentials) para encontrar el shortest path en el \textbf{costo} desde $s$ hasta $t$ considerando capacidades residuales. Cada augmenting path aporta su costo $\times$ flujo. La idea: los potentials reescalan las aristas para que todas tengan costo no negativo, permitiendo usar Dijkstra.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \texttt{pot[]} = potentials para evitar aristas negativas (Johnson's trick).
+	\item \texttt{dist[v]} = costo minimo desde $s$ con potentials.
+	\item Solo se aumentan aristas con \texttt{cap > 0} (forward) y costo es \texttt{+cost} (forward) o \texttt{-cost} (backward).
+	\item Tras cada augmenting, los potentials se actualizan para mantener la consistencia.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El ciclo de min-cost flow:
+\begin{verbatim}
+while (spfa(s, t, dist, parent)) {
+    int pathFlow = INF;
+    for (int v = t; v != s; v = parent[v])
+        pathFlow = min(pathFlow, capacity[parent[v]][v]);
+    for (int v = t; v != s; v = parent[v]) {
+        capacity[parent[v]][v] -= pathFlow;
+        capacity[v][parent[v]] += pathFlow;
+        cost += pathFlow * edge_cost[parent[v]][v];
+    }
+}
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(F \cdot V E)$ con SPFA, $O(F \cdot E \log V)$ con Dijkstra + potentials.
+	\item $F$ = flujo maximo total.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Dijkstra + potentials}: si los costos son enteros no negativos, esto es mas estable.
+	\item \textbf{Costos negativos en aristas}: requieren Bellman-Ford inicial o reorden.
+	\item \textbf{Flujo minimo con costo}: encontrar el minimo flujo posible y su costo.
+	\item \textbf{Costo por unidad}: si los costos son muy grandes, aniadir verificacion.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El \texttt{pot[]} se actualiza \textbf{al final} de cada iteracion (no durante).
+	\item Las back-edges tienen \textbf{costo negativo}, esencial para corregir elecciones previas.
+	\item Si los costos son muy grandes, considerar modular arithmetic.
+	\item Para problemas con flujo exacto, aniadir verificacion post-algoritmo.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Min-Cost Max-Flow}.

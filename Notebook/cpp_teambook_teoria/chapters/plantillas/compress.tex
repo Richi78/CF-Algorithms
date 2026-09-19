@@ -1,0 +1,65 @@
+﻿\subsubsection{Coordinate compression}
+
+\paragraph{Idea intuitiva.}
+Muchas estructuras (BIT, segment tree, sparse table) indexan con enteros pequenos en $[0, N)$. Si el problema da valores hasta $10^9$, no podes usarlos como indices directamente. La ``compresion de coordenadas'' reemplaza cada valor por su \textbf{rango} en el conjunto ordenado de valores distintos: el menor valor es $0$, el siguiente es $1$, etc. Asi, si los datos son $\{10^9, 5, 100, 42\}$, la compresion da $\{3, 0, 2, 1\}$. Esto preserva el orden y las relaciones de igualdad/desigualdad, pero con indices pequenos y densos. La idea formal: si definimos $f(x) = |\{v_i : v_i \le x\}|$, entonces $f$ es monÃ³tona creciente y $f$ restringida a los valores del input es exactamente la compresion.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Si $a < b$ en los datos originales, entonces \texttt{compress(a) < compress(b)}.
+	\item Si $a = b$, \texttt{compress(a) = compress(b)}.
+	\item Los indices resultantes estan en $[0, K)$ donde $K$ = numero de valores distintos ($\le N$).
+	\item \texttt{compressWithMap} ademas devuelve el vector inverso: en la posicion $i$ esta el valor original que mapea a $i$.
+	\item $K$ (el tamano del rango comprimido) es exactamente el numero de valores distintos.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+El patron clasico en 3 pasos:
+\begin{verbatim}
+vector<int> sorted = vals;
+sort(sorted.begin(), sorted.end());
+sorted.erase(unique(sorted.begin(), sorted.end()), sorted.end());
+vector<int> comp(vals.size());
+for (size_t i = 0; i < vals.size(); ++i)
+    comp[i] = lower_bound(sorted.begin(), sorted.end(), vals[i]) - sorted.begin();
+// comp[i] en [0, K)
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item O($N \log N$): el \texttt{sort} domina. Las busquedas binarias son O($\log N$) cada una.
+	\item Memoria O(N).
+	\item El \texttt{unique} + \texttt{erase} es lineal amortizado.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Preservar duplicados}: si necesitas mantener la posicion original de cada valor ademas del rango, aniadir un struct \texttt{pair<long long, int>} con el valor y el indice original antes de ordenar.
+	\item \textbf{Compression online (con inserciones)}: si llegan valores en stream y necesitas comprimirlos, usar una \texttt{policy-based data structure} (ordered set) o \texttt{coordinate\_compression} con insercion en \texttt{vector} ordenado en O($\log N$) por insercion.
+	\item \textbf{Mapear a $[1, K]$ en vez de $[0, K)$}: aniadir \texttt{+ 1} al final (util para BIT que usa indices 1-based).
+	\item \textbf{3D compression}: para problemas donde hay que comprimir dos coordenadas a la vez (tipico de ``rectangulos disjuntos''), comprimir cada eje por separado y emparejar por valor original.
+	\item \textbf{Compression en grafos}: comprimir los nodos activos (los que aparecen) para grafos con vertices hasta $10^9$.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Para queries de tipo ``contar elementos en $[L, R]$ entre los $N$ dados'':
+\begin{verbatim}
+vector<long long> vals = {10, 5, 100, 5, 42};
+auto [comp, uniq] = compressWithMap(vals);
+// uniq = [5, 10, 42, 100] (ordenado unico)
+// comp = [1, 0, 3, 0, 2]
+// Para query [L, R]:
+int lo = lower_bound(uniq.begin(), uniq.end(), L) - uniq.begin();
+int hi = upper_bound(uniq.begin(), uniq.end(), R) - uniq.begin();
+// contar comp[i] en [lo, hi-1]
+\end{verbatim}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item No olvides \texttt{sorted.erase(unique(...), ...)}; si lo olvidas, valores repetidos daran rangos duplicados.
+	\item Si los datos tienen signo (incluyen negativos), \texttt{lower\_bound} sigue funcionando; no hace falta un truco extra.
+	\item Compression \textbf{no preserva distancias}: si la diferencia absoluta importa (por ejemplo, $|a - b|$), el rango no sirve; necesitas el valor original.
+	\item En compression online, el orden importa: si agregas elementos en orden de magnitud, insercion es amortizada $O(1)$; si no, es $O(\log N)$ peor caso.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Coordinate compression}.

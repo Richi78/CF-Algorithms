@@ -1,0 +1,53 @@
+﻿\subsubsection{Kruskal}
+
+\paragraph{Idea intuitiva.}
+Encuentra el \textbf{arbol de expansion minima} (MST) en $O(E \log E)$. Ordena las aristas por peso ascendente y las aniade al MST si no forman ciclo (chequear con DSU). El arbol tiene exactamente $V - 1$ aristas. La demostracion (``Cut Property''): para cualquier corte, la arista minima cruzando el corte pertenece a \emph{algun} MST; por lo tanto, elegir la minima disponible que no forma ciclo es optimo.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Algoritmo \textbf{greedy} correcto (Cut Property).
+	\item Funciona en grafos \textbf{no conexos}; produce un \textbf{minimum spanning forest}.
+	\item Si las aristas tienen pesos unicos, el MST es unico.
+	\item El MST tiene exactamente $V - 1$ aristas (o menos si el grafo es disconexo).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Kruskal con DSU:
+\begin{verbatim}
+sort(edges.begin(), edges.end());
+DSU dsu(n);
+long long mst = 0;
+int edgesUsed = 0;
+for (auto [w, u, v] : edges)
+    if (dsu.unite(u, v)) {
+        mst += w;
+        if (++edgesUsed == n - 1) break;
+    }
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(E \log E)$ (ordenamiento) o $O(E \log V)$ con DSU optimizations.
+	\item DSU es casi $O(1)$ amortizado, asi que el sort domina.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Second best MST}: enumerar aristas del MST, sacar una, aniadir una no-MST; recalcular.
+	\item \textbf{Kruskal randomizado}: si el grafo es casi-completo, agregar shuffle.
+	\item \textbf{Aniadir info al DSU}: guardar el peso maximo en el camino, etc.
+	\item \textbf{DSU con rollback}: si necesitas Kruskal reversible (para queries offline).
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item El DSU debe estar limpio para cada invocacion.
+	\item Si las aristas tienen pesos negativos, Kruskal sigue funcionando.
+	\item Si el grafo es disconexo, el ``MST'' es un bosque con varias componentes.
+	\item El check \texttt{if (++edgesUsed == n - 1) break;} optimiza la salida temprana.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Kruskal}.
+
+\vspace{0.5em}

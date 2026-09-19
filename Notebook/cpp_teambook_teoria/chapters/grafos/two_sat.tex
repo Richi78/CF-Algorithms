@@ -1,0 +1,49 @@
+﻿\subsubsection{2-SAT (implication graph + SCC)}
+
+\paragraph{Idea intuitiva.}
+Resuelve formulas booleanas en \textbf{CNF} con clausulas de \textbf{2 literales}: $(l_1 \lor l_2)$. Cada variable $x$ se representa con dos nodos: $x$ (verdadero) y $\neg x$ (falso). Cada clausula $l_1 \lor l_2$ se descompone en dos implicaciones: $\neg l_1 \to l_2$ y $\neg l_2 \to l_1$. Si en el grafo de implicaciones $\neg x$ y $x$ estan en la misma SCC, la formula es \textbf{UNSAT}. La demostracion: si $\neg x \to x$ en el grafo, entonces $\neg x$ implica $x$, asi que $\neg x$ debe ser falso y $x$ verdadero; pero entonces $\neg x$ es falso implica una contradiccion.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada literal es un nodo; total $2n$ nodos.
+	\item Kosaraju/Tarjan dan las SCCs.
+	\item Si SAT: asignar $x = $ (topological order del condensation).
+	\item Clausulas \texttt{setTrue(x)} se modelan como \texttt{implies(!x, x)}.
+	\item La formula es SAT sii no hay variable $x$ con $x$ y $\neg x$ en la misma SCC.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Conversion de clausulas a implicaciones:
+\begin{verbatim}
+// Clausula (a OR b) -> implica ~a -> b Y ~b -> a
+addImplication(not(a), b);
+addImplication(not(b), a);
+// Forzar x: implica ~x -> x
+if (force) addImplication(not(x), x);
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(V + E) = O(N + M)$ con Kosaraju o Tarjan.
+	\item Memoria $O(V + E)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Forzar variables}: aniadir \texttt{setTrue} / \texttt{setFalse}.
+	\item \textbf{3-SAT}: NP-completo; no usar este algoritmo.
+	\item \textbf{Contar soluciones}: las SCCs condensation dan una formula para contar; multiplicar las formas de asignar variables en cada componente no-trivial.
+	\item \textbf{Output de la asignacion}: aniadir el vector \texttt{assignment[]}.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item La asignacion usa el \textbf{orden topologico inverso} del condensation: \texttt{val[i] = comp[2i] < comp[2i+1]}.
+	\item El ID de $\neg x$ es \texttt{2*x + 1} (o similar); verificar consistencia.
+	\item Si hay clausulas con literales repetidos (e.g., $(x \lor x)$), tratar como $(x)$ simple.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{2-SAT (implication graph + SCC)}.
+
+\vspace{0.5em}

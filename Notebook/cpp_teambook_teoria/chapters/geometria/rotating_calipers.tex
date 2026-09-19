@@ -1,0 +1,31 @@
+﻿\subsubsection{Rotating calipers (polygon diameter)}
+
+\paragraph{Idea intuitiva.}
+Encuentra el \textbf{diametro} de un poligono convexo (par de vertices mas distantes) en $O(n)$. Asume poligono en orden counter-clockwise. Algoritmo: dos indices $i$ (sobre las aristas) y $k$ (sobre los vertices opuestos); en cada paso, rotar $k$ mientras el area del paralelogramo aumenta. La distancia $i$-$k$ puede ser maxima en cualquier momento del barrido.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Cada indice avanza como maximo $n$ veces total.
+	\item El ``diametro'' es la maxima distancia entre dos vertices.
+	\item Retorna \textbf{distancia al cuadrado}.
+\end{itemize}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(n)$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir el par de vertices}: aniadir indices.
+	\item \textbf{Anchura minima / maxima}: variantes de calipers.
+	\item \textbf{Distancia minima entre poligonos convexos}: otra variante.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Asume poligono \textbf{estrictamente} convexo (sin vertices colineales). Si hay colineales, aniadir perturbacion o filtrar.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Rotating calipers (polygon diameter)}.

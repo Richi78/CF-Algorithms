@@ -1,0 +1,80 @@
+﻿\subsubsection{Euler totient precompute}
+
+\paragraph{Idea intuitiva.}
+La funcion $\varphi(n)$ cuenta cuantos enteros en $[1, n]$ son coprimos con $n$. Hay una formula: $\varphi(n) = n \cdot \prod_{p \mid n} (1 - 1/p)$. Para precomputar $\varphi(i)$ para todo $i \le N$ en $O(N \log \log N)$, se inicializa $\varphi(i) = i$ y para cada primo $p$ se hace $\varphi(j) \mathrel{-}= \varphi(j)/p$ para todos los multiplos $j$ de $p$. La razon geometrica: para cada primo $p$, la fraccion $1/p$ de los enteros hasta $n$ son multiplos de $p$, asi que $\varphi$ ``pierde'' ese factor en cada primo divisor.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $\varphi(1) = 1$ por convencion (aunque coprimos con 1 es solo $\{1\}$).
+	\item $\varphi$ es \textbf{multiplicativa}: si $\gcd(a, b) = 1$, $\varphi(ab) = \varphi(a) \varphi(b)$.
+	\item \textbf{Identidad de Euler}: si $\gcd(a, n) = 1$, entonces $a^{\varphi(n)} \equiv 1 \pmod n$.
+	\item $\varphi(n) \ge \sqrt{n}$ para $n > 6$ (acotacion util en busqueda).
+	\item $\sum_{d \mid n} \varphi(d) = n$ (propiedad de inversion, util en Dirichlet).
+\end{itemize}
+
+\paragraph{Codigo clave.}
+Criba Euler-style para totients (un solo pase):
+\begin{verbatim}
+vector<int> phi(n + 1);
+for (int i = 0; i <= n; ++i) phi[i] = i;
+for (int i = 2; i <= n; ++i)
+    if (phi[i] == i)  // i es primo
+        for (int j = i; j <= n; j += i)
+            phi[j] -= phi[j] / i;
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Precompute $O(N \log \log N)$, consulta $O(1)$. Single $\varphi(n)$ con factorizacion es $O(\sqrt{n})$.
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Single phi via factorizacion}: ya hay una funcion \texttt{phiSingle(n)}. Para $n$ hasta $10^{12}$ factoriza en $\le 10^6$ pasos.
+	\item \textbf{Aplicar a inclusion-exclusion}: si el problema requiere $\sum_{i=1}^{N} \gcd(i, n)$, se puede usar $\sum_{d \mid n} d \cdot \varphi(n/d)$.
+	\item \textbf{Criba lineal}: durante la criba, aniadir \texttt{phi[i*p] = (p == lp[i]) ? phi[i] * p : phi[i] * (p-1);}.
+\end{itemize}
+
+\paragraph{Ejemplo.}
+Para $n = 12$: $\varphi(12) = 12 \cdot (1 - 1/2) \cdot (1 - 1/3) = 12 \cdot 1/2 \cdot 2/3 = 4$. Los coprimos son $\{1, 5, 7, 11\}$.
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Olvidar inicializar $\varphi(0) = 0$.
+	\item Si llamas a \texttt{phiSingle} sobre 0, devuelve 0 (no hay coprimos con 0 en el sentido usual).
+	\item La criba Euler-style modifica $\varphi[j]$ por division \textbf{antes} de que termine; para $j$ compuestos, se hace varias veces (correcto, multiplicativo).
+	\item Confundir $\varphi(0) = 0$ con $\varphi(1) = 1$; la criba comun los trata igual.
+\end{itemize}
+
+\paragraph{Explicacion linea por linea.}
+\textbf{Criba \texttt{phiSieve}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|vector<int> phi;| -- arreglo global con valores $\varphi(i)$.
+	\item \verb|phi.assign(n + 1, 0);| -- inicializa a $0$ (luego se sobreescribe).
+	\item \verb|for(int i=0;i<=n;i++) phi[i] = i;| -- inicializa $\varphi(i) = i$ (caso base: todo coprimo).
+	\item \verb|for(int i=2;i<=n;i++)| -- itera sobre posibles primos.
+	\item \verb|if(phi[i] == i)| -- si $\varphi(i) = i$, entonces $i$ es primo (aun no modificado).
+	\item \verb|for(int j=i;j<=n;j+=i)| -- itera sobre multiplos de $i$.
+	\item \verb|phi[j] -= phi[j] / i;| -- resta el factor $(1 - 1/p)$ a $\varphi(j)$.
+\end{itemize}
+\textbf{Version single \texttt{phiSingle}:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|long long phiSingle(long long n)| -- calcula $\varphi(n)$ factorizando (sin precompute).
+	\item \verb|long long result = n;| -- inicia en $n$.
+	\item \verb|for(long long p=2 ; p*p<=n ; p++)| -- itera sobre posibles primos hasta $\sqrt{n}$.
+	\item \verb|if(n % p == 0)| -- encontro un factor primo.
+	\item \verb|while(n % p == 0) n /= p;| -- consume todas las ocurrencias de $p$.
+	\item \verb|result -= result / p;| -- aplica la formula $\varphi(n) = n \cdot (1 - 1/p)$.
+	\item \verb|if(n > 1) result -= result / n;| -- si queda un factor primo grande al final.
+\end{itemize}
+\textbf{Programa principal:}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \verb|phiSieve(100);| -- precomputa $\varphi$ hasta $100$.
+	\item \verb|cout << "phi(" << i << ") = " << phi[i] << "\textbackslash n";| -- imprime $\varphi(1..10)$.
+	\item \verb|cout << "phi(36) = " << phiSingle(36) << "\textbackslash n";| -- calcula $\varphi(36)=12$ via factorizacion.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Euler totient precompute}.
+
+\vspace{0.5em|||}

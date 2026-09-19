@@ -1,0 +1,52 @@
+﻿\subsubsection{Knapsack 0/1}
+
+\paragraph{Idea intuitiva.}
+Dado un conjunto de $N$ objetos con peso $w_i$ y valor $v_i$, maximizar $\sum v_i$ con la restriccion $\sum w_i \le W$. La recurrencia clasica:
+\[ dp[i][j] = \max(dp[i-1][j],\, dp[i-1][j - w_i] + v_i) \quad \text{si } j \ge w_i. \]
+La optimizacion clave: la DP es 1-dimensional si iteramos $j$ \textbf{de mayor a menor} (asi no usamos el objeto $i$ dos veces). La razon de la iteracion inversa: en cada iteracion queremos el estado del ``item anterior''; iterar de menor a mayor contaminaria \texttt{dp[j - w\_i]} con el item actual.
+
+\paragraph{Propiedades clave (invariantes).}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $dp[j]$ al final = maximo valor con peso $\le j$.
+	\item El bucle inverso \texttt{for (j = W; j >= w[i]; j--)} es lo que distingue 0/1 de unbounded.
+	\item Solucion: maximo valor con cualquier peso $\le W$.
+	\item La DP es exacta; no hay aproximacion.
+\end{itemize}
+
+\paragraph{Codigo clave.}
+La version 1D optimizada:
+\begin{verbatim}
+vector<long long> dp(W + 1, 0);
+for (int i = 0; i < N; ++i)
+    for (int j = W; j >= w[i]; --j)  // invertido
+        dp[j] = max(dp[j], dp[j - w[i]] + v[i]);
+return dp[W];
+\end{verbatim}
+
+\paragraph{Complejidad.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item $O(N \cdot W)$ tiempo, $O(W)$ memoria.
+	\item Constante muy pequena (solo sumas y max).
+\end{itemize}
+
+\paragraph{Donde tocar para modificar.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Reconstruir la seleccion}: aniadir \texttt{take[i][j]} (booleano o bool) en una version 2D.
+	\item \textbf{Items con peso 0}: edge case; aniadir guard.
+	\item \textbf{Knapsack con restricciones de grupos}: ``elegir a lo sumo 1 de cada grupo'' se modela como 0/1 con un peso extra.
+	\item \textbf{Tamano de $W$}: si $W \le 10^9$ pero $N$ es chico, usar meet-in-the-middle.
+	\item \textbf{Cambiar max por min}: aniadir \texttt{INF} en la inicializacion.
+\end{itemize}
+
+\paragraph{Trampas y errores frecuentes.}
+\begin{itemize}\setlength\itemsep{0pt}
+	\item Overflow en \texttt{dp[j - w[i]] + v[i]}; usar \texttt{long long} si los valores son grandes.
+	\item El bucle \textbf{debe} ir de mayor a menor.
+	\item Si los pesos son grandes y $N$ pequeno, conviene meet-in-the-middle.
+	\item Para Knapsack exacto ($\sum w_i = W$), aniadir check al final.
+\end{itemize}
+
+\paragraph{Codigo.}
+Ver \texttt{cpp.tex}, seccion \textit{Knapsack 0/1}.
+
+\vspace{0.5em}
