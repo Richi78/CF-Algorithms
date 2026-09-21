@@ -122,29 +122,29 @@
 \contentsline {subsubsection}{\numberline {6.5}LCS / Edit distance}{49}{subsubsection.6.0.5}%
 \contentsline {subsubsection}{\numberline {6.6}Bitmask DP over subsets}{49}{subsubsection.6.0.6}%
 \contentsline {subsubsection}{\numberline {6.7}SOS DP}{49}{subsubsection.6.0.7}%
-\contentsline {subsubsection}{\numberline {6.8}Digit DP template}{50}{subsubsection.6.0.8}%
-\contentsline {subsubsection}{\numberline {6.9}Tree DP (reroot)}{51}{subsubsection.6.0.9}%
-\contentsline {section}{\numberline {7}Geometria}{52}{section.7}%
-\contentsline {subsection}{\numberline {7.1}Puntos y segmentos}{52}{subsection.7.1}%
-\contentsline {subsubsection}{\numberline {7.1}Conceptos y formulas de geometria 2D}{52}{subsubsection.7.1.1}%
-\contentsline {paragraph}{1. Vectores, Dot Product y Cross Product.}{52}{section*.2}%
+\contentsline {subsubsection}{\numberline {6.8}Digit DP template}{51}{subsubsection.6.0.8}%
+\contentsline {subsubsection}{\numberline {6.9}Tree DP (reroot)}{52}{subsubsection.6.0.9}%
+\contentsline {section}{\numberline {7}Geometria}{53}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Puntos y segmentos}{53}{subsection.7.1}%
+\contentsline {subsubsection}{\numberline {7.1}Conceptos y formulas de geometria 2D}{53}{subsubsection.7.1.1}%
+\contentsline {paragraph}{1. Vectores, Dot Product y Cross Product.}{53}{section*.2}%
 \contentsline {paragraph}{2. Criterios de Paralelismo y Perpendicularidad.}{53}{section*.3}%
 \contentsline {paragraph}{3. Orientacion de 3 puntos (Prueba CCW).}{53}{section*.4}%
 \contentsline {paragraph}{4. Lineas y Distancias.}{53}{section*.5}%
-\contentsline {paragraph}{5. Circunferencias (Circulos).}{53}{section*.6}%
+\contentsline {paragraph}{5. Circunferencias (Circulos).}{54}{section*.6}%
 \contentsline {paragraph}{6. Tips criticos de precision y tipos en CP.}{54}{section*.7}%
 \contentsline {subsubsection}{\numberline {7.2}Point + cross + dot}{54}{subsubsection.7.1.2}%
 \contentsline {subsubsection}{\numberline {7.3}Interseccion de segmentos}{54}{subsubsection.7.1.3}%
-\contentsline {subsubsection}{\numberline {7.4}Contains colineal}{54}{subsubsection.7.1.4}%
-\contentsline {subsubsection}{\numberline {7.5}Distance point-segment / point-line}{54}{subsubsection.7.1.5}%
+\contentsline {subsubsection}{\numberline {7.4}Contains colineal}{55}{subsubsection.7.1.4}%
+\contentsline {subsubsection}{\numberline {7.5}Distance point-segment / point-line}{55}{subsubsection.7.1.5}%
 \contentsline {subsubsection}{\numberline {7.6}Projection of point onto line}{55}{subsubsection.7.1.6}%
-\contentsline {subsection}{\numberline {7.2}Poligonos}{55}{subsection.7.2}%
-\contentsline {subsubsection}{\numberline {7.1}Convex Hull (monotono)}{55}{subsubsection.7.2.1}%
-\contentsline {subsubsection}{\numberline {7.2}Polygon Area}{55}{subsubsection.7.2.2}%
-\contentsline {subsubsection}{\numberline {7.3}Point in polygon (ray casting)}{55}{subsubsection.7.2.3}%
+\contentsline {subsection}{\numberline {7.2}Poligonos}{56}{subsection.7.2}%
+\contentsline {subsubsection}{\numberline {7.1}Convex Hull (monotono)}{56}{subsubsection.7.2.1}%
+\contentsline {subsubsection}{\numberline {7.2}Polygon Area}{56}{subsubsection.7.2.2}%
+\contentsline {subsubsection}{\numberline {7.3}Point in polygon (ray casting)}{56}{subsubsection.7.2.3}%
 \contentsline {subsubsection}{\numberline {7.4}Minkowski sum (convex polygons)}{56}{subsubsection.7.2.4}%
-\contentsline {subsection}{\numberline {7.3}Herramientas}{56}{subsection.7.3}%
-\contentsline {subsubsection}{\numberline {7.1}Li Chao Tree (long long)}{56}{subsubsection.7.3.1}%
+\contentsline {subsection}{\numberline {7.3}Herramientas}{57}{subsection.7.3}%
+\contentsline {subsubsection}{\numberline {7.1}Li Chao Tree (long long)}{57}{subsubsection.7.3.1}%
 \contentsline {subsubsection}{\numberline {7.2}Sweep line template}{57}{subsubsection.7.3.2}%
 \contentsline {subsubsection}{\numberline {7.3}Closest pair of points (sweepline)}{57}{subsubsection.7.3.3}%
-\contentsline {subsubsection}{\numberline {7.4}Rotating calipers (polygon diameter)}{57}{subsubsection.7.3.4}%
+\contentsline {subsubsection}{\numberline {7.4}Rotating calipers (polygon diameter)}{58}{subsubsection.7.3.4}%

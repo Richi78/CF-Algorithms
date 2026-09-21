@@ -82,8 +82,50 @@ int main(){
 \smallskip
 \noindent\textbf{Gu\'ia r\'apida.}
 \begin{itemize}
-  \item \textbf{sosForward1}: cl\'asico. Para cada \emph{mask}, sumar/contar $f$ sobre sus \emph{subm\'ascaras}. Ej: dado un arreglo indexado por m\'ascara, contar cu\'antos elementos tienen flags $\subseteq$ cada \emph{mask}.
-  \item \textbf{sosForward2}: la condici\'on va al rev\'es. Para cada \emph{mask}, sumar sobre \emph{superm\'ascaras}. Ej: queries del tipo ``cu\'antos elementos tienen \emph{todos} los bits de la query prendidos'' ($\supseteq$).
-  \item \textbf{sosBackward1 / sosBackward2}: invierten el forward correspondiente. \'Util cuando quer\'is cancelar la contribuci\'on de una sola m\'ascara: aplic\'as forward a todo y despu\'es backward te deja exactamente lo que aporta esa m\'ascara (restando en orden inverso).
-  \item \textbf{Cuidados}: el patr\'on funciona porque $+$ es asociativa/invertible. Para $\oplus$, OR, AND, min/max con leyes distintas a Zeta, busc\'a FWT o la transformada adecuada.
+  \item \textbf{sosForward1}: Zeta sobre subconjuntos. Acumula hacia arriba: $\text{dp}[\text{mask}] = \sum_{S \subseteq \text{mask}} f[S]$.
+  \item \textbf{sosForward2}: Zeta sobre superconjuntos. Acumula hacia abajo: $\text{dp}[\text{mask}] = \sum_{\text{mask} \subseteq S} f[S]$.
+  \item \textbf{sosBackward1 / sosBackward2}: Inversi\'on de M\"obius (deshacen el forward respectivo cambiando \texttt{+=} por \texttt{-=}).
 \end{itemize}
+
+\smallskip
+\noindent\textbf{C\'omo usarlo y aplicaciones comunes:}
+\begin{enumerate}
+  \item \textbf{Consultas de bits sobre un arreglo (ej. CSES Bit Problem):}
+  Sea $f[\text{val}]$ la frecuencia de cada n\'umero en el arreglo de $N$ elementos:
+  \begin{itemize}
+    \item $x \mid y = x \iff y \subseteq x$ (contar $y$ que sean subm\'ascaras de $x$):\\
+    Se resuelve directamente con $\text{sosForward1}(f)[x]$.
+    \item $x \ \& \ y = x \iff x \subseteq y$ (contar $y$ que sean superm\'ascaras de $x$):\\
+    Se resuelve directamente con $\text{sosForward2}(f)[x]$.
+    \item $x \ \& \ y \neq 0$ (contar $y$ que comparten al menos un bit con $x$):\\
+    Se calcula por complemento: $N - \text{sosForward1}(f)[((1 \ll n) - 1) \oplus x]$.
+  \end{itemize}
+
+  \item \textbf{Convoluciones Bitwise (OR y AND) tipo FFT en $O(N \cdot 2^N)$:}
+  \begin{itemize}
+    \item \textbf{Convoluci\'on OR} ($C[k] = \sum_{i \mid j = k} A[i] \cdot B[j]$):\\
+    1. $A' = \text{sosForward1}(A)$, $B' = \text{sosForward1}(B)$\\
+    2. Multiplicar punto a punto: $C'[k] = A'[k] \cdot B'[k]$\\
+    3. Recuperar con $C = \text{sosBackward1}(C')$
+    \item \textbf{Convoluci\'on AND} ($C[k] = \sum_{i \ \& \ j = k} A[i] \cdot B[j]$):\\
+    1. $A' = \text{sosForward2}(A)$, $B' = \text{sosForward2}(B)$\\
+    2. Multiplicar punto a punto: $C'[k] = A'[k] \cdot B'[k]$\\
+    3. Recuperar con $C = \text{sosBackward2}(C')$
+  \end{itemize}
+
+  \item \textbf{Principio de Inclusi\'on-Exclusi\'on autom\'atico:}
+  Al contar combinaciones donde es f\'acil calcular ``al menos $mask$'' ($mask \subseteq S$), aplicar \texttt{sosBackward2} recupera cu\'antos cumplen ``exactamente $mask$'' en $O(N \cdot 2^N)$, realizando autom\'aticamente toda la inclusi\'on-exclusi\'on con signos alternados $(-1)^{|S \setminus mask|}$.
+
+  \item \textbf{Problema cl\'asico: CF 449D (Jzzhu and Numbers) --- AND de subsecuencias $= 0$:}
+  \begin{itemize}
+    \item \emph{Enunciado}: Dado un arreglo de $N$ enteros ($N, a_i \le 10^6 < 2^{20}$), contar cu\'antas subsecuencias no vac\'ias tienen un AND bitwise igual a 0:
+    $a_{i_1} \ \& \ a_{i_2} \ \& \ \dots \ \& \ a_{i_k} = 0 \pmod{10^9+7}$.
+    \item \emph{Idea}: Para que el AND de una subsecuencia tenga todos los bits de una m\'ascara $S$ encendidos ($S \subseteq \text{AND}$), \textbf{cada} elemento elegido debe cumplir $S \subseteq a_j$.
+    \item \emph{Paso 1 (SOS DP)}: Calculamos $cnt[S] = \sum_{S \subseteq x} \text{freq}[x]$ con \texttt{sosForward2}.
+    \item \emph{Paso 2 (Subsecuencias)}: Hay $2^{cnt[S]} - 1$ subsecuencias cuyo AND contiene a $S$.
+    \item \emph{Paso 3 (Inclusi\'on-Exclusi\'on)}: Para que el AND tenga \textbf{exactamente 0} bits encendidos:
+    $$\text{ans} = \sum_{S = 0}^{2^{20}-1} (-1)^{|S|} \cdot 2^{cnt[S]} \pmod{10^9+7}$$
+    donde $|S| = \text{popcount}(S)$ (los $-1$ de $2^{cnt[S]}-1$ se cancelan pues $\sum (-1)^{|S|} = 0$). Complejidad: $O(N + 20 \cdot 2^{20})$.
+  \end{itemize}
+\end{enumerate}
+
