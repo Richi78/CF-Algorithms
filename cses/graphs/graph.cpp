@@ -2,59 +2,49 @@
 
 using namespace std;
 
-class DSU{
-    public:
-    vector<int> parent,size;
-    int groups;
-    DSU(int n){
-        parent.resize(n); size.resize(n); groups=n;
-        for(int i=0 ; i<n ; i++) parent[i]=i , size[i]=1;
-    }
-    int find(int node){
-        if(node == parent[node]) return node;
-        return parent[node]=find(parent[node]);
-    }
-    int unionFind(int a, int b){
-        int A=find(a) , B=find(b);
-        if(A == B) return -1;
-        groups--;
-        if(size[A] > size[B]){
-            parent[B]=A; size[A]+=size[B]; 
-            return A;
-        }else{
-            parent[A]=B; size[B]+=size[A];
-            return B;
-        }
-    }
-};
+const int INF=1e9;
 
 int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
+
     int n,m; cin >> n >> m;
-
-    DSU dsu(n);
-
-    for(int rep=0 ; rep<m ; rep++){
+    vector<int> adj[n];
+    for(int i=0 ; i<m ; i++){
         int u,v; cin >> u >> v; u--; v--;
-        dsu.unionFind(u,v);
+        adj[u].push_back(v); adj[v].push_back(u);
     }
 
-    if(dsu.groups == 1){ cout<< "0\n"; return 0;}
+    vector<int> dist(n,INF);
+    vector<int> parent(n);
+    dist[0]=0; parent[0]=-1;
 
-    vector<pair<int,int>> ans;
-
-    int tmp=dsu.find(0);
-    for(int i=1 ; i<n ; i++){
-        int x=dsu.find(i);
-        if(tmp != x){
-            dsu.unionFind(0,i); tmp=dsu.find(0);
-            ans.push_back(make_pair(0,i));
+    queue<pair<int,int>> q;
+    q.push(make_pair(0,0));
+    while(!q.empty()){
+        auto [node, dis] = q.front(); q.pop();
+        for(auto adjN : adj[node]){
+            if(dis+1 < dist[adjN]){
+                dist[adjN]=dis+1;
+                parent[adjN]=node;
+                q.push(make_pair(adjN, dis+1));
+            }
         }
     }
 
-    assert(dsu.groups == 1);
+    if(dist[n-1] == INF){
+        cout<< "IMPOSSIBLE\n"; return 0;
+    }
 
-    cout<< ans.size() <<"\n";
-    for(auto &[x,y] : ans) cout<< x+1 << " " << y+1 <<"\n";
+    int cur=n-1;
+    vector<int> path;
+
+    while(cur != -1){
+        path.push_back(cur+1);
+        cur=parent[cur];
+    }
+
+    reverse(path.begin() , path.end());
+    cout<< path.size() <<"\n";
+    for(auto &e : path) cout<< e <<" "; cout<<"\n";
 }
