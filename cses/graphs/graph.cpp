@@ -2,49 +2,54 @@
 
 using namespace std;
 
-const int INF=1e9;
+int n,m;
+vector<int> team;
+bool bfs(int x, vector<int> adj[]){
+    queue<pair<int,int>> q;
+    q.push(make_pair(x,1));
+    team[x]=1;
+    while(!q.empty()){
+        auto [node,color] = q.front();
+        q.pop();
+        for(int adjN : adj[node]){
+            if(team[adjN]==-1){
+                team[adjN]=color^1;
+                q.push(make_pair(adjN,team[adjN]));
+            }else if(team[adjN]==color){
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    int n,m; cin >> n >> m;
+    cin >> n >> m;
     vector<int> adj[n];
+
     for(int i=0 ; i<m ; i++){
-        int u,v; cin >> u >> v; u--; v--;
-        adj[u].push_back(v); adj[v].push_back(u);
+        int u,v; cin >> u >> v;
+        u--; v--;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
     }
 
-    vector<int> dist(n,INF);
-    vector<int> parent(n);
-    dist[0]=0; parent[0]=-1;
+    team.resize(n,-1);
 
-    queue<pair<int,int>> q;
-    q.push(make_pair(0,0));
-    while(!q.empty()){
-        auto [node, dis] = q.front(); q.pop();
-        for(auto adjN : adj[node]){
-            if(dis+1 < dist[adjN]){
-                dist[adjN]=dis+1;
-                parent[adjN]=node;
-                q.push(make_pair(adjN, dis+1));
+    for(int i=0 ; i<n ; i++){
+        if(team[i]==-1){
+            bool tmp=bfs(i,adj);
+            if(!tmp){
+                cout<<"IMPOSSIBLE\n"; return 0;
             }
         }
     }
 
-    if(dist[n-1] == INF){
-        cout<< "IMPOSSIBLE\n"; return 0;
-    }
+    for(auto &x : team) cout<< x+1 <<" ";
+    cout<<"\n";
 
-    int cur=n-1;
-    vector<int> path;
-
-    while(cur != -1){
-        path.push_back(cur+1);
-        cur=parent[cur];
-    }
-
-    reverse(path.begin() , path.end());
-    cout<< path.size() <<"\n";
-    for(auto &e : path) cout<< e <<" "; cout<<"\n";
+    return 0;
 }
