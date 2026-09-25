@@ -13,12 +13,12 @@ vector<long long> zeroOneBFS(int n, const vector<vector<pair<int,int>>>& adj, in
 	dist[start] = 0;
 	q.push_back(start);
 	while(!q.empty()){
-		int v = q.front(); q.pop_front();
-		for(auto [u, w] : adj[v]){
-			if(dist[v] + w < dist[u]){
-				dist[u] = dist[v] + w;
-				if(w == 0) q.push_front(u);
-				else q.push_back(u);
+		int node = q.front(); q.pop_front();
+		for(auto [adjN, adjW] : adj[node]){
+			if(dist[node] + adjW < dist[adjN]){
+				dist[adjN] = dist[node] + adjW;
+				if(adjW == 0) q.push_front(adjN);
+				else q.push_back(adjN);
 			}
 		}
 	}

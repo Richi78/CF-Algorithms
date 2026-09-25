@@ -50,41 +50,41 @@ bool hasHamiltonianPathFrom(int n, const vector<vector<int>>& adj, int src){
 	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
 	dp[1<<src][src] = 1;
 	for(int mask=1; mask<(1<<n); mask++){
-		for(int v=0; v<n; v++) if(dp[mask][v]){
-			for(int u : adj[v]){
-				if(!(mask & (1<<u))){
-					dp[mask | (1<<u)][u] = 1;
+		for(int node=0 ; node<n ; node++) if(dp[mask][node]){
+			for(auto adjN : adj[node]){
+				if(!(mask & (1<<adjN))){
+					dp[mask | (1<<adjN)][adjN] = 1;
 				}
 			}
 		}
 	}
 	for(int mask=1; mask<(1<<n); mask++){
 		if(__builtin_popcount(mask) != n) continue;
-		for(int v=0; v<n; v++) if(dp[mask][v]) return true;
+		for(int node=0 ; node<n ; node++) if(dp[mask][node]) return true;
 	}
 	return false;
 }
 
 // -- Bitmask DP: Hamiltonian cycle --
-// dp[mask][v] = true si hay un camino de 'src' que visita 'mask' y termina en v
+// dp[mask][node] = true si hay un camino de 'src' que visita 'mask' y termina en node
 bool hasHamiltonianCycle(int n, const vector<vector<int>>& adj, int src = 0){
 	if(n < 3) return false;
 	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
 	dp[1<<src][src] = 1;
 	for(int mask=1; mask<(1<<n); mask++){
-		for(int v=0; v<n; v++) if(dp[mask][v]){
-			for(int u : adj[v]){
-				if(!(mask & (1<<u))){
-					dp[mask | (1<<u)][u] = 1;
+		for(int node=0 ; node<n ; node++) if(dp[mask][node]){
+			for(auto adjN : adj[node]){
+				if(!(mask & (1<<adjN))){
+					dp[mask | (1<<adjN)][adjN] = 1;
 				}
 			}
 		}
 	}
 	int full = (1<<n) - 1;
-	for(int v=0; v<n; v++){
-		if(dp[full][v]){
-			// cierra el ciclo si v es adyacente a src
-			for(int u : adj[v]) if(u == src) return true;
+	for(int node=0 ; node<n ; node++){
+		if(dp[full][node]){
+			// cierra el ciclo si node es adyacente a src
+			for(auto adjN : adj[node]) if(adjN == src) return true;
 		}
 	}
 	return false;
@@ -97,11 +97,11 @@ vector<int> findHamiltonianPath(int n, const vector<vector<int>>& adj, int src){
 	vector<vector<char>> dp(1<<n, vector<char>(n, 0));
 	dp[1<<src][src] = 1;
 	for(int mask=1; mask<(1<<n); mask++){
-		for(int v=0; v<n; v++) if(dp[mask][v]){
-			for(int u : adj[v]){
-				if(!(mask & (1<<u))){
-					dp[mask | (1<<u)][u] = 1;
-					par[mask | (1<<u)][u] = v;
+		for(int node=0 ; node<n ; node++) if(dp[mask][node]){
+			for(auto adjN : adj[node]){
+				if(!(mask & (1<<adjN))){
+					dp[mask | (1<<adjN)][adjN] = 1;
+					par[mask | (1<<adjN)][adjN] = node;
 				}
 			}
 		}

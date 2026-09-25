@@ -7,15 +7,15 @@ using namespace std;
 
 pair<bool, vector<int>> isBipartite(int n, const vector<vector<int>>& adj){
 	vector<int> color(n, -1);
-	for(int s=0;s<n;s++){
-		if(color[s] != -1) continue;
+	for(int i=0 ; i<n ; i++){
+		if(color[i] != -1) continue;
 		queue<int> q;
-		color[s] = 0; q.push(s);
+		color[i] = 0; q.push(i);
 		while(!q.empty()){
-			int v = q.front(); q.pop();
-			for(int u : adj[v]){
-				if(color[u] == -1){ color[u] = color[v] ^ 1; q.push(u); }
-				else if(color[u] == color[v]) return {false, {}};
+			int node = q.front(); q.pop();
+			for(auto adjN : adj[node]){
+				if(color[adjN] == -1){ color[adjN] = color[node] ^ 1; q.push(adjN); }
+				else if(color[adjN] == color[node]) return {false, {}};
 			}
 		}
 	}

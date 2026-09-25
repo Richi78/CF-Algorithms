@@ -6,36 +6,36 @@
 using namespace std;
 
 vector<int> topoKahn(int n, const vector<vector<int>>& adj){
-	vector<int> indeg(n, 0);
-	for(int u=0;u<n;u++) for(int v : adj[u]) indeg[v]++;
+	vector<int> indegree(n, 0);
+	for(int i=0 ; i<n ; i++) for(auto adjN : adj[i]) indegree[adjN]++;
 	queue<int> q;
-	for(int i=0;i<n;i++) if(indeg[i] == 0) q.push(i);
+	for(int i=0 ; i<n ; i++) if(indegree[i] == 0) q.push(i);
 	vector<int> order;
 	while(!q.empty()){
-		int v = q.front(); q.pop();
-		order.push_back(v);
-		for(int u : adj[v]){
-			if(--indeg[u] == 0) q.push(u);
+		int node = q.front(); q.pop();
+		order.push_back(node);
+		for(auto adjN : adj[node]){
+			if(--indegree[adjN] == 0) q.push(adjN);
 		}
 	}
 	return order; // size < n if cycle
 }
 
-void dfsVisit(int v, const vector<vector<int>>& adj, vector<int>& state, vector<int>& order){
-	state[v] = 1;
-	for(int u : adj[v]){
-		// if(state[u] == 1) -> ciclo: back edge a ancestro en la pila de recursion
-		if(state[u] == 0)
-			dfsVisit(u, adj, state, order);
+void dfsVisit(int node, const vector<vector<int>>& adj, vector<int>& state, vector<int>& order){
+	state[node] = 1;
+	for(auto adjN : adj[node]){
+		// if(state[adjN] == 1) -> ciclo: back edge a ancestro en la pila de recursion
+		if(state[adjN] == 0)
+			dfsVisit(adjN, adj, state, order);
 	}
-	state[v] = 2;
-	order.push_back(v);
+	state[node] = 2;
+	order.push_back(node);
 }
 
 vector<int> topoDFS(int n, const vector<vector<int>>& adj){
 	vector<int> order;
 	vector<int> state(n, 0); // 0=white, 1=gray, 2=black
-	for(int i=0;i<n;i++) 
+	for(int i=0 ; i<n ; i++) 
 		if(state[i] == 0) 
 			dfsVisit(i, adj, state, order);
 	reverse(order.begin(), order.end());
@@ -45,8 +45,48 @@ vector<int> topoDFS(int n, const vector<vector<int>>& adj){
 int main(){
 	vector<vector<int>> adj = {{1,2}, {3}, {3}, {}};
 	auto order = topoKahn(4, adj);
-	for(int v : order) cout << v << " ";  // 0 1 2 3
+	for(int node : order) cout << node << " ";  // 0 1 2 3
 	cout << "\n";
 	return 0;
 }
+\end{lstlisting}
+
+\subsubsection{DP en DAG (camino mas largo / corto con relajacion)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N + M)
+// usa: Procesar en orden topologico relaja cada arista EXACTAMENTE 1 vez (Bellman-Ford lineal).
+// Sirve para camino mas largo/corto con pesos arbitrarios (positivos o negativos) y conteo de caminos.
+const long long INF = 1e18;
+
+// Retorna {dist, parent}. dist[i] = -INF si i es inalcanzable desde s.
+pair<vector<long long>, vector<int>> dagLongestPath(int n, const vector<vector<pair<int,long long>>>& adj, const vector<int>& topo, int s){
+	vector<long long> dist(n, -INF);
+	vector<int> parent(n, -1);
+	dist[s] = 0; // o 1 si se cuentan ciudades/vertices
+
+	for(auto node : topo){
+		if(dist[node] == -INF) continue; // Inalcanzable desde s
+		for(auto [adjN, adjW] : adj[node]){
+			if(dist[node] + adjW > dist[adjN]){
+				dist[adjN] = dist[node] + adjW;
+				parent[adjN] = node; // Para reconstruir la ruta
+			}
+		}
+	}
+	return {dist, parent};
+}
+
+// Reconstruir camino de s a t (retorna vacio si t es inalcanzable)
+vector<int> getPath(int s, int t, const vector<int>& parent){
+	if(s != t && parent[t] == -1) return {};
+	vector<int> path;
+	for(int cur = t; cur != -1; cur = parent[cur]) path.push_back(cur);
+	reverse(path.begin(), path.end());
+	if(path.empty() || path[0] != s) return {};
+	return path;
+}
+
+// Conteo de caminos s -> t (modulo MOD):
+// vector<long long> ways(n, 0); ways[s] = 1;
+// for(auto node : topo) if(ways[node]) for(auto [adjN, adjW] : adj[node]) ways[adjN] = (ways[adjN] + ways[node]) % MOD;
 \end{lstlisting}

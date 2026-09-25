@@ -9,20 +9,20 @@ const long long INF = 1e18;
 
 long long prim(int n, const vector<vector<pair<int,int>>>& adj){
 	vector<long long> dist(n, INF);
-	vector<bool> used(n, false);
+	vector<bool> vis(n, false);
 	priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<pair<long long,int>>> pq;
 	dist[0] = 0;
 	pq.push({0, 0});
 	long long total = 0;
 	while(!pq.empty()){
-		auto [d, v] = pq.top(); pq.pop();
-		if(used[v]) continue;
-		used[v] = true;
-		total += d;
-		for(auto [u, w] : adj[v]){
-			if(!used[u] && w < dist[u]){
-				dist[u] = w;
-				pq.push({w, u});
+		auto [dis, node] = pq.top(); pq.pop();
+		if(vis[node]) continue;
+		vis[node] = true;
+		total += dis;
+		for(auto [adjN, adjW] : adj[node]){
+			if(!vis[adjN] && adjW < dist[adjN]){
+				dist[adjN] = adjW;
+				pq.push({adjW, adjN});
 			}
 		}
 	}

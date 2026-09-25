@@ -19,24 +19,24 @@ struct TarjanSCC{
 		numComps = 0;
 		for(int i=0;i<n;i++) if(disc[i] == 0) dfs(i);
 	}
-	void dfs(int v){
-		disc[v] = low[v] = ++timer;
-		st.push_back(v);
-		inStack[v] = true;
-		for(int u : adj[v]){
-			if(disc[u] == 0){
-				dfs(u);
-				low[v] = min(low[v], low[u]);
-			}else if(inStack[u]){
-				low[v] = min(low[v], disc[u]);
+	void dfs(int node){
+		disc[node] = low[node] = ++timer;
+		st.push_back(node);
+		inStack[node] = true;
+		for(auto adjN : adj[node]){
+			if(disc[adjN] == 0){
+				dfs(adjN);
+				low[node] = min(low[node], low[adjN]);
+			}else if(inStack[adjN]){
+				low[node] = min(low[node], disc[adjN]);
 			}
 		}
-		if(low[v] == disc[v]){
+		if(low[node] == disc[node]){
 			while(true){
-				int u = st.back(); st.pop_back();
-				inStack[u] = false;
-				comp[u] = numComps;
-				if(u == v) break;
+				int cur = st.back(); st.pop_back();
+				inStack[cur] = false;
+				comp[cur] = numComps;
+				if(cur == node) break;
 			}
 			numComps++;
 		}

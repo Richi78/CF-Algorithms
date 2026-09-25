@@ -44,8 +44,8 @@ int eulerianStatusUndirected(int n, const vector<vector<int>>& adj){
 	vector<int> vis(n, 0);
 	queue<int> q; q.push(any); vis[any] = 1;
 	while(!q.empty()){
-		int v = q.front(); q.pop();
-		for(int u : adj[v]) if(!vis[u]){ vis[u] = 1; q.push(u); }
+		int node = q.front(); q.pop();
+		for(auto adjN : adj[node]) if(!vis[adjN]){ vis[adjN] = 1; q.push(adjN); }
 	}
 	for(int v=0;v<n;v++) if(adj[v].size() && !vis[v]) return -1;
 	if(odd == 0) return 0;

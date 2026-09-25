@@ -18,32 +18,32 @@ struct Graph{
 		queue<int> q;
 		dist[start] = 0; q.push(start);
 		while(!q.empty()){
-			int v = q.front(); q.pop();
-			for(int u : adj[v]) if(dist[u] == -1){
-				dist[u] = dist[v] + 1;
-				q.push(u);
+			int node = q.front(); q.pop();
+			for(auto adjN : adj[node]) if(dist[adjN] == -1){
+				dist[adjN] = dist[node] + 1;
+				q.push(adjN);
 			}
 		}
 		return dist;
 	}
-	void dfsRec(int v, vector<bool>& visited, vector<int>& order){
-		visited[v] = true;
-		order.push_back(v);
-		for(int u : adj[v]) if(!visited[u]) dfsRec(u, visited, order);
+	void dfsRec(int node, vector<bool>& vis, vector<int>& order){
+		vis[node] = true;
+		order.push_back(node);
+		for(auto adjN : adj[node]) if(!vis[adjN]) dfsRec(adjN, vis, order);
 	}
 	vector<int> dfs(int start){
 		vector<int> order;
-		vector<bool> visited(n, false);
-		dfsRec(start, visited, order);
+		vector<bool> vis(n, false);
+		dfsRec(start, vis, order);
 		return order;
 	}
 	int countComponents(){
-		vector<bool> visited(n, false);
+		vector<bool> vis(n, false);
 		vector<int> order;
 		int cnt = 0;
-		for(int v=0;v<n;v++){
-			if(!visited[v]){
-				dfsRec(v, visited, order);
+		for(int i=0 ; i<n ; i++){
+			if(!vis[i]){
+				dfsRec(i, vis, order);
 				cnt++;
 			}
 		}
