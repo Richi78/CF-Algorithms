@@ -8,40 +8,36 @@ int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    int n,m; cin >> n >> m;
-    vector<array<int,3>> edges(m);
-    vector<long long> dist(n,-INF);
-    dist[0]=0;
+    int n,m,k; cin >> n >> m >> k;
+    vector<pair<int,int>> adj[n];
     for(int i=0 ; i<m ; i++){
         int u,v,w; cin >> u >> v >> w;
-        edges[i]={u-1,v-1,w};
+        u--; v--;
+        adj[u].push_back(make_pair(v,w));
     }
 
-    for(int i=0 ; i<n-1 ; i++){
-        for(int j=0 ; j<m ; j++){
-            auto [u,v,w] = edges[j];
-            if(dist[u] == -INF) continue;
-            if(dist[u]+w > dist[v])
-                dist[v]=dist[u]+w;
+    vector<vector<long long>> dist(n, vector<long long>(k,INF));
+    dist[0][0]=0;
+    
+    priority_queue<
+        array<long long,2>,
+        vector<array<long long,2>>, 
+        greater<array<long long,2>>
+    > q;
+    q.push({0,0});
+    while(!q.empty()){
+        auto [dis,node] = q.top();
+        q.pop();
+        if(dis > dist[node][k-1]) continue;
+        for(auto [adjN,w] : adj[node]){
+            if(dis+w < dist[adjN][k-1]){
+                dist[adjN][k-1]=dis+w;
+                q.push({dis+w,adjN});
+                sort(dist[adjN].begin() , dist[adjN].end());
+            }
         }
     }
-
-    bool cycle=false;
-    for(int j=0 ; j<m ; j++){
-        auto [u,v,w] = edges[j];
-        if(dist[u] == -INF) continue;
-        if(dist[u]+w > dist[v]){
-            cycle=true;
-            dist[v]=-INF*2;
-        }
-    }
-
-    for(int i=0 ; i<n-1 && cycle ; i++){
-        for(int j=0 ; j<m ; j++){
-            auto [u,v,w] = edges[j];
-            if(dist[u] == -INF*2) dist[v]=-INF*2;
-        }
-    }
-
-    cout<< (dist[n-1]==(-INF*2) ? -1 : dist[n-1]) <<'\n';
+    for(auto x : dist[n-1])
+        cout<< x <<" ";
+    cout<<"\n";
 }

@@ -2,56 +2,42 @@
 
 using namespace std;
 
-#define debug1(x) cout << #x << " = " << x << "\n";
-#define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
-#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
-#define int long long
-#define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
-#define all(v) v.begin(),v.end()
-#define F first 
-#define S second
+const long long INF=1e18;
 
-template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
-template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
-  
-void solve(){
+int main(){
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
     int n,m,k; cin >> n >> m >> k;
-
-    vector< array<int,2> > adj[n+1];
+    vector<pair<int,int>> adj[n];
     for(int i=0 ; i<m ; i++){
         int u,v,w; cin >> u >> v >> w;
-        adj[u].push_back({w,v});
+        u--; v--;
+        adj[u].push_back(make_pair(v,w));
     }
 
-    vector< vector<int> > dist(n+1, vector<int>(k,1e18));
-    dist[1][0]=0;
-    multiset<array<int,2>> st;
-    st.insert({0,1});
-
-    while(!st.empty()){
-        auto it=*st.begin();
-        int dis=it[0] , node=it[1];
-        st.erase(st.begin());
-        if(dist[node][k-1] < dis) continue;
-        for(auto x : adj[node]){
-            int adjW=x[0] , adjN=x[1];
-            if(dis+adjW < dist[adjN][k-1]){
-                dist[adjN][k-1]=dis+adjW;
-                st.insert({dist[adjN][k-1],adjN});
-                sort(all(dist[adjN]));
+    vector<vector<long long>> dist(n, vector<long long>(k,INF));
+    dist[0][0]=0;
+    
+    priority_queue<
+        array<long long,2>,
+        vector<array<long long,2>>, 
+        greater<array<long long,2>>
+    > q;
+    q.push({0,0});
+    while(!q.empty()){
+        auto [dis,node] = q.top();
+        q.pop();
+        if(dis > dist[node][k-1]) continue;
+        for(auto [adjN,w] : adj[node]){
+            if(dis+w < dist[adjN][k-1]){
+                dist[adjN][k-1]=dis+w;
+                q.push({dis+w,adjN});
+                sort(dist[adjN].begin() , dist[adjN].end());
             }
         }
     }
-
-    for(int i=0 ; i<k ; i++){
-        cout<< dist[n][i] <<" ";
-    }
+    for(auto x : dist[n-1])
+        cout<< x <<" ";
     cout<<"\n";
-}
-
-signed main(){
-    FIO;
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
 }
