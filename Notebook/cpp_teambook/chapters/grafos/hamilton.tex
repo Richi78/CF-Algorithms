@@ -1,7 +1,21 @@
 \subsubsection{Hamiltonian path / cycle (bitmask DP + backtracking)}
+
+\textbf{Teoria de Grafos Hamiltonianos (NP-completo)}:
+Recorre cada \textbf{vertice} exactamente una vez.
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Ciclo Hamiltoniano}: Empieza y termina en el \textbf{mismo} vertice ($A \to \dots \to A$), visitando cada vertice intermedio exactamente una vez.
+	\item \textbf{Camino Hamiltoniano}: Empieza en $A$ y termina en $B$ con $B \ne A$ ($A \to \dots \to B$), visitando cada vertice del grafo exactamente una vez.
+	\item \textbf{Teorema de Dirac} (suficiente): Si $n \ge 3$ y para todo $v$, $\text{deg}(v) \ge \lceil n/2 \rceil$, existe ciclo hamiltoniano.
+	\item \textbf{Teorema de Ore} (suficiente): Si para todo par no adyacente $(u, v)$, $\text{deg}(u) + \text{deg}(v) \ge n$, existe ciclo hamiltoniano.
+	\item \textbf{Grafos Torneo}: En cualquier torneo (grafo dirigido completo), \textbf{siempre} existe al menos un camino hamiltoniano.
+	\item \textbf{Enfoque CP ($n \le 20$)}: Bitmask DP en $O(2^n \cdot n^2)$ o $O(2^n \cdot n)$. Estado $\text{dp}[\text{mask}][v] = 1$ (camino sobre subconjunto $\text{mask}$ terminando en $v$).
+	\item \textbf{Cuadriculas / Caballo}: Heuristica de Warnsdorff (greedy hacia el vecino con menor grado de salida).
+\end{itemize}
+
 \begin{lstlisting}[style=mystyle, language=C++]
 // TC: O(N^2 * 2^N)  (bitmask DP), O(N!) peor caso (backtracking)
 // usa: existencia y construccion de camino / ciclo hamiltoniano;
+//     (visita cada VERTICE exactamente una vez; NP-completo)
 //     TSP (min costo de ciclo hamiltoniano) si las aristas tienen peso
 #include <bits/stdc++.h>
 using namespace std;

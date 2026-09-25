@@ -15,27 +15,27 @@ long long edmondsKarp(int n, vector<vector<pair<int,long long>>>& adj, int s, in
 		parent[s] = s;
 		q.push(s);
 		while(!q.empty() && parent[t] == -1){
-			int v = q.front(); q.pop();
-			for(auto [u, cap] : adj[v]){
-				if(cap > 0 && parent[u] == -1){
-					parent[u] = v;
-					q.push(u);
+			int node = q.front(); q.pop();
+			for(auto [adjN, cap] : adj[node]){
+				if(cap > 0 && parent[adjN] == -1){
+					parent[adjN] = node;
+					q.push(adjN);
 				}
 			}
 		}
 		if(parent[t] == -1) break;
 		long long add = INF;
 		for(int v=t; v != s; v = parent[v]){
-			for(auto [u, cap] : adj[parent[v]]){
-				if(u == v) add = min(add, cap);
+			for(auto [adjN, cap] : adj[parent[v]]){
+				if(adjN == v) add = min(add, cap);
 			}
 		}
 		for(int v=t; v != s; v = parent[v]){
-			for(auto& [u, cap] : adj[parent[v]]){
-				if(u == v) cap -= add;
+			for(auto& [adjN, cap] : adj[parent[v]]){
+				if(adjN == v) cap -= add;
 			}
-			for(auto& [u, cap] : adj[v]){
-				if(u == parent[v]) cap += add;
+			for(auto& [adjN, cap] : adj[v]){
+				if(adjN == parent[v]) cap += add;
 			}
 		}
 		flow += add;

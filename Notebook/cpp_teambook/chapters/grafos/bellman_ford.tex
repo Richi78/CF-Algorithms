@@ -1,26 +1,61 @@
 \subsubsection{Bellman-Ford}
 \begin{lstlisting}[style=mystyle, language=C++]
 // TC: O(N * M)
-// usa: camino minimo desde s; permite pesos negativos; detecta ciclo negativo alcanzable desde s en la relajacion extra
-vector<int> ford(int n, vector<array<int,3>> edges, int s){
-	// u v w
-	vector<int> dist(n,1e18);
-	dist[s]=0;
-	for(int i=0 ; i<n-1 ; i++){ // n-1 relaxations
-		for(auto x : edges){
-			int u=x[0] , v=x[1] , w=x[2];
-			if(dist[u] != 1e18 && dist[u]+w < dist[v]){
-				dist[v]=dist[u]+w;
+// 1. Camino minimo desde s y deteccion de ciclo negativo alcanzable
+vector<long long> bellman_ford(int n, vector<array<int,3>>& edges, int s, bool& has_cycle){
+	const long long INF = 1e18;
+	vector<long long> dist(n, INF);
+	dist[s] = 0;
+	for(int i = 0; i < n - 1; i++){
+		for(auto [u, v, w] : edges){
+			if(dist[u] < INF && dist[u] + w < dist[v]){
+				dist[v] = max(-INF, dist[u] + w);
 			}
 		}
 	}
-	// detect negative cycle one more relaxation
-	for(auto x : edges){
-		int u=x[0] , v=x[1] , w=x[2];
-		if(dist[u] != 1e18 && dist[u]+w < dist[v]){
-			// there is a negative cycle
+	has_cycle = false;
+	for(auto [u, v, w] : edges){
+		if(dist[u] < INF && dist[u] + w < dist[v]){
+			has_cycle = true; break;
+		}
+	}
+	return dist;
+}
+
+// 2. Reconstruir ciclo negativo (ej. CSES - Cycle Finding)
+// Retorna vertices del ciclo {v1, v2, ..., v1} en orden dirigido, o vacio si no hay.
+// s = -1: detecta CUALQUIER ciclo en el grafo (dist=0 para todo nodo).
+// s >= 0: detecta ciclo negativo alcanzable desde s.
+vector<int> get_negative_cycle(int n, vector<array<int,3>>& edges, int s = -1){
+	const long long INF = 1e18;
+	vector<long long> dist(n, s == -1 ? 0 : INF);
+	vector<int> parent(n, -1);
+	if(s != -1) dist[s] = 0;
+	int last_relaxed = -1;
+
+	// N relajaciones: si en la vuelta N se relaja algo, hay ciclo negativo
+	for(int rep = 0; rep < n; rep++){
+		last_relaxed = -1;
+		for(auto [u, v, w] : edges){
+			if(dist[u] < INF && dist[u] + w < dist[v]){
+				dist[v] = max(-INF, dist[u] + w);
+				parent[v] = u;
+				last_relaxed = v;
 			}
 		}
-	return dist;
+	}
+	if(last_relaxed == -1) return {}; // No hay ciclo negativo
+
+	// Retroceder N veces: el ultimo vertice relajado podria estar fuera del ciclo
+	// (en una rama alcanzable). Al retroceder N veces por parent se entra seguro al ciclo.
+	for(int i = 0; i < n; i++) last_relaxed = parent[last_relaxed];
+
+	vector<int> cycle;
+	for(int cur = last_relaxed; ; cur = parent[cur]){
+		cycle.push_back(cur);
+		if(cur == last_relaxed && cycle.size() > 1) break;
+	}
+	reverse(cycle.begin(), cycle.end());
+	return cycle;
 }
 \end{lstlisting}

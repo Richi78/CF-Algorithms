@@ -1,8 +1,21 @@
 \subsubsection{Euler tour / Hierholzer (camino y circuito)}
+
+\textbf{Teoria de Grafos Eulerianos ($O(V + E)$)}:
+Recorre cada \textbf{arista} exactamente una vez. Todas las aristas deben pertenecer a una sola componente conexa (se ignoran vertices aislados de grado 0).
+\begin{itemize}\setlength\itemsep{0pt}
+	\item \textbf{Circuito Euleriano}: Empieza y termina en el \textbf{mismo} vertice ($A \to \dots \to A$).
+	\item \textbf{Camino Euleriano}: Empieza en $A$ y termina en $B$ con $B \ne A$ ($A \to \dots \to B$).
+	\item \textbf{No dirigido - Circuito}: Todos los vertices tienen \textbf{grado par}.
+	\item \textbf{No dirigido - Camino}: Exactamente \textbf{dos vertices tienen grado impar} (inicio $A$ y fin $B$); todos los demas tienen grado par.
+	\item \textbf{Dirigido - Circuito}: Para todo vertice $v$, $\text{in}(v) = \text{out}(v)$.
+	\item \textbf{Dirigido - Camino}: Inicio $A$ con $\text{out}(A) - \text{in}(A) = 1$, fin $B$ con $\text{in}(B) - \text{out}(B) = 1$, y para todos los demas $\text{in}(v) = \text{out}(v)$.
+	\item \textbf{Algoritmo de Hierholzer}: DFS que consume aristas; en post-order se apila el vertice y se invierte al final ($O(V + E)$).
+\end{itemize}
+
 \begin{lstlisting}[style=mystyle, language=C++]
-// TC: O(N + M)
+// TC: O(N + M) - Algoritmo de Hierholzer
 // usa: existencia y construccion de camino / circuito euleriano
-//     (no dirigido y dirigido, multigrafos permitidos)
+//     (visita cada ARISTA exactamente una vez; admite multigrafos)
 #include <bits/stdc++.h>
 using namespace std;
 

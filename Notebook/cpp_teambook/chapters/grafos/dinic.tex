@@ -8,46 +8,46 @@ using namespace std;
 const long long INF = 1e18;
 
 struct Dinic{
-	struct Edge{ int to, rev; long long cap; };
+	struct Edge{ int adjN, rev; long long cap; };
 	int n, s, t;
-	vector<vector<Edge>> g;
+	vector<vector<Edge>> adj;
 	vector<int> level, it;
 	Dinic(int n, int s, int t): n(n), s(s), t(t){
-		g.assign(n, {});
+		adj.assign(n, {});
 		level.assign(n, -1);
 		it.assign(n, 0);
 	}
 	void addEdge(int u, int v, long long cap){
-		Edge a{v, (int)g[v].size(), cap};
-		Edge b{u, (int)g[u].size(), 0};
-		g[u].push_back(a);
-		g[v].push_back(b);
+		Edge a{v, (int)adj[v].size(), cap};
+		Edge b{u, (int)adj[u].size(), 0};
+		adj[u].push_back(a);
+		adj[v].push_back(b);
 	}
 	bool bfs(){
 		fill(level.begin(), level.end(), -1);
 		queue<int> q;
 		level[s] = 0; q.push(s);
 		while(!q.empty()){
-			int v = q.front(); q.pop();
-			for(const auto& e : g[v]){
-				if(e.cap > 0 && level[e.to] == -1){
-					level[e.to] = level[v] + 1;
-					q.push(e.to);
+			int node = q.front(); q.pop();
+			for(const auto& [adjN, rev, cap] : adj[node]){
+				if(cap > 0 && level[adjN] == -1){
+					level[adjN] = level[node] + 1;
+					q.push(adjN);
 				}
 			}
 		}
 		return level[t] != -1;
 	}
-	long long dfs(int v, long long pushed){
+	long long dfs(int node, long long pushed){
 		if(pushed == 0) return 0;
-		if(v == t) return pushed;
-		for(int& i = it[v]; i < (int)g[v].size(); i++){
-			auto& e = g[v][i];
-			if(e.cap > 0 && level[e.to] == level[v] + 1){
-				long long tr = dfs(e.to, min(pushed, e.cap));
+		if(node == t) return pushed;
+		for(int& i = it[node]; i < (int)adj[node].size(); i++){
+			auto& [adjN, rev, cap] = adj[node][i];
+			if(cap > 0 && level[adjN] == level[node] + 1){
+				long long tr = dfs(adjN, min(pushed, cap));
 				if(tr == 0) continue;
-				e.cap -= tr;
-				g[e.to][e.rev].cap += tr;
+				cap -= tr;
+				adj[adjN][rev].cap += tr;
 				return tr;
 			}
 		}

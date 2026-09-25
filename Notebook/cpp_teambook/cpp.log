@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.8.18)  19 SEP 2026 11:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.8.18)  25 SEP 2026 02:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -841,39 +841,42 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [33])
 (chapters/strings/lyndon.tex) (chapters/grafos/dijkstra.tex [34])
-(chapters/grafos/bellman_ford.tex) (chapters/grafos/floyd.tex)
-(chapters/grafos/zero_one_bfs.tex [35]) (chapters/grafos/kosaraju.tex)
-(chapters/grafos/tarjan_bridges.tex [36]) (chapters/grafos/tarjan_artic.tex)
+(chapters/grafos/bellman_ford.tex) (chapters/grafos/floyd.tex [35])
+(chapters/grafos/zero_one_bfs.tex) (chapters/grafos/kosaraju.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [36])
+(chapters/grafos/tarjan_bridges.tex) (chapters/grafos/tarjan_artic.tex)
 (chapters/grafos/tarjan_scc.tex [37]) (chapters/grafos/kuhn.tex)
-(chapters/grafos/hopcroft_karp.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [38])
-(chapters/grafos/kruskal.tex) (chapters/grafos/prim.tex [39])
-(chapters/grafos/bfs_dfs.tex) (chapters/grafos/topo.tex [40])
-(chapters/grafos/bipartite.tex) (chapters/grafos/edmonds_karp.tex)
-(chapters/grafos/dinic.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [41])
-(chapters/grafos/mcmf.tex [42]
+(chapters/grafos/hopcroft_karp.tex [38]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
-(chapters/grafos/two_sat.tex [43]) (chapters/grafos/euler.tex
+(chapters/grafos/kruskal.tex) (chapters/grafos/prim.tex [39])
+(chapters/grafos/bfs_dfs.tex) (chapters/grafos/topo.tex [40])
+(chapters/grafos/bipartite.tex) (chapters/grafos/ford_fulkerson.tex [41])
+(chapters/grafos/edmonds_karp.tex) (chapters/grafos/dinic.tex [42]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [44]
+)
+(chapters/grafos/mcmf.tex [43]) (chapters/grafos/two_sat.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [44])
+(chapters/grafos/euler.tex
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [45]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
 (chapters/grafos/hamilton.tex
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [45]
+ [46]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [46]
+ [47]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 )
@@ -882,42 +885,38 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 1.
 
-) (chapters/dp/knapsack_unbounded.tex [47]) (chapters/dp/knapsack_mitm.tex)
-(chapters/dp/lis.tex [48]) (chapters/dp/lcs_edit.tex) (chapters/dp/bitmask.tex)
-(chapters/dp/sos.tex [49]
+[48]) (chapters/dp/knapsack_unbounded.tex) (chapters/dp/knapsack_mitm.tex)
+(chapters/dp/lis.tex [49]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [50])
-(chapters/dp/digit_dp.tex [51]) (chapters/dp/tree_dp.tex)
-(chapters/geometria/conceptos.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [52]
+)
+(chapters/dp/lcs_edit.tex) (chapters/dp/bitmask.tex [50]) (chapters/dp/sos.tex
+[51]) (chapters/dp/digit_dp.tex [52]) (chapters/dp/tree_dp.tex [53])
+(chapters/geometria/conceptos.tex [54]
 Underfull \hbox (badness 1184) in paragraph at lines 84--85
 []\OT1/cmr/m/n/10 En otro caso, la proyec-cion cae den-tro del seg-mento $ =[]\
 OMS/cmsy/m/n/10 )  \OML/cmm/m/it/10 d \OT1/cmr/m/n/10 =
  []
 
-[53]) (chapters/geometria/point.tex) (chapters/geometria/intersect.tex [54])
+) (chapters/geometria/point.tex [55]) (chapters/geometria/intersect.tex)
 (chapters/geometria/contains.tex) (chapters/geometria/distance.tex)
-(chapters/geometria/projection.tex) (chapters/geometria/convex_hull.tex
-[55]) (chapters/geometria/polygon_area.tex)
-(chapters/geometria/point_in_poly.tex) (chapters/geometria/minkowski.tex
-[56]) (chapters/geometria/lichao.tex) (chapters/geometria/sweep.tex)
-(chapters/geometria/closest_pair.tex [57])
-(chapters/geometria/rotating_calipers.tex) [58] (cpp.aux)
+(chapters/geometria/projection.tex [56]) (chapters/geometria/convex_hull.tex)
+(chapters/geometria/polygon_area.tex) (chapters/geometria/point_in_poly.tex)
+(chapters/geometria/minkowski.tex [57]) (chapters/geometria/lichao.tex)
+(chapters/geometria/sweep.tex [58]) (chapters/geometria/closest_pair.tex)
+(chapters/geometria/rotating_calipers.tex) [59] (cpp.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-07-20>
  ***********
 Package rerunfilecheck Info: File `cpp.out' has not changed.
-(rerunfilecheck)             Checksum: BE765749FCB45CD1CE9F4293A15E46CA;24626.
+(rerunfilecheck)             Checksum: B932C9A880CFDCBB16C5BB385D6C006A;24855.
  ) 
 Here is how much of TeX's memory you used:
- 31650 strings out of 467501
- 578271 string characters out of 5408550
- 2263420 words of memory out of 5000000
- 54642 multiletter control sequences out of 15000+600000
+ 31765 strings out of 467501
+ 580329 string characters out of 5408550
+ 2263419 words of memory out of 5000000
+ 54664 multiletter control sequences out of 15000+600000
  635055 words of font info for 69 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  92i,7n,94p,422b,2077s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -944,9 +943,9 @@ ta/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/Si
 mon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:
 /Users/Simon/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt8
 .pfb>
-Output written on cpp.pdf (58 pages, 1452120 bytes).
+Output written on cpp.pdf (59 pages, 1474968 bytes).
 PDF statistics:
- 7538 PDF objects out of 8907 (max. 8388607)
- 5554 named destinations out of 6186 (max. 500000)
- 1165 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 7653 PDF objects out of 8907 (max. 8388607)
+ 5644 named destinations out of 6186 (max. 500000)
+ 1173 words of extra memory for PDF output out of 10000 (max. 10000000)
 
