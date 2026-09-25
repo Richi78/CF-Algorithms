@@ -2,54 +2,46 @@
 
 using namespace std;
 
-int n,m;
-vector<int> team;
-bool bfs(int x, vector<int> adj[]){
-    queue<pair<int,int>> q;
-    q.push(make_pair(x,1));
-    team[x]=1;
-    while(!q.empty()){
-        auto [node,color] = q.front();
-        q.pop();
-        for(int adjN : adj[node]){
-            if(team[adjN]==-1){
-                team[adjN]=color^1;
-                q.push(make_pair(adjN,team[adjN]));
-            }else if(team[adjN]==color){
-                return false;
-            }
-        }
-    }
-    return true;
-}
+const long long INF=1e18;
 
 int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    cin >> n >> m;
-    vector<int> adj[n];
-
+    int n,m; cin >> n >> m;
+    vector<array<int,3>> edges(m);
+    vector<long long> dist(n,-INF);
+    dist[0]=0;
     for(int i=0 ; i<m ; i++){
-        int u,v; cin >> u >> v;
-        u--; v--;
-        adj[u].push_back(v);
-        adj[v].push_back(u);
+        int u,v,w; cin >> u >> v >> w;
+        edges[i]={u-1,v-1,w};
     }
 
-    team.resize(n,-1);
-
-    for(int i=0 ; i<n ; i++){
-        if(team[i]==-1){
-            bool tmp=bfs(i,adj);
-            if(!tmp){
-                cout<<"IMPOSSIBLE\n"; return 0;
-            }
+    for(int i=0 ; i<n-1 ; i++){
+        for(int j=0 ; j<m ; j++){
+            auto [u,v,w] = edges[j];
+            if(dist[u] == -INF) continue;
+            if(dist[u]+w > dist[v])
+                dist[v]=dist[u]+w;
         }
     }
 
-    for(auto &x : team) cout<< x+1 <<" ";
-    cout<<"\n";
+    bool cycle=false;
+    for(int j=0 ; j<m ; j++){
+        auto [u,v,w] = edges[j];
+        if(dist[u] == -INF) continue;
+        if(dist[u]+w > dist[v]){
+            cycle=true;
+            dist[v]=-INF*2;
+        }
+    }
 
-    return 0;
+    for(int i=0 ; i<n-1 && cycle ; i++){
+        for(int j=0 ; j<m ; j++){
+            auto [u,v,w] = edges[j];
+            if(dist[u] == -INF*2) dist[v]=-INF*2;
+        }
+    }
+
+    cout<< (dist[n-1]==(-INF*2) ? -1 : dist[n-1]) <<'\n';
 }
