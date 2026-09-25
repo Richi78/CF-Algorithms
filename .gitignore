@@ -3,3 +3,10 @@
 
 
 .exe
+
+*.aux
+*.log
+*.out
+*.gz
+*.bak
+*.toc
