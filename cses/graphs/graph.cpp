@@ -2,6 +2,13 @@
 
 using namespace std;
 
+const int MOD=1e9+7;
+
+void add_self(long long &a, long long b){
+    a+=b;
+    if(a>=MOD) a-=MOD;
+}
+
 int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
@@ -16,24 +23,26 @@ int main(){
         indegree[v]++;
     }
 
-    vector<int> ans;
+    vector<int> topo;
     queue<int> q;
-    for(int i=0 ; i<n ; i++) if(indegree[i]==0) q.push(i);
+    for(int i=0 ; i<n ; i++) if(indegree[i] == 0) q.push(i);
     while(!q.empty()){
         int node = q.front();
-        ans.push_back(node);
         q.pop();
-        for(auto adjN : adj[node]){
+        topo.push_back(node);
+        for(int adjN : adj[node]){
             if(--indegree[adjN] == 0){
                 q.push(adjN);
             }
         }
     }
 
-    if(ans.size() != n){
-        cout<< "IMPOSSIBLE\n"; return 0;
+    vector<long long> dp(n);
+    dp[0]=1;
+    for(auto node : topo){
+        for(auto adjN : adj[node]){
+            add_self(dp[adjN], dp[node]);
+        }
     }
-
-    for(auto &x : ans) cout<< x+1 <<" ";
-    cout<<"\n";
+    cout<< dp[n-1] <<"\n";
 }
