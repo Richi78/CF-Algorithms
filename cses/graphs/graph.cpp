@@ -2,11 +2,21 @@
 
 using namespace std;
 
-const int MOD=1e9+7;
+stack<int> st;
+vector<bool> vis;
+vector<int> a;
+int scc_component=0;
 
-void add_self(long long &a, long long b){
-    a+=b;
-    if(a>=MOD) a-=MOD;
+void dfs1(int node, vector<int> adj[]){
+    vis[node]=true;
+    for(auto adjN : adj[node]) if(!vis[adjN]) dfs1(adjN,adj);
+    st.push(node);
+}
+
+void dfs2(int node, vector<int> adj[]){
+    vis[node]=true;
+    a[node]=scc_component;
+    for(auto adjN : adj[node]) if(!vis[adjN]) dfs2(adjN,adj);
 }
 
 int main(){
@@ -14,35 +24,31 @@ int main(){
     cin.tie(0); cout.tie(0);
 
     int n,m; cin >> n >> m;
-    vector<vector<int>> adj(n);
-    vector<int> indegree(n);
+    vector<int> adj[n];
     for(int i=0 ; i<m ; i++){
-        int u,v; cin >> u >> v;
-        u--; v--;
+        int u,v; cin >> u >> v; u--; v--;
         adj[u].push_back(v);
-        indegree[v]++;
     }
 
-    vector<int> topo;
-    queue<int> q;
-    for(int i=0 ; i<n ; i++) if(indegree[i] == 0) q.push(i);
-    while(!q.empty()){
-        int node = q.front();
-        q.pop();
-        topo.push_back(node);
-        for(int adjN : adj[node]){
-            if(--indegree[adjN] == 0){
-                q.push(adjN);
-            }
-        }
+    vis.resize(n);
+    for(int i=0 ; i<n ; i++) if(!vis[i]) dfs1(i,adj);
+
+    vector<int> adjT[n];
+    for(int i=0 ; i<n ; i++){
+        vis[i]=false;
+        for(auto adjN : adj[i]) adjT[adjN].push_back(i); 
     }
 
-    vector<long long> dp(n);
-    dp[0]=1;
-    for(auto node : topo){
-        for(auto adjN : adj[node]){
-            add_self(dp[adjN], dp[node]);
+    a.resize(n);
+    while(!st.empty()){
+        int node = st.top();
+        st.pop();
+        if(!vis[node]){
+            scc_component++;
+            dfs2(node, adjT);
         }
     }
-    cout<< dp[n-1] <<"\n";
+    cout<< scc_component <<"\n";
+    for(auto &x : a) cout<< x <<" ";
+    cout<<"\n";
 }
