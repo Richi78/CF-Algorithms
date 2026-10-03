@@ -2,10 +2,13 @@
 
 using namespace std;
 
+#define int long long
+
+vector<int> a;
 stack<int> st;
 vector<bool> vis;
-vector<int> a;
-int scc_component=0;
+vector<int> scc;
+int component_number=-1;
 
 void dfs1(int node, vector<int> adj[]){
     vis[node]=true;
@@ -15,15 +18,17 @@ void dfs1(int node, vector<int> adj[]){
 
 void dfs2(int node, vector<int> adj[]){
     vis[node]=true;
-    a[node]=scc_component;
+    scc[node]=component_number;
     for(auto adjN : adj[node]) if(!vis[adjN]) dfs2(adjN,adj);
 }
 
-int main(){
+signed main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
     int n,m; cin >> n >> m;
+    a.resize(n);
+    for(auto &x :a) cin >> x;
     vector<int> adj[n];
     for(int i=0 ; i<m ; i++){
         int u,v; cin >> u >> v; u--; v--;
@@ -36,19 +41,32 @@ int main(){
     vector<int> adjT[n];
     for(int i=0 ; i<n ; i++){
         vis[i]=false;
-        for(auto adjN : adj[i]) adjT[adjN].push_back(i); 
+        for(auto adjN : adj[i]) adjT[adjN].push_back(i);
     }
 
-    a.resize(n);
+    scc.resize(n);
     while(!st.empty()){
         int node = st.top();
         st.pop();
         if(!vis[node]){
-            scc_component++;
-            dfs2(node, adjT);
+            component_number++;
+            dfs2(node,adjT);
         }
     }
-    cout<< scc_component <<"\n";
-    for(auto &x : a) cout<< x <<" ";
-    cout<<"\n";
+
+    vector<int> new_a(component_number+1);
+    for(int i=0 ; i<n ; i++) new_a[scc[i]]+=a[i];
+
+    vector<vector<int>> scc_graph(component_number+1);
+    for(int i=0 ; i<n ; i++) for(auto adjN : adj[i]) if(scc[i] != scc[adjN]){
+        scc_graph[scc[i]].push_back(scc[adjN]);
+    }
+
+    vector<int> dp=new_a;
+    for(int i=0 ; i<=component_number ; i++) for(auto adjN : scc_graph[i]){
+        dp[adjN] = max(dp[adjN], dp[i] + new_a[adjN]);
+    }
+    int mx=0;
+    for(auto &x : dp) mx=max(mx,x);
+    cout<< mx <<"\n";
 }
