@@ -2,58 +2,39 @@
 
 using namespace std;
 
-#define debug1(x) cout << #x << " = " << x << "\n";
-#define debug2(x,y) cout << #x << " = " << x << " " << #y << " = " << y << "\n";
-#define vdebug(a) cout << #a << " = "; for(auto x: a) cout << x << " "; cout << "\n";
-#define int long long
-#define FIO ios_base::sync_with_stdio(false); cin.tie(0); cout.tie(0);
-#define all(v) v.begin(),v.end()
-// const int MOD=998244353;
-
-template<typename T> bool uin(T &a, T b) {return a>b?(a=b,true):false;}
-template<typename T> bool uax(T &a, T b) {return a<b?(a=b,true):false;}
-
 vector<int> sz;
+int n;
 
 void dfs(int node, int par, vector<int> adj[]){
-    sz[node]=1;
-    for(auto adjN : adj[node]){
-        if(adjN==par) continue;
+    for(auto adjN : adj[node]) if(adjN != par){
         dfs(adjN,node,adj);
         sz[node]+=sz[adjN];
     }
 }
 
-int find_centroid(int node, int par, vector<int> adj[], int n){
-    for(auto adjN : adj[node]){
-        if(adjN!=par && 2*sz[adjN]>n)
-            return find_centroid(adjN,node,adj,n);
-    }
+int find_centroid(int node, int par, vector<int> adj[]){
+    for(int adjN : adj[node]) if(adjN != par){
+        if(sz[adjN] > n/2){
+            return find_centroid(adjN,node, adj);
+        }
+    } 
     return node;
 }
 
-void solve(){
-    int n; cin >> n;
+int main(){
+    ios_base::sync_with_stdio(0);
+    cin.tie(0); cout.tie(0);
+
+    cin >> n;
     vector<int> adj[n];
     for(int i=0 ; i<n-1 ; i++){
-        int u,v; cin >> u >> v;
-        u--; v--;
+        int u,v; cin >> u >> v; u--; v--;
         adj[u].push_back(v);
         adj[v].push_back(u);
     }
 
-    sz.resize(n);
-    dfs(0,0,adj);
+    sz.resize(n,1);
+    dfs(0,-1,adj);
 
-    int cent=find_centroid(0,0,adj,n);
-    cout<< cent+1 <<"\n";
-}
-
-signed main(){
-    FIO;
-    // freopen("censor.in", "r", stdin);
-    // freopen("censor.out", "w", stdout);
-    // int tc;cin>>tc;
-    // while(tc--)solve();
-    solve();
+    cout<< find_centroid(0,-1,adj)+1 <<"\n";
 }
