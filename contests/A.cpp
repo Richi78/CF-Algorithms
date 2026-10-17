@@ -2,51 +2,59 @@
 
 using namespace std;
 
-struct DSU{
-    vector<int> parent,size;
-    DSU(int n){
-        parent.resize(n);
-        size.resize(n,1);
-        for(int i=0 ; i<n ; i++) parent[i]=i;
-    }
-    int find(int node){
-        if(node == parent[node]) return node;
-        return parent[node]=find(parent[node]);
-    }
-    bool unite(int a, int b){
-        int A=find(a) , B=find(b);
-        if(A == B) return false;
-        if(size[A] > size[B]){
-            parent[B]=A;
-            size[A]+=size[B];
-        }else{
-            parent[A]=B;
-            size[B]+=size[A];
-        }
-        return true;
-    }
-};
+
+const long long INF=1e18;
+int n;
+vector<vector<int>> a;
 
 int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    int n,m; cin >> n >> m;
-    vector<array<long long,3>> edges;
-    for(int i=0 ; i<m ; i++){
-        int u,v,w; cin >> u >> v >> w; u--; v--;
-        edges.push_back({w,u,v});
-    }
-    sort(edges.begin() , edges.end());
-    DSU dsu(n);
-    long long sum=0;
-    for(auto &[w,u,v] : edges){
-        if(dsu.unite(u,v)){
-            sum+=w;
+    cin >> n;
+    a.resize(n,vector<int>(n));
+    for(int i=0 ; i<n ; i++) for(int j=0 ; j<n ; j++) cin >> a[i][j];
+
+    vector<vector<long long>> adj(n,vector<long long>(n,INF));
+    for(int i=0 ; i<n ; i++){
+        for(int j=0 ; j<n ; j++){
+            if(i%2==0 && j&1){
+                adj[i][j]=a[i][j];
+            }
+            if(i&1 && j%2==0){
+                adj[i][j]=a[i][j];
+            }
         }
     }
-    if(dsu.size[dsu.find(0)] != n)
-        cout<<"IMPOSSIBLE\n";
-    else
-        cout<< sum <<"\n";
+
+    for(int i=0 ; i<n ; i++) adj[i][i]=0;
+    
+    for(auto row : adj){
+        for(auto col : row) cout<< (col==INF ? -1 : col) <<" ";
+        cout<<"\n";
+    }
+    for(int via=0 ; via<n ; via++){
+        for(int i=0 ; i<n ; i++){
+            for(int j=0 ; j<n ; j++){
+                adj[i][j] = min(adj[i][j], adj[i][via]+adj[via][j]);
+            }
+        }
+    }
+
+    cout<<"-----------\n";
+    for(auto row : adj){
+        for(auto col : row) cout<< col <<" ";
+        cout<<"\n";
+    }
+    long long ans=INF;
+    int nd = (n&1 ? n-1 : n);
+    nd--;
+    cout<<"ND: "<<nd<<"\n";
+    // for(int via=0 ; via<n ; via++){
+        for(int i=0 ; i<n ; i+=2){
+            cout<< "I: "<<i <<" , ADJ: "<<adj[i][nd] <<"\n";
+            ans=min(ans, adj[i][nd]);
+        }
+    // }
+    cout<< ans <<"\n";
 }

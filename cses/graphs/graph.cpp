@@ -2,71 +2,118 @@
 
 using namespace std;
 
-#define int long long
+const int INF=1e9;
+int n,m;
 
-vector<int> a;
-stack<int> st;
-vector<bool> vis;
-vector<int> scc;
-int component_number=-1;
+map<char,pair<int,int>> moves{{'U',{-1,0}} , {'D',{1,0}} , {'R',{0,1}} , {'L',{0,-1}}};
 
-void dfs1(int node, vector<int> adj[]){
-    vis[node]=true;
-    for(auto adjN : adj[node]) if(!vis[adjN]) dfs1(adjN,adj);
-    st.push(node);
+bool isValid(int row, int col){
+  return row>=0 && row<n && col>=0 && col<m;
 }
 
-void dfs2(int node, vector<int> adj[]){
-    vis[node]=true;
-    scc[node]=component_number;
-    for(auto adjN : adj[node]) if(!vis[adjN]) dfs2(adjN,adj);
-}
+int main(){
+  ios_base::sync_with_stdio(0);
+  cin.tie(0); cout.tie(0);
 
-signed main(){
-    ios_base::sync_with_stdio(0);
-    cin.tie(0); cout.tie(0);
-
-    int n,m; cin >> n >> m;
-    a.resize(n);
-    for(auto &x :a) cin >> x;
-    vector<int> adj[n];
-    for(int i=0 ; i<m ; i++){
-        int u,v; cin >> u >> v; u--; v--;
-        adj[u].push_back(v);
-    }
-
-    vis.resize(n);
-    for(int i=0 ; i<n ; i++) if(!vis[i]) dfs1(i,adj);
-
-    vector<int> adjT[n];
-    for(int i=0 ; i<n ; i++){
-        vis[i]=false;
-        for(auto adjN : adj[i]) adjT[adjN].push_back(i);
-    }
-
-    scc.resize(n);
-    while(!st.empty()){
-        int node = st.top();
-        st.pop();
-        if(!vis[node]){
-            component_number++;
-            dfs2(node,adjT);
+  cin >> n >> m;
+  int xs,ys;
+  vector<pair<int,int>> monsters;
+  vector<pair<int,int>> boundary;
+  vector<string> a(n);
+  for(int i=0 ; i<n ; i++){
+    cin >> a[i];
+    for(int j=0 ; j<m ; j++){
+      if(a[i][j] == 'A'){ // start
+        xs=i; ys=j;
+      }else if(a[i][j] == 'M'){ // monster
+        monsters.emplace_back(i,j);
+      }
+      if(i==0 || i==n-1){ // boundary
+        if(a[i][j] == '.' || a[i][j] == 'A'){
+          boundary.emplace_back(i,j);
         }
+      }
+      if(j==0 || j==m-1){
+        if(a[i][j] == '.' || a[i][j] == 'A'){
+          boundary.emplace_back(i,j);
+        }
+      }
     }
+  }
 
-    vector<int> new_a(component_number+1);
-    for(int i=0 ; i<n ; i++) new_a[scc[i]]+=a[i];
-
-    vector<vector<int>> scc_graph(component_number+1);
-    for(int i=0 ; i<n ; i++) for(auto adjN : adj[i]) if(scc[i] != scc[adjN]){
-        scc_graph[scc[i]].push_back(scc[adjN]);
+  a[xs][ys]='.';
+  vector<vector<int>> dist(n,vector<int>(m,INF));
+  queue<array<int,3>> q;
+  for(auto [x,y] : monsters){
+    dist[x][y]=0;
+    q.push({x,y,0});
+    a[x][y]='.';
+  }
+  while(!q.empty()){
+    auto [r,c,d] = q.front();
+    q.pop();
+    if(d > dist[r][c]) continue;
+    for(auto [ch,m] : moves){
+      int nr=r+m.first , nc=c+m.second;
+      if(isValid(nr,nc) && a[nr][nc]=='.' && d+1<dist[nr][nc]){
+        q.push({nr,nc,d+1});
+        dist[nr][nc]=d+1;
+      }
     }
+  }
 
-    vector<int> dp=new_a;
-    for(int i=0 ; i<=component_number ; i++) for(auto adjN : scc_graph[i]){
-        dp[adjN] = max(dp[adjN], dp[i] + new_a[adjN]);
+  // for(auto row:dist){
+  //   for(auto e:row) cout<< (e==INF?-1:e) <<" ";
+  //   cout<<"\n";
+  // }
+  // -1 -1 -1 -1 -1 -1 -1 -1 
+  // -1  0  1  2  1  2  3 -1 
+  // -1  1 -1  1  0 -1  4 -1 
+  // -1  0 -1  2  1 -1  5  6 
+  // -1  1 -1 -1 -1 -1 -1 -1 
+
+  vector<vector<char>> path(n,vector<char>(m,'N'));
+  path[xs][ys]='*';
+  q.push({xs,ys,0});
+  while(!q.empty()){
+    auto [r,c,d] = q.front();
+    q.pop();
+    if(d>=dist[r][c]) continue;
+    for(auto [ch,m] : moves){
+      int nr=r+m.first , nc=c+m.second;
+      if(isValid(nr,nc) && a[nr][nc]=='.' && d+1<dist[nr][nc] && path[nr][nc]=='N'){
+        q.push({nr,nc,d+1});
+        path[nr][nc]=ch;
+      }
     }
-    int mx=0;
-    for(auto &x : dp) mx=max(mx,x);
-    cout<< mx <<"\n";
+  }
+  // cout<<"---------------------------\n";
+  // for(auto row:path){
+  //   for(auto e:row) cout<< e <<" ";
+  //   cout<<"\n";
+  // }
+
+  int xe , ye;
+  bool ok=false;
+  for(auto [x,y] : boundary){
+    if(path[x][y] != 'N'){
+      ok=true; xe=x; ye=y; break;
+    }
+  }
+
+  if(!ok){
+    cout<< "NO\n"; return 0;
+  }
+
+  string ans;
+  while(path[xe][ye] != '*'){
+    char c=path[xe][ye];
+    ans += c;
+    if(c == 'U') xe++;
+    if(c == 'D') xe--;
+    if(c == 'R') ye--;
+    if(c == 'L') ye++;
+  }
+  reverse(ans.begin() , ans.end());
+  cout<< "YES\n" << ans.size() <<"\n"<< ans <<"\n";
 }
