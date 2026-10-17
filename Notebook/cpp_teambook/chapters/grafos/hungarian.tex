@@ -1,0 +1,86 @@
+\subsubsection{Algoritmo Hungaro (Assignment Problem)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N^2 * M), si N = M => O(N^3)
+// usa: matching bipartito con pesos / problema de asignacion (min cost)
+// 1-indexed: n filas (trabajadores), m columnas (tareas), requiere n <= m
+// Para MAX cost: pasar -cost[i][j] y el costo maximo es -res.first
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18;
+
+// cost[1..n][1..m] es el costo de asignar trabajador i a tarea j
+// Retorna {costo_minimo, asignacion}: ans[i] = tarea asignada al trabajador i
+pair<long long, vector<int>> hungarian(int n, int m, const vector<vector<long long>>& cost){
+  vector<long long> u(n + 1, 0), v(m + 1, 0);
+  vector<int> p(m + 1, 0), way(m + 1, 0);
+
+  for(int i = 1; i <= n; i++){
+    p[0] = i;
+    int j0 = 0;
+    vector<long long> minv(m + 1, INF);
+    vector<bool> used(m + 1, false);
+
+    do {
+      used[j0] = true;
+      int i0 = p[j0], j1 = 0;
+      long long delta = INF;
+
+      for(int j = 1; j <= m; j++){
+        if(!used[j]){
+          long long cur = cost[i0][j] - u[i0] - v[j];
+          if(cur < minv[j]){
+            minv[j] = cur;
+            way[j] = j0;
+          }
+          if(minv[j] < delta){
+            delta = minv[j];
+            j1 = j;
+          }
+        }
+      }
+
+      for(int j = 0; j <= m; j++){
+        if(used[j]){
+          u[p[j]] += delta;
+          v[j] -= delta;
+        } else {
+          minv[j] -= delta;
+        }
+      }
+      j0 = j1;
+    } while(p[j0] != 0);
+
+    do {
+      int j1 = way[j0];
+      p[j0] = p[j1];
+      j0 = j1;
+    } while(j0);
+  }
+
+  long long min_cost = -v[0];
+  vector<int> ans(n + 1, 0);
+  for(int j = 1; j <= m; j++){
+    if(p[j] > 0) ans[p[j]] = j; // trabajador p[j] asignado a tarea j
+  }
+  return {min_cost, ans};
+}
+
+int main(){
+  int n = 3, m = 3;
+  // Matriz de costos 1-indexed de tamano (n+1) x (m+1)
+  vector<vector<long long>> cost = {
+    {0, 0, 0, 0},
+    {0, 4, 1, 3},
+    {0, 2, 0, 5},
+    {0, 3, 2, 2}
+  };
+
+  auto [min_cost, match] = hungarian(n, m, cost);
+  cout << "Costo minimo = " << min_cost << "\n"; // 5
+  for(int i = 1; i <= n; i++){
+    cout << "Trabajador " << i << " -> Tarea " << match[i] << "\n";
+  }
+  return 0;
+}
+\end{lstlisting}

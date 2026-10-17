@@ -1,55 +1,81 @@
 \subsubsection{Centroid Decomposition}
 \begin{lstlisting}[style=mystyle, language=C++]
-// TC: O(N log N) build; queries depend on problem
-// usa: problemas tipo "para cada nodo, encontrar el mas cercano que cumple X"
+// TC: O(N log N) descomposicion completa
+// usa: D&C en arboles; ejemplo: contar caminos de longitud exacta k
 #include <bits/stdc++.h>
 using namespace std;
 
-struct CentroidDecomp{
-	int n;
-	vector<vector<int>> adj;
-	vector<int> subSize;
-	vector<bool> removed;
-	vector<int> centroidParent;
-	CentroidDecomp(int n): n(n){
-		adj.assign(n, {});
-		subSize.assign(n, 0);
-		removed.assign(n, false);
-		centroidParent.assign(n, -1);
-	}
-	void addEdge(int u, int v){
-		adj[u].push_back(v);
-		adj[v].push_back(u);
-	}
-	int dfsSize(int v, int p){
-		subSize[v] = 1;
-		for(int u : adj[v]) if(u != p && !removed[u]) subSize[v] += dfsSize(u, v);
-		return subSize[v];
-	}
-	int dfsCentroid(int v, int p, int total){
-		for(int u : adj[v]){
-			if(u != p && !removed[u] && subSize[u] > total / 2){
-				return dfsCentroid(u, v, total);
-			}
-		}
-		return v;
-	}
-	void build(int v = 0, int p = -1){
-		int total = dfsSize(v, -1);
-		int c = dfsCentroid(v, -1, total);
-		centroidParent[c] = p;
-		removed[c] = true;
-		for(int u : adj[c]){
-			if(!removed[u]) build(u, c);
-		}
-	}
-};
+vector<int> sz;
+vector<bool> removed;
+vector<int> cnt; // cnt[d] = cantidad de nodos a distancia d
+int n, k;
+long long ans = 0;
+
+int dfs_size(int node, int par, vector<int> adj[]){
+  sz[node] = 1;
+  for(auto adjN : adj[node]) if(adjN != par && !removed[adjN]){
+    dfs_size(adjN, node, adj);
+    sz[node] += sz[adjN];
+  }
+  return sz[node];
+}
+
+int get_centroid(int node, int par, int total, vector<int> adj[]){
+  for(auto adjN : adj[node]){
+    if(adjN != par && !removed[adjN] && sz[adjN] > total / 2){
+      return get_centroid(adjN, node, total, adj);
+    }
+  }
+  return node;
+}
+
+void dfs_depth(int node, int par, int d, vector<int> &depth, vector<int> adj[]){
+  if(d > k) return;
+  depth.push_back(d);
+  for(auto adjN : adj[node]) if(adjN != par && !removed[adjN]){
+    dfs_depth(adjN, node, d + 1, depth, adj);
+  }
+}
+
+// Cuenta caminos de longitud k que pasan por el centroide c
+void solve_centroid(int c, vector<int> adj[]){
+  cnt[0] = 1;
+  int mx = 0;
+  vector<int> depth;
+  for(auto adjN : adj[c]) if(!removed[adjN]){
+    depth.clear();
+    dfs_depth(adjN, c, 1, depth, adj);
+    for(auto &d : depth) if(k >= d) ans += cnt[k - d];
+    for(auto &d : depth) { cnt[d]++; mx = max(mx, d); }
+  }
+  // Limpiar cnt solo hasta la maxima profundidad vista (O(mx))
+  for(int i = 0; i <= mx; i++) cnt[i] = 0;
+}
+
+void decompose(int node, vector<int> adj[]){
+  int total = dfs_size(node, -1, adj);
+  int c = get_centroid(node, -1, total, adj);
+
+  solve_centroid(c, adj);
+
+  removed[c] = true;
+  for(auto adjN : adj[c]) if(!removed[adjN]){
+    decompose(adjN, adj);
+  }
+}
 
 int main(){
-	CentroidDecomp cd(5);
-	cd.addEdge(0,1); cd.addEdge(1,2); cd.addEdge(2,3); cd.addEdge(3,4);
-	cd.build();
-	cout << "centroid parent of node 0: " << cd.centroidParent[0] << "\n";
-	return 0;
+  cin >> n >> k;
+  vector<int> adj[n];
+  for(int i = 0; i < n - 1; i++){
+    int u, v; cin >> u >> v; u--; v--;
+    adj[u].push_back(v);
+    adj[v].push_back(u);
+  }
+  sz.resize(n);
+  removed.resize(n, false);
+  cnt.resize(n + 1, 0);
+  decompose(0, adj);
+  cout << ans << "\n";
 }
 \end{lstlisting}

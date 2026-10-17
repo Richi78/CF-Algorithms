@@ -1,60 +1,55 @@
 \subsubsection{Binary Lifting / LCA}
 \begin{lstlisting}[style=mystyle, language=C++]
-// TC: O(N log N) build, O(log N) per LCA query
-// usa: lowest common ancestor en arbol estatico (rooted)
+// TC: O(N log N) build, O(log N) por query
+// usa: lowest common ancestor y k-esimo ancestro en arbol
 #include <bits/stdc++.h>
 using namespace std;
 
-struct LCA{
-	int n, LOG;
-	vector<vector<int>> up;
-	vector<int> depth;
-	vector<vector<int>> adj;
-	LCA(int n): n(n){
-		LOG = 32 - __builtin_clz(n + 1);
-		up.assign(LOG, vector<int>(n, -1));
-		depth.assign(n, 0);
-		adj.assign(n, {});
-	}
-	void addEdge(int u, int v){
-		adj[u].push_back(v);
-		adj[v].push_back(u);
-	}
-	void dfs(int v, int p){
-		up[0][v] = p;
-		for(int k=1;k<LOG;k++){
-			if(up[k-1][v] != -1) 
-				up[k][v] = up[k-1][up[k-1][v]];
-		}
-		for(int u : adj[v]){
-			if(u == p) continue;
-			depth[u] = depth[v] + 1;
-			dfs(u, v);
-		}
-	}
-	void build(int root){
-		dfs(root, -1);
-	}
-	int lca(int a, int b){
-		if(depth[a] < depth[b]) swap(a, b);
-		int diff = depth[a] - depth[b];
-		for(int k=0;k<LOG;k++) if(diff & (1<<k)) a = up[k][a];
-		if(a == b) return a;
-		for(int k=LOG-1;k>=0;k--){
-			if(up[k][a] != up[k][b]){
-				a = up[k][a];
-				b = up[k][b];
-			}
-		}
-		return up[0][a];
-	}
-};
+const int LOG = 20; // 2^20 > 1e6
+vector<int> depth;
+vector<vector<int>> up;
 
-int main(){
-	LCA lca(5);
-	lca.addEdge(0,1); lca.addEdge(1,2); lca.addEdge(1,3); lca.addEdge(3,4);
-	lca.build(0);
-	cout << "LCA(2,4) = " << lca.lca(2,4) << "\n";  // 1
-	return 0;
+void dfs(int node, int par, int d, vector<int> adj[]){
+  depth[node] = d;
+  up[0][node] = par;
+  for(auto adjN : adj[node]) if(adjN != par){
+    dfs(adjN, node, d + 1, adj);
+  }
+}
+
+// Camina 'step' pasos hacia arriba desde 'node' (k-th ancestor)
+int walk(int node, int step){
+  for(int i = 0; i <= LOG; i++) if((step >> i) & 1){
+    node = up[i][node];
+  }
+  return node;
+}
+
+int get_lca(int u, int v){
+  if(depth[u] > depth[v]) swap(u, v);
+  v = walk(v, depth[v] - depth[u]);
+  if(u == v) return u;
+  for(int i = LOG; i >= 0; i--){
+    if(up[i][u] != up[i][v]){
+      u = up[i][u];
+      v = up[i][v];
+    }
+  }
+  return up[0][u];
+}
+
+int dist(int u, int v){
+  return depth[u] + depth[v] - 2 * depth[get_lca(u, v)];
+}
+
+void init_lca(int root, int n, vector<int> adj[]){
+  depth.assign(n, 0);
+  up.assign(LOG + 1, vector<int>(n, 0));
+  dfs(root, root, 0, adj);
+  for(int i = 1; i <= LOG; i++){
+    for(int j = 0; j < n; j++){
+      up[i][j] = up[i - 1][up[i - 1][j]];
+    }
+  }
 }
 \end{lstlisting}

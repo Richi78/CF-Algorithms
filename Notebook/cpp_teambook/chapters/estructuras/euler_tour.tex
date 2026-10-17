@@ -1,39 +1,44 @@
-\subsubsection{Euler Tour + range queries}
+\subsubsection{Euler Tour Technique (2 Variantes)}
 \begin{lstlisting}[style=mystyle, language=C++]
-// TC: O(N) build, O(log N) per query (with BIT/segtree)
-// usa: queries en subarbol (suma de valores en el subtree de v)
+// TC: O(N) aplanar el arbol, O(log N) por query con SegTree / BIT
+// Aplana el arbol para convertir problemas de arboles en consultas de rangos
 #include <bits/stdc++.h>
 using namespace std;
 
-struct EulerTour{
-	int n, timer;
-	vector<int> tin, tout;
-	vector<vector<int>> adj;
-	EulerTour(int n): n(n){
-		tin.assign(n, 0);
-		tout.assign(n, 0);
-		adj.assign(n, {});
-		timer = 0;
-	}
-	void addEdge(int u, int v){
-		adj[u].push_back(v);
-		adj[v].push_back(u);
-	}
-	void dfs(int v, int p){
-		tin[v] = timer++;
-		for(int u : adj[v]) if(u != p) dfs(u, v);
-		tout[v] = timer - 1;
-	}
-	void build(int root = 0){ dfs(root, -1); }
-	// subtree of v corresponds to range [tin[v], tout[v]] in base array
-};
+// ============================================================
+// VARIANTE 1: Subtree Queries (Subarbol -> Rango contiguo)
+// El subarbol de u corresponde al rango [tin[u], tout[u]] (tamano N)
+// ============================================================
+vector<int> tin, tout;
+int t = -1;
 
-int main(){
-	EulerTour et(5);
-	et.addEdge(0,1); et.addEdge(1,2); et.addEdge(1,3); et.addEdge(3,4);
-	et.build(0);
-	// subtree of node 1 maps to range [tin[1], tout[1]]
-	cout << "tin[1]=" << et.tin[1] << " tout[1]=" << et.tout[1] << "\n";
-	return 0;
+void dfs_subtree(int node, int par, vector<int> adj[]){
+  tin[node] = ++t;
+  for(auto adjN : adj[node]) if(adjN != par){
+    dfs_subtree(adjN, node, adj);
+  }
+  tout[node] = t; // al salir, 't' actual cubre todo el subarbol
 }
+// En el SegTree/BIT de tamano N:
+//   pos tin[u] guarda el valor a[u]
+// Query subarbol de u: query_segtree(tin[u], tout[u])
+// Update valor de u:   update_segtree(tin[u], val)
+
+// ============================================================
+// VARIANTE 2: Path Queries (Camino Raiz -> Nodo u con + / -)
+// tin tiene +val[u] y tout tiene -val[u] (tamano 2N)
+// Camino de raiz a u = suma en rango [tin[root], tin[u]]
+// ============================================================
+void dfs_path(int node, int par, vector<int> adj[]){
+  tin[node] = ++t;
+  for(auto adjN : adj[node]) if(adjN != par){
+    dfs_path(adjN, node, adj);
+  }
+  tout[node] = ++t; // tin y tout reciben tiempos distintos
+}
+// En el SegTree/BIT de tamano 2N:
+//   pos tin[u]  guarda +a[u]
+//   pos tout[u] guarda -a[u]
+// Query camino raiz a u: query_segtree(tin[0], tin[u])
+// Update valor de u:     sumar delta en tin[u], restar delta en tout[u]
 \end{lstlisting}

@@ -5,50 +5,67 @@
 // diferencia con Edmonds-Karp: FF usa DFS (depende del flujo), EK usa BFS O(N * M^2)
 #include <bits/stdc++.h>
 using namespace std;
+#define int long long
 
-const long long INF = 1e18;
+int n, m;
+int flow = 1e18;
 
-long long dfs(int node, int t, long long pushed, vector<vector<pair<int,long long>>>& adj, vector<int>& vis){
-	if(node == t || pushed == 0) return pushed;
-	vis[node] = 1;
-	for(auto& [adjN, cap] : adj[node]){
-		if(!vis[adjN] && cap > 0){
-			long long tr = dfs(adjN, t, min(pushed, cap), adj, vis);
-			if(tr > 0){
-				cap -= tr;
-				for(auto& [backNode, backCap] : adj[adjN]){
-					if(backNode == node){
-						backCap += tr;
-						break;
-					}
-				}
-				return tr;
-			}
-		}
-	}
-	return 0;
+bool dfs(int node, vector<int> &parent, vector<bool> &vis, vector<pair<int,int>> adj[]){
+  vis[node] = true;
+  if(node == n - 1) return true;
+  for(auto [adjN, w] : adj[node]){
+    if(!vis[adjN] && w > 0){
+      parent[adjN] = node;
+      bool tmp = dfs(adjN, parent, vis, adj);
+      if(tmp){
+        flow = min(flow, w);
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
-long long fordFulkerson(int n, vector<vector<pair<int,long long>>>& adj, int s, int t){
-	long long flow = 0;
-	while(true){
-		vector<int> vis(n, 0);
-		long long pushed = dfs(s, t, INF, adj, vis);
-		if(pushed == 0) break; // no existe camino aumentante
-		flow += pushed;
-	}
-	return flow;
-}
+signed main(){
+  ios_base::sync_with_stdio(0);
+  cin.tie(0); cout.tie(0);
 
-int main(){
-	// Grafo de 4 nodos (mismo ejemplo que Edmonds-Karp)
-	vector<vector<pair<int,long long>>> adj(4);
-	auto add = [&](int u, int v, long long c){
-		adj[u].push_back({v, c});
-		adj[v].push_back({u, 0});
-	};
-	add(0,1,10); add(0,2,5); add(1,2,15); add(1,3,10); add(2,3,10);
-	cout << "max flow = " << fordFulkerson(4, adj, 0, 3) << "\n"; // 15
-	return 0;
+  cin >> n >> m;
+  vector<pair<int,int>> adj[n];
+  for(int i = 0; i < m; i++){
+    int u, v, w; cin >> u >> v >> w; u--; v--;
+    adj[u].emplace_back(v, w);
+    adj[v].emplace_back(u, 0);
+  }
+
+  int mx = 0;
+  while(true){
+    vector<int> parent(n, -1);
+    vector<bool> vis(n);
+    flow = 1e18;
+    dfs(0, parent, vis, adj);
+
+    if(flow != 1e18) mx += flow;
+    else break;
+
+    for(int cur = n - 1; cur != 0; cur = parent[cur]){
+      int par = -1;
+      for(auto &[adjN, w] : adj[cur]){
+        if(adjN == parent[cur]){
+          w += flow;
+          par = adjN;
+          break;
+        } 
+      }
+      for(auto &[adjN, w] : adj[par]){
+        if(adjN == cur && w >= flow){
+          w -= flow;
+          break;
+        }
+      }
+    }
+  }
+
+  cout << mx << "\n";
 }
 \end{lstlisting}
