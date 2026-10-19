@@ -1,0 +1,41 @@
+\subsubsection{Multiplicacion de enteros grandes (FFT)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N log N) donde N es la cantidad de digitos
+// usa: requiere multiplyFFT ya definido. Soporta hasta ~1e6 digitos
+#include <bits/stdc++.h>
+using namespace std;
+
+string multiplyBigInt(const string& num1, const string& num2){
+	if(num1 == "0" || num2 == "0" || num1 == "-0" || num2 == "-0") 
+		return "0";
+	bool neg = (num1[0] == '-') ^ (num2[0] == '-');
+	int s1 = (num1[0] == '-' || num1[0] == '+') ? 1 : 0;
+	int s2 = (num2[0] == '-' || num2[0] == '+') ? 1 : 0;
+
+	vector<long long> a, b;
+	for(int i = (int)num1.size() - 1; i >= s1; i--) 
+		a.push_back(num1[i]-'0');
+	for(int i = (int)num2.size() - 1; i >= s2; i--) 
+		b.push_back(num2[i]-'0');
+
+	vector<long long> c = multiplyFFT(a, b);
+
+	long long carry = 0;
+	string res = "";
+	for(size_t i = 0; i < c.size() || carry > 0; i++){
+		long long cur = carry + (i < c.size() ? c[i] : 0);
+		res.push_back((char)('0' + (cur % 10)));
+		carry = cur / 10;
+	}
+	while(res.size() > 1 && res.back() == '0') res.pop_back();
+	if(neg && res != "0") res.push_back('-');
+	reverse(res.begin(), res.end());
+	return res;
+}
+
+int main(){
+	// multiplica numeros arbitrariamente grandes en O(N log N)
+	cout << multiplyBigInt("12345678901234567890", "98765432109876543210") << "\n";
+	return 0;
+}
+\end{lstlisting}

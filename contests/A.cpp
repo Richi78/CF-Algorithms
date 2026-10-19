@@ -2,59 +2,38 @@
 
 using namespace std;
 
+#define int long long
 
-const long long INF=1e18;
-int n;
-vector<vector<int>> a;
+int f(vector<int> &a, int p){
+    int ans=0;
+    for(auto &x: a){
+        ans+=labs(p-x);
+    }
+    return ans;
+}
 
-int main(){
+signed main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
-    cin >> n;
-    a.resize(n,vector<int>(n));
-    for(int i=0 ; i<n ; i++) for(int j=0 ; j<n ; j++) cin >> a[i][j];
-
-    vector<vector<long long>> adj(n,vector<long long>(n,INF));
-    for(int i=0 ; i<n ; i++){
-        for(int j=0 ; j<n ; j++){
-            if(i%2==0 && j&1){
-                adj[i][j]=a[i][j];
-            }
-            if(i&1 && j%2==0){
-                adj[i][j]=a[i][j];
-            }
-        }
-    }
-
-    for(int i=0 ; i<n ; i++) adj[i][i]=0;
-    
-    for(auto row : adj){
-        for(auto col : row) cout<< (col==INF ? -1 : col) <<" ";
-        cout<<"\n";
-    }
-    for(int via=0 ; via<n ; via++){
-        for(int i=0 ; i<n ; i++){
-            for(int j=0 ; j<n ; j++){
-                adj[i][j] = min(adj[i][j], adj[i][via]+adj[via][j]);
+    int tc; cin >> tc;
+    while(tc--){
+        int n,l,r; cin >> n >> l >> r;
+        vector<int> a(n);
+        for(auto &x : a) cin >> x;
+        while(r-l >= 3){
+            int mid1=l+(r-l)/3;
+            int mid2=r-(r-l)/3;
+            if(f(a,mid1) > f(a,mid2)){
+                l=mid1;
+            }else{
+                r=mid2;
             }
         }
-    }
-
-    cout<<"-----------\n";
-    for(auto row : adj){
-        for(auto col : row) cout<< col <<" ";
-        cout<<"\n";
-    }
-    long long ans=INF;
-    int nd = (n&1 ? n-1 : n);
-    nd--;
-    cout<<"ND: "<<nd<<"\n";
-    // for(int via=0 ; via<n ; via++){
-        for(int i=0 ; i<n ; i+=2){
-            cout<< "I: "<<i <<" , ADJ: "<<adj[i][nd] <<"\n";
-            ans=min(ans, adj[i][nd]);
+        int ans=1e18;
+        for(int i=l ; i<=r ; i++){
+            ans = min(ans,f(a,i));
         }
-    // }
-    cout<< ans <<"\n";
+        cout<< ans <<"\n";
+    }
 }
