@@ -104,20 +104,20 @@ int main(){
   for (int i = 0; i < n; i++) {
     if (vis[i]) continue;
     vector<int> current_table;
-    int curr = i;
-    int prev = -1;
-    while (!vis[curr]) {
-      vis[curr] = true;
+    int curr=i;
+    int prev=-1;
+    while(!vis[curr]){
+      vis[curr]=true;
       current_table.push_back(curr); 
 
       int next_node = -1;
       for (int nxt : g[curr]) {
-        if (nxt != prev && !vis[nxt]) {
+        if (nxt!=prev && !vis[nxt]){
           next_node = nxt;
           break;
         }
       }
-      if (next_node == -1) break;
+      if (next_node==-1) break;
       prev = curr;
       curr = next_node;
     }
