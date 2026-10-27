@@ -9,32 +9,48 @@ int main(){
   cin.tie(0); cout.tie(0);
 
   int n,m; cin >> n >> m;
-  vector<pair<int,int>> adj[n];
+  vector<array<long long,3>> edges;
   for(int i=0 ; i<m ; i++){
-    int u,v,w; cin >> u >> v >> w; u--; v--;
-    adj[u].emplace_back(v,w);
+    long long u,v,w; cin >> u >> v >> w; u--; v--;
+    edges.push_back({u,v,w});
   }
 
-  vector<long long> dist(n, INF);
-  dist[0]=0;
-  priority_queue<
-    pair<long long, long long>, 
-    vector<pair<long long, long long>>,
-    greater<pair<long long, long long>>
-  > pq;
-  pq.push(make_pair(0,0));
-  while(!pq.empty()){
-    auto [d,node] = pq.top();
-    pq.pop();
-    if(d > dist[node]) continue;
-    for(auto [adjN,w] : adj[node]){
-      if(d+w < dist[adjN]){
-        pq.push(make_pair(d+w,adjN));
-        dist[adjN]=d+w;
+  vector<long long> dist(n);
+  vector<int> parent(n,-1);
+  for(int rep=0 ; rep<n-1 ; rep++){
+    for(auto [u,v,w] : edges){
+      if(dist[u]+w < dist[v]){
+        dist[v]=dist[u]+w;
+        parent[v]=u;
       }
     }
   }
 
-  for(auto &x : dist) cout<< x <<" ";
+  int last=-1;
+  for(auto [u,v,w] : edges){
+    if(dist[u]+w < dist[v]){
+      dist[v]=dist[u]+w;
+      parent[v]=u;
+      last=v;
+    }
+  }
+
+  if(last == -1){
+    cout<< "-1\n"; return 0;
+  }
+
+  for(int i=0 ; i<n ; i++){
+    last=parent[last];
+  }
+
+  vector<int> cycle;
+  for(int cur=last ; ; cur=parent[cur]){
+    cycle.push_back(cur);
+    if(cur==cycle.front() && cycle.size()>1) break;
+  }
+  reverse(cycle.begin() , cycle.end());
+
+  cout<< "YES\n";
+  for(auto &x : cycle) cout<< x+1 <<" ";
   cout<<"\n";
 }

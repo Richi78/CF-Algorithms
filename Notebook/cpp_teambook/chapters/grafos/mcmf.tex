@@ -1,89 +1,178 @@
-\subsubsection{Min-Cost Max-Flow}
+\subsubsection{MCMF con SPFA (Simple / Costos Negativos)}
 \begin{lstlisting}[style=mystyle, language=C++]
-// TC: O(F * N * M) with SPFA; swap for Dijkstra + potentials to get O(F * (N+M) log N)
-// usa: maximo flujo con costo minimo (asume costos no negativos)
+// TC: O(F * V * E) peor caso. En la practica suele ser rapido.
+// CUANDO USAR:
+// - Grafos pequenos o medianos (V <= 200, E <= 1000).
+// - Grafos con costos iniciales negativos (sin ciclos neg).
+// - Facil y rapido de tipear en contest (sin potenciales).
 #include <bits/stdc++.h>
 using namespace std;
 
 const long long INF = 1e18;
 
-struct MCMF{
-	// to = destino, rev = indice de la arista inversa en g[to]
-	// cap = capacidad restante, cost = costo unitario
-	struct Edge{ int to, rev; long long cap, cost; };
-	int n;
-	// dist = distancia reducida desde s
-	vector<vector<Edge>> g;
-	// pot = potentials para Dijkstra (h(v) en reweighting)
-	vector<long long> dist, pot;
-	// parent_v = nodo anterior en el camino aumentante, parent_e = indice de la arista usada
-	vector<int> parent_v, parent_e;
-	MCMF(int n): n(n){
-		g.assign(n, {});
-		dist.assign(n, INF);
-		pot.assign(n, 0);
-		parent_v.assign(n, -1);
-		parent_e.assign(n, -1);
-	}
-	void addEdge(int u, int v, long long cap, long long cost){
-		Edge a{v, (int)g[v].size(), cap, cost};   // arista real
-		Edge b{u, (int)g[u].size(), 0, -cost};    // arista residual (cap 0, costo negativo)
-		g[u].push_back(a);
-		g[v].push_back(b);
-	}
-	// returns (maxflow, mincost)
-	pair<long long,long long> minCostMaxFlow(int s, int t){
-		long long flow = 0, cost = 0;
-		while(true){
-			// SPFA con potentials: busca el camino de costo minimo de s a t en el grafo residual
-			fill(dist.begin(), dist.end(), INF);
-			dist[s] = 0;
-			vector<bool> inq(n, false);       // inq = nodo actualmente en la cola de SPFA
-			queue<int> q;
-			q.push(s); inq[s] = true;
-			while(!q.empty()){
-				int v = q.front(); q.pop();
-				inq[v] = false;
-				for(int i=0;i<(int)g[v].size();i++){
-					auto& e = g[v][i];
-					// arista relajable con costos reducidos (pot[v] - pot[e.to] >= 0)
-					if(e.cap > 0 && dist[v] + e.cost + pot[v] - pot[e.to] < dist[e.to]){
-						dist[e.to] = dist[v] + e.cost + pot[v] - pot[e.to];
-						parent_v[e.to] = v;
-						parent_e[e.to] = i;
-						if(!inq[e.to]){ inq[e.to] = true; q.push(e.to); }
-					}
-				}
-			}
-			if(dist[t] == INF) break;   // no hay mas camino de s a t
-			// actualiza potentials para mantener costos reducidos no negativos
-			for(int v=0;v<n;v++) if(dist[v] < INF) pot[v] += dist[v];
-			// encuentra el cuello de botella (minima capacidad en el camino)
-			long long add = INF;
-			for(int v=t; v != s; v = parent_v[v]){
-				add = min(add, g[parent_v[v]][parent_e[v]].cap);
-			}
-			// empuja flujo por el camino y suma el costo
-			for(int v=t; v != s; v = parent_v[v]){
-				auto& e = g[parent_v[v]][parent_e[v]];
-				e.cap -= add;
-				g[v][e.rev].cap += add;
-				cost += add * e.cost;
-			}
-			flow += add;
-		}
-		return {flow, cost};
-	}
-};
+struct MCMF_SPFA {
+  struct Edge { int to, rev; long long cap, cost; };
+  int n;
+  vector<vector<Edge>> g;
+  MCMF_SPFA(int n): n(n), g(n) {}
 
-int main(){
-	MCMF mcmf(4);
-	mcmf.addEdge(0,1,10,1);
-	mcmf.addEdge(0,2,5,2);
-	mcmf.addEdge(1,3,10,1);
-	mcmf.addEdge(2,3,10,1);
-	auto [flow, cost] = mcmf.minCostMaxFlow(0, 3);
-	cout << "flow=" << flow << " cost=" << cost << "\n";
-	return 0;
-}
+  void add_edge(int u, int v, long long cap, long long cost) {
+    g[u].push_back({v, (int)g[v].size(), cap, cost});
+    g[v].push_back({u, (int)g[u].size() - 1, 0, -cost});
+  }
+
+  // Retorna {max_flow, min_cost}
+  pair<long long, long long> min_cost_flow(int s, int t) {
+    long long flow = 0, cost = 0;
+    vector<long long> dist(n);
+    vector<int> pv(n), pe(n);
+    vector<bool> inq(n);
+    queue<int> q;
+
+    while (true) {
+      fill(dist.begin(), dist.end(), INF);
+      fill(inq.begin(), inq.end(), false);
+      dist[s] = 0;
+      q.push(s);
+      inq[s] = true;
+
+      while (!q.empty()) {
+        int u = q.front(); q.pop();
+        inq[u] = false;
+        for (int i = 0; i < (int)g[u].size(); i++) {
+          auto &e = g[u][i];
+          if (e.cap > 0 && dist[u] + e.cost < dist[e.to]) {
+            dist[e.to] = dist[u] + e.cost;
+            pv[e.to] = u;
+            pe[e.to] = i;
+            if (!inq[e.to]) {
+              inq[e.to] = true;
+              q.push(e.to);
+            }
+          }
+        }
+      }
+
+      if (dist[t] == INF) break; // no hay mas caminos
+
+      long long push = INF;
+      for (int v = t; v != s; v = pv[v]) {
+        push = min(push, g[pv[v]][pe[v]].cap);
+      }
+      for (int v = t; v != s; v = pv[v]) {
+        auto &e = g[pv[v]][pe[v]];
+        e.cap -= push;
+        g[v][e.rev].cap += push;
+        cost += push * e.cost;
+      }
+      flow += push;
+    }
+    return {flow, cost};
+  }
+};
+\end{lstlisting}
+
+\subsubsection{MCMF con Potenciales de Johnson (Dijkstra / Rapido)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(F * (V + E) log V). Con SPFA inicial: +O(V * E).
+// CUANDO USAR:
+// - Grafos grandes (V hasta 2000-5000, E hasta 20000+).
+// - Flujo grande F o limites de tiempo estrictos (evita TLE).
+// - Garantia contra grafos "SPFA-killer".
+// NOTA: Si hay costos iniciales < 0, se corre SPFA una sola
+// vez al inicio para fijar los potenciales h[].
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18;
+
+struct MCMF_Pot {
+  struct Edge { int to, rev; long long cap, cost; };
+  int n;
+  vector<vector<Edge>> g;
+  MCMF_Pot(int n): n(n), g(n) {}
+
+  void add_edge(int u, int v, long long cap, long long cost) {
+    g[u].push_back({v, (int)g[v].size(), cap, cost});
+    g[v].push_back({u, (int)g[u].size() - 1, 0, -cost});
+  }
+
+  // Opcional: solo si hay aristas con costo inicial < 0
+  void init_potentials_spfa(int s, vector<long long> &h) {
+    fill(h.begin(), h.end(), INF);
+    vector<bool> inq(n, false);
+    queue<int> q;
+    h[s] = 0; q.push(s); inq[s] = true;
+    while (!q.empty()) {
+      int u = q.front(); q.pop();
+      inq[u] = false;
+      for (auto &e : g[u]) {
+        if (e.cap > 0 && h[u] != INF &&
+            h[u] + e.cost < h[e.to]) {
+          h[e.to] = h[u] + e.cost;
+          if (!inq[e.to]) {
+            inq[e.to] = true;
+            q.push(e.to);
+          }
+        }
+      }
+    }
+    for (int i = 0; i < n; i++) if (h[i] == INF) h[i] = 0;
+  }
+
+  // Retorna {max_flow, min_cost}
+  pair<long long, long long> min_cost_flow(int s, int t) {
+    long long flow = 0, cost = 0;
+    vector<long long> h(n, 0); // potenciales
+    // Descomentar si hay costos iniciales negativos:
+    // init_potentials_spfa(s, h);
+
+    vector<long long> dist(n);
+    vector<int> pv(n), pe(n);
+    using P = pair<long long, int>;
+
+    while (true) {
+      priority_queue<P, vector<P>, greater<P>> pq;
+      fill(dist.begin(), dist.end(), INF);
+      dist[s] = 0;
+      pq.push({0, s});
+
+      while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+        for (int i = 0; i < (int)g[u].size(); i++) {
+          auto &e = g[u][i];
+          // Costo reducido no-negativo: cost + h[u] - h[e.to]
+          long long red = e.cost + h[u] - h[e.to];
+          if (e.cap > 0 && dist[u] + red < dist[e.to]) {
+            dist[e.to] = dist[u] + red;
+            pv[e.to] = u;
+            pe[e.to] = i;
+            pq.push({dist[e.to], e.to});
+          }
+        }
+      }
+
+      if (dist[t] == INF) break; // no hay mas caminos
+
+      // Actualizar potenciales (clamping a dist[t])
+      for (int i = 0; i < n; i++) {
+        h[i] += min(dist[i], dist[t]);
+      }
+
+      long long push = INF;
+      for (int v = t; v != s; v = pv[v]) {
+        push = min(push, g[pv[v]][pe[v]].cap);
+      }
+      for (int v = t; v != s; v = pv[v]) {
+        auto &e = g[pv[v]][pe[v]];
+        e.cap -= push;
+        g[v][e.rev].cap += push;
+        cost += push * e.cost;
+      }
+      flow += push;
+    }
+    return {flow, cost};
+  }
+};
 \end{lstlisting}
