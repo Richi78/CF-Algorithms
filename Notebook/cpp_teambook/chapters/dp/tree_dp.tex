@@ -1,4 +1,4 @@
-\subsubsection{Tree DP (reroot)}
+\subsubsection{Tree DP (Reroot aditivo)}
 \begin{lstlisting}[style=mystyle, language=C++]
 // TC: O(N)
 // usa: para cada nodo, calcular alguna propiedad asumiendo que ese nodo es la raiz
@@ -47,13 +47,51 @@ struct TreeDP{
 		return ans;
 	}
 };
+\end{lstlisting}
 
-int main(){
-	TreeDP tdp(4);
-	tdp.addEdge(0,1); tdp.addEdge(1,2); tdp.addEdge(1,3);
-	auto ans = tdp.solve(0);
-	for(long long x : ans) cout << x << " ";  // sum of distances from each node
-	cout << "\n";
-	return 0;
+\subsubsection{Tree DP (Reroot prefijos y sufijos)}
+\begin{lstlisting}[style=mystyle, language=C++]
+// TC: O(N)
+// Usa pref/suf cuando la operacion NO es invertible
+// (ej. mod compuesto, division por 0, max, gcd)
+const int MOD = 1e9 + 7;
+vector<vector<int>> adj;
+vector<long long> dp, up, ans;
+
+void dfs(int node, int par){
+  dp[node] = 1;
+  for(auto adjN : adj[node]) if(adjN != par){
+    dfs(adjN, node);
+    dp[node] = dp[node] * ((dp[adjN] + 1) % MOD) % MOD;
+  }
+}
+
+void dfs2(int node, int par){
+  vector<int> children;
+  for(auto adjN : adj[node]) if(adjN != par){
+    children.push_back(adjN);
+  }
+  int sz = children.size();
+  vector<long long> pref(sz + 1, 1), suf(sz + 1, 1);
+  for(int i = 0; i < sz; i++){
+    pref[i + 1] = pref[i] * ((dp[children[i]] + 1) % MOD) % MOD;
+  }
+  for(int i = sz - 1; i >= 0; i--){
+    suf[i] = suf[i + 1] * ((dp[children[i]] + 1) % MOD) % MOD;
+  }
+  for(int i = 0; i < sz; i++){
+    int child = children[i];
+    long long sib = pref[i] * suf[i + 1] % MOD;
+    up[child] = sib * ((up[node] + 1) % MOD) % MOD;
+    ans[child] = dp[child] * ((up[child] + 1) % MOD) % MOD;
+    dfs2(child, node);
+  }
+}
+
+void solve(int root = 0){
+  dfs(root, -1);
+  up[root] = 0;
+  ans[root] = dp[root];
+  dfs2(root, -1);
 }
 \end{lstlisting}
