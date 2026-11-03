@@ -1,52 +1,55 @@
 \subsubsection{Tarjan SCC}
 \begin{lstlisting}[style=mystyle, language=C++]
 // TC: O(N + M)
-// usa: encontrar componentes fuertemente conexos
-#include <bits/stdc++.h>
-using namespace std;
+// usa: encuentra componentes fuertemente conexas (SCC) en una sola pasada de DFS
+vector<vector<int>> adj;
+vector<int> tin, low, scc;
+vector<bool> inStack;
+stack<int> st;
+int t = 0, scc_number = 0;
 
-struct TarjanSCC{
-	int n, timer, numComps;
-	vector<int> comp, low, disc, st;
-	vector<bool> inStack;
-	const vector<vector<int>>& adj;
-	TarjanSCC(int n, const vector<vector<int>>& adj): n(n), adj(adj){
-		comp.assign(n, -1);
-		low.assign(n, 0);
-		disc.assign(n, 0);
-		inStack.assign(n, false);
-		timer = 0;
-		numComps = 0;
-		for(int i=0;i<n;i++) if(disc[i] == 0) dfs(i);
-	}
-	void dfs(int node){
-		disc[node] = low[node] = ++timer;
-		st.push_back(node);
-		inStack[node] = true;
-		for(auto adjN : adj[node]){
-			if(disc[adjN] == 0){
-				dfs(adjN);
-				low[node] = min(low[node], low[adjN]);
-			}else if(inStack[adjN]){
-				low[node] = min(low[node], disc[adjN]);
-			}
-		}
-		if(low[node] == disc[node]){
-			while(true){
-				int cur = st.back(); st.pop_back();
-				inStack[cur] = false;
-				comp[cur] = numComps;
-				if(cur == node) break;
-			}
-			numComps++;
+void dfs(int node){
+	tin[node] = low[node] = ++t;
+	st.push(node);
+	inStack[node] = true;
+
+	for(auto adjN : adj[node]){
+		if(!tin[adjN]){
+			dfs(adjN);
+			low[node] = min(low[node], low[adjN]);
+		}else if(inStack[adjN]){
+			low[node] = min(low[node], tin[adjN]);
 		}
 	}
-};
 
-int main(){
-	vector<vector<int>> adj = {{1}, {2,3}, {0}, {4}, {}};
-	TarjanSCC scc(5, adj);
-	cout << "#SCCs = " << scc.numComps << "\n";  // 3
-	return 0;
+	if(low[node] == tin[node]){
+		scc_number++;
+		while(true){
+			int cur = st.top(); st.pop();
+			inStack[cur] = false;
+			scc[cur] = scc_number;
+			if(cur == node) break;
+		}
+	}
+}
+
+void solve(){
+	int n, m; cin >> n >> m;
+	adj.assign(n + 1, {});
+	tin.assign(n + 1, 0);
+	low.assign(n + 1, 0);
+	scc.assign(n + 1, 0);
+	inStack.assign(n + 1, false);
+	while(!st.empty()) st.pop();
+	t = 0; scc_number = 0;
+
+	for(int i = 0; i < m; i++){
+		int u, v; cin >> u >> v;
+		adj[u].push_back(v);
+	}
+
+	for(int i = 1; i <= n; i++){
+		if(!tin[i]) dfs(i);
+	}
 }
 \end{lstlisting}
