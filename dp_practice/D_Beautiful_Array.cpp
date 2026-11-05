@@ -11,7 +11,6 @@ int main(){
   for(auto &y : a) cin >> y;
   
   long long ans=0;
-  // dp[idx][0,1,2] 0->initialize , 1->continueBlock, 2->endBlock
   vector<vector<long long>> dp(n+1,vector<long long>(3));
   for(int i=0 ; i<n ; i++){
     dp[i+1][0]=max(0LL, dp[i][0]) + a[i];
