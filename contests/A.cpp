@@ -2,38 +2,36 @@
 
 using namespace std;
 
-#define int long long
+const int MOD=1e9+7;
 
-int f(vector<int> &a, int p){
-    int ans=0;
-    for(auto &x: a){
-        ans+=labs(p-x);
+int binexp(int a, int b){
+    int ans=1;
+    while(b){
+        if(b&1) ans=(1LL*ans*a)%MOD;
+        a=1LL*a*a%MOD;
+        b>>=1;
     }
     return ans;
 }
 
-signed main(){
+int main(){
     ios_base::sync_with_stdio(0);
     cin.tie(0); cout.tie(0);
 
     int tc; cin >> tc;
     while(tc--){
-        int n,l,r; cin >> n >> l >> r;
+        int n; cin >> n;
         vector<int> a(n);
-        for(auto &x : a) cin >> x;
-        while(r-l >= 3){
-            int mid1=l+(r-l)/3;
-            int mid2=r-(r-l)/3;
-            if(f(a,mid1) > f(a,mid2)){
-                l=mid1;
-            }else{
-                r=mid2;
-            }
+        map<int,int> mp;
+        for(int &x : a) cin >> x , mp[x]++;
+        sort(a.begin() , a.end());
+        long long ans=1;
+        for(int i=n-1 ; i>=0 ; i--){
+            if(mp[a[i]] == 1){
+                ans = (ans + binexp(a[i]-1, n-i))%MOD;
+            }else break;
         }
-        int ans=1e18;
-        for(int i=l ; i<=r ; i++){
-            ans = min(ans,f(a,i));
-        }
+
         cout<< ans <<"\n";
     }
 }
